@@ -1,11 +1,11 @@
-// src/App.jsx — Al-Mawaid Enhanced
-// ✨ 5 Premium Themes | Survey Integration | Profile Lock | Supabase | Feedback
+// src/App.jsx — Al-Mawaid Enhanced with Weekly Menu & Feedback
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, Info, X, Sun, Moon, User, ClipboardList,
   Star, Send, Bell, Palette, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ArrowLeft,
-  MessageSquare, MessageCircle
+  MessageSquare, MessageCircle, Calendar, Camera, Video, Image, Utensils,
+  PauseCircle, PlayCircle, Plus, ChevronRight, Smile, Meh, Frown, Menu, MessageSquarePlus
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -17,95 +17,169 @@ if (!supabaseUrl || !supabaseKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+const RATING_EMOJIS = {
+  1: { emoji: '😢', label: 'Poor', color: '#ef4444' },
+  2: { emoji: '😕', label: 'Below Average', color: '#f97316' },
+  3: { emoji: '😐', label: 'Average', color: '#eab308' },
+  4: { emoji: '😊', label: 'Good', color: '#22c55e' },
+  5: { emoji: '😍', label: 'Excellent', color: '#10b981' }
+}
+
+// ─── Star Rating Component ──────────────────────────────────────
+const StarRating = ({ rating, onChange, theme }) => {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => onChange(star)}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              padding: 4, transition: 'transform 0.2s',
+              transform: star === rating ? 'scale(1.2)' : 'scale(1)',
+              WebkitTapHighlightColor: 'transparent'
+            }}
+          >
+            <Star
+              size={32}
+              fill={star <= rating ? theme.accent : 'none'}
+              color={star <= rating ? theme.accent : theme.border}
+              strokeWidth={2}
+            />
+          </button>
+        ))}
+      </div>
+      {rating > 0 && (
+        <div style={{
+          textAlign: 'center', animation: 'fadeInUp 0.3s ease',
+          background: theme.accentBg, padding: '8px 16px', borderRadius: 12,
+          border: `1px solid ${theme.accentBorder}`
+        }}>
+          <div style={{ fontSize: 32, marginBottom: 4 }}>{RATING_EMOJIS[rating].emoji}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: theme.accent, textTransform: 'uppercase' }}>
+            {RATING_EMOJIS[rating].label}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
 // ─── 5 PREMIUM THEMES ────────────────────────────────────────
 const THEMES = {
-  ivory: {
-    id: 'ivory', label: 'Ivory Gold', emoji: '✨',
-    bg: '#faf8f5', bgGrad: 'linear-gradient(180deg,#faf8f5 0%,#f5f0e8 60%,#ede4d4 100%)',
-    card: '#f5f0e8', cardActive: 'linear-gradient(135deg,#f5f0e8,#ede4d4)',
-    border: 'rgba(180,140,60,0.18)', borderActive: 'rgba(180,140,60,0.45)',
-    accent: '#b48c3c', accentGrad: 'linear-gradient(135deg,#d4a84b,#b48c3c)',
-    accentBg: 'rgba(180,140,60,0.1)', accentBorder: 'rgba(180,140,60,0.35)',
-    text: '#3d3426', textSub: '#7a6b52', textBody: '#5c4f3a',
-    navBg: 'linear-gradient(180deg,#ede4d4,#faf8f5)', navBorder: 'rgba(180,140,60,0.25)',
-    geo: 'rgba(180,140,60,0.06)', popupBg: 'rgba(250,248,245,0.96)',
-    spinnerBorder: 'rgba(180,140,60,0.2)', spinnerTop: '#b48c3c',
-    inputBg: 'rgba(255,255,255,0.7)', inputBorder: 'rgba(180,140,60,0.25)',
-    loginCard: 'rgba(245,240,232,0.92)', loginText: '#3d3426',
-    surveyBg: '#faf8f5', surveyCard: '#f5f0e8',
+  classic_blue: {
+    id: 'classic_blue', label: 'Classic Blue', emoji: '🏢',
+    bg: '#f8fbff', bgGrad: 'linear-gradient(180deg,#f8fbff 0%,#eef4ff 60%,#e0ebff 100%)',
+    card: '#ffffff', cardActive: 'linear-gradient(135deg,#ffffff,#f0f7ff)',
+    border: 'rgba(26,115,232,0.12)', borderActive: 'rgba(26,115,232,0.3)',
+    accent: '#1a73e8', accentGrad: 'linear-gradient(135deg,#4285f4,#1a73e8)',
+    accentBg: 'rgba(26,115,232,0.08)', accentBorder: 'rgba(26,115,232,0.25)',
+    text: '#1f1f1f', textSub: '#474747', textBody: '#3c4043',
+    navBg: 'linear-gradient(180deg,#ffffff,#f8fbff)', navBorder: 'rgba(26,115,232,0.15)',
+    geo: 'rgba(26,115,232,0.04)', popupBg: 'rgba(255,255,255,0.98)',
+    spinnerBorder: 'rgba(26,115,232,0.15)', spinnerTop: '#1a73e8',
+    inputBg: 'rgba(255,255,255,1)', inputBorder: 'rgba(26,115,232,0.2)',
+    loginCard: 'rgba(255,255,255,0.95)', loginText: '#1f1f1f',
   },
-  obsidian: {
-    id: 'obsidian', label: 'Obsidian Night', emoji: '🌑',
-    bg: '#111111', bgGrad: 'linear-gradient(180deg,#111111 0%,#1a1a1a 60%,#111111 100%)',
-    card: '#1e1e1e', cardActive: 'linear-gradient(135deg,#1e1e1e,#2a2a2a)',
-    border: 'rgba(255,255,255,0.08)', borderActive: 'rgba(255,255,255,0.2)',
-    accent: '#e8c547', accentGrad: 'linear-gradient(135deg,#f0d264,#e8c547)',
-    accentBg: 'rgba(232,197,71,0.1)', accentBorder: 'rgba(232,197,71,0.3)',
-    text: '#f0ece4', textSub: '#9a9488', textBody: '#c8c2b6',
-    navBg: 'linear-gradient(180deg,#1a1a1a,#111111)', navBorder: 'rgba(232,197,71,0.2)',
-    geo: 'rgba(255,255,255,0.03)', popupBg: 'rgba(17,17,17,0.96)',
-    spinnerBorder: 'rgba(232,197,71,0.2)', spinnerTop: '#e8c547',
-    inputBg: 'rgba(255,255,255,0.05)', inputBorder: 'rgba(232,197,71,0.25)',
-    loginCard: 'rgba(30,30,30,0.94)', loginText: '#f0ece4',
-    surveyBg: '#161616', surveyCard: '#222222',
+  prof_gray: {
+    id: 'prof_gray', label: 'Professional Gray', emoji: '👤',
+    bg: '#fcfcfc', bgGrad: 'linear-gradient(180deg,#fcfcfc 0%,#f1f3f4 60%,#e8eaed 100%)',
+    card: '#ffffff', cardActive: 'linear-gradient(135deg,#ffffff,#f1f3f4)',
+    border: 'rgba(95,99,104,0.12)', borderActive: 'rgba(95,99,104,0.3)',
+    accent: '#5f6368', accentGrad: 'linear-gradient(135deg,#80868b,#5f6368)',
+    accentBg: 'rgba(95,99,104,0.08)', accentBorder: 'rgba(95,99,104,0.25)',
+    text: '#202124', textSub: '#5f6368', textBody: '#3c4043',
+    navBg: 'linear-gradient(180deg,#ffffff,#fcfcfc)', navBorder: 'rgba(95,99,104,0.15)',
+    geo: 'rgba(95,99,104,0.04)', popupBg: 'rgba(255,255,255,0.98)',
+    spinnerBorder: 'rgba(95,99,104,0.15)', spinnerTop: '#5f6368',
+    inputBg: 'rgba(255,255,255,1)', inputBorder: 'rgba(95,99,104,0.2)',
+    loginCard: 'rgba(255,255,255,0.95)', loginText: '#202124',
   },
-  ocean: {
-    id: 'ocean', label: 'Ocean Teal', emoji: '🌊',
-    bg: '#f0fafa', bgGrad: 'linear-gradient(180deg,#f0fafa 0%,#d5f0ee 60%,#b2e4e0 100%)',
-    card: '#d5f0ee', cardActive: 'linear-gradient(135deg,#d5f0ee,#b2e4e0)',
-    border: 'rgba(14,116,120,0.18)', borderActive: 'rgba(14,116,120,0.45)',
-    accent: '#0e7478', accentGrad: 'linear-gradient(135deg,#14919b,#0e7478)',
-    accentBg: 'rgba(14,116,120,0.1)', accentBorder: 'rgba(14,116,120,0.35)',
-    text: '#0a3d3f', textSub: '#1a6567', textBody: '#155e60',
-    navBg: 'linear-gradient(180deg,#b2e4e0,#f0fafa)', navBorder: 'rgba(14,116,120,0.25)',
-    geo: 'rgba(14,116,120,0.06)', popupBg: 'rgba(240,250,250,0.96)',
-    spinnerBorder: 'rgba(14,116,120,0.2)', spinnerTop: '#14919b',
-    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(14,116,120,0.25)',
-    loginCard: 'rgba(213,240,238,0.92)', loginText: '#0a3d3f',
-    surveyBg: '#f0fafa', surveyCard: '#d5f0ee',
+  emerald: {
+    id: 'emerald', label: 'Emerald Green', emoji: '🌿',
+    bg: '#f7fdf9', bgGrad: 'linear-gradient(180deg,#f7fdf9 0%,#e6f4ea 60%,#ceead6 100%)',
+    card: '#ffffff', cardActive: 'linear-gradient(135deg,#ffffff,#e6f4ea)',
+    border: 'rgba(30,142,62,0.12)', borderActive: 'rgba(30,142,62,0.3)',
+    accent: '#1e8e3e', accentGrad: 'linear-gradient(135deg,#34a853,#1e8e3e)',
+    accentBg: 'rgba(30,142,62,0.08)', accentBorder: 'rgba(30,142,62,0.25)',
+    text: '#137333', textSub: '#188038', textBody: '#202124',
+    navBg: 'linear-gradient(180deg,#ffffff,#f7fdf9)', navBorder: 'rgba(30,142,62,0.15)',
+    geo: 'rgba(30,142,62,0.04)', popupBg: 'rgba(255,255,255,0.98)',
+    spinnerBorder: 'rgba(30,142,62,0.15)', spinnerTop: '#1e8e3e',
+    inputBg: 'rgba(255,255,255,1)', inputBorder: 'rgba(30,142,62,0.2)',
+    loginCard: 'rgba(255,255,255,0.95)', loginText: '#137333',
   },
   burgundy: {
-    id: 'burgundy', label: 'Rich Burgundy', emoji: '🍷',
-    bg: '#faf2f2', bgGrad: 'linear-gradient(180deg,#faf2f2 0%,#f0dada 60%,#e4c4c4 100%)',
-    card: '#f0dada', cardActive: 'linear-gradient(135deg,#f0dada,#e4c4c4)',
-    border: 'rgba(128,30,40,0.18)', borderActive: 'rgba(128,30,40,0.45)',
-    accent: '#801e28', accentGrad: 'linear-gradient(135deg,#a52834,#801e28)',
-    accentBg: 'rgba(128,30,40,0.1)', accentBorder: 'rgba(128,30,40,0.3)',
-    text: '#3d1015', textSub: '#8c3a42', textBody: '#6b2630',
-    navBg: 'linear-gradient(180deg,#e4c4c4,#faf2f2)', navBorder: 'rgba(128,30,40,0.25)',
-    geo: 'rgba(128,30,40,0.06)', popupBg: 'rgba(250,242,242,0.96)',
-    spinnerBorder: 'rgba(128,30,40,0.2)', spinnerTop: '#a52834',
-    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(128,30,40,0.25)',
-    loginCard: 'rgba(240,218,218,0.92)', loginText: '#3d1015',
-    surveyBg: '#faf2f2', surveyCard: '#f0dada',
+    id: 'burgundy', label: 'Burgundy Red', emoji: '🍷',
+    bg: '#fff8f7', bgGrad: 'linear-gradient(180deg,#fff8f7 0%,#fce8e6 60%,#f9dada 100%)',
+    card: '#ffffff', cardActive: 'linear-gradient(135deg,#ffffff,#fce8e6)',
+    border: 'rgba(165,14,14,0.12)', borderActive: 'rgba(165,14,14,0.3)',
+    accent: '#a50e0e', accentGrad: 'linear-gradient(135deg,#d93025,#a50e0e)',
+    accentBg: 'rgba(165,14,14,0.08)', accentBorder: 'rgba(165,14,14,0.25)',
+    text: '#700a0a', textSub: '#c5221f', textBody: '#202124',
+    navBg: 'linear-gradient(180deg,#ffffff,#fff8f7)', navBorder: 'rgba(165,14,14,0.15)',
+    geo: 'rgba(165,14,14,0.04)', popupBg: 'rgba(255,255,255,0.98)',
+    spinnerBorder: 'rgba(165,14,14,0.15)', spinnerTop: '#a50e0e',
+    inputBg: 'rgba(255,255,255,1)', inputBorder: 'rgba(165,14,14,0.2)',
+    loginCard: 'rgba(255,255,255,0.95)', loginText: '#700a0a',
   },
-  sage: {
-    id: 'sage', label: 'Slate Sage', emoji: '🌿',
-    bg: '#f4f7f4', bgGrad: 'linear-gradient(180deg,#f4f7f4 0%,#dce8dc 60%,#c2d8c2 100%)',
-    card: '#dce8dc', cardActive: 'linear-gradient(135deg,#dce8dc,#c2d8c2)',
-    border: 'rgba(70,110,70,0.18)', borderActive: 'rgba(70,110,70,0.45)',
-    accent: '#466e46', accentGrad: 'linear-gradient(135deg,#5a8a5a,#466e46)',
-    accentBg: 'rgba(70,110,70,0.1)', accentBorder: 'rgba(70,110,70,0.35)',
-    text: '#1e3320', textSub: '#4a6f4c', textBody: '#355838',
-    navBg: 'linear-gradient(180deg,#c2d8c2,#f4f7f4)', navBorder: 'rgba(70,110,70,0.25)',
-    geo: 'rgba(70,110,70,0.06)', popupBg: 'rgba(244,247,244,0.96)',
-    spinnerBorder: 'rgba(70,110,70,0.2)', spinnerTop: '#5a8a5a',
-    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(70,110,70,0.25)',
-    loginCard: 'rgba(220,232,220,0.92)', loginText: '#1e3320',
-    surveyBg: '#f4f7f4', surveyCard: '#dce8dc',
+  navy: {
+    id: 'navy', label: 'Navy Blue', emoji: '⚓',
+    bg: '#f0f4f9', bgGrad: 'linear-gradient(180deg,#f0f4f9 0%,#d2e3fc 60%,#aecbfa 100%)',
+    card: '#ffffff', cardActive: 'linear-gradient(135deg,#ffffff,#d2e3fc)',
+    border: 'rgba(13,71,161,0.12)', borderActive: 'rgba(13,71,161,0.3)',
+    accent: '#0d47a1', accentGrad: 'linear-gradient(135deg,#1565c0,#0d47a1)',
+    accentBg: 'rgba(13,71,161,0.08)', accentBorder: 'rgba(13,71,161,0.25)',
+    text: '#002171', textSub: '#1565c0', textBody: '#202124',
+    navBg: 'linear-gradient(180deg,#ffffff,#f0f4f9)', navBorder: 'rgba(13,71,161,0.15)',
+    geo: 'rgba(13,71,161,0.04)', popupBg: 'rgba(255,255,255,0.98)',
+    spinnerBorder: 'rgba(13,71,161,0.15)', spinnerTop: '#0d47a1',
+    inputBg: 'rgba(255,255,255,1)', inputBorder: 'rgba(13,71,161,0.2)',
+    loginCard: 'rgba(255,255,255,0.95)', loginText: '#002171',
   },
 }
 
-// ─── Theme persistence helpers ────────────────────────────────
-function getSavedThemeId() { try { return localStorage.getItem('al-mawaid-theme') || 'ivory' } catch { return 'ivory' } }
+function getSavedThemeId() { try { return localStorage.getItem('al-mawaid-theme') || 'classic_blue' } catch { return 'classic_blue' } }
 function saveThemeId(id) { try { localStorage.setItem('al-mawaid-theme', id) } catch { } }
 
 const ThemeCtx = createContext(null)
 const useTheme = () => useContext(ThemeCtx)
+
+// ─── Toast Component & Hook ───────────────────────────────────────────────────────
+// Simple toast that reads the current theme via useTheme(). If the theme context is
+// unavailable (e.g., during early loading), it falls back to sensible defaults.
+const Toast = ({msg, type}) => {
+  const t = useTheme() || {}
+  const bg = type === 'error' ? (t.accent || '#ef4444') : (t.accent || '#22c55e')
+  const text = '#fff'
+  return (
+    <div style={{
+      position: 'fixed', top: 20, right: 20, zIndex: 2000,
+      background: bg, color: text,
+      padding: '12px 20px', borderRadius: 8,
+      boxShadow: `0 4px 12px ${bg}80`,
+      fontSize: 14, fontWeight: 600,
+      animation: 'fadeInDown 0.3s ease'
+    }}>{msg}</div>
+  )
+}
+
+// Hook to expose toast functionality to any component.
+const useToast = () => {
+  const [toastInfo, setToastInfo] = useState(null)
+  const showToast = (msg, type = 'success') => {
+    setToastInfo({msg, type})
+    setTimeout(() => setToastInfo(null), 4000)
+  }
+  return {toastInfo, showToast}
+}
+
 const AuthCtx = createContext(null)
 const useAuth = () => useContext(AuthCtx)
 
-/* ─── Shared helpers ─────────────────────────────────────────── */
+/* ─── Shared Components ─────────────────────────────────────────── */
 const GeoBg = ({ t: tProp }) => {
   const ctx = useTheme()
   const t = tProp || ctx
@@ -148,1668 +222,1359 @@ const ErrorBanner = ({ msg }) => (
   </div>
 )
 
-/* ─── Star Rating ──────────────────────────────────────────── */
-function StarRating({ value, onChange, size = 36 }) {
-  const t = useTheme()
-  const [hov, setHov] = useState(null)
-  return (
-    <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-      {[1, 2, 3, 4, 5].map(s => {
-        const on = s <= (hov ?? value ?? 0)
-        return (
-          <button key={s} onClick={() => onChange(s)}
-            onMouseEnter={() => setHov(s)} onMouseLeave={() => setHov(null)}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer', padding: 4,
-              transform: on ? 'scale(1.2)' : 'scale(1)', transition: 'all 0.2s ease',
-              filter: on ? 'drop-shadow(0 0 8px currentColor)' : 'none'
-            }}>
-            <Star size={size} fill={on ? t.accent : 'none'} color={on ? t.accent : t.border} strokeWidth={1.8} />
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/* ─── Feedback Modal ─────────────────────────────────────────── */
-function FeedbackModal({ onClose, menuId, memberNo, todayName, t }) {
-  const [rating, setRating] = useState(null)
-  const [mealType, setMealType] = useState('general')
-  const [comment, setComment] = useState('')
-  const [saving, setSaving] = useState(false)
-  const [saveErr, setSaveErr] = useState(null)
-  const [done, setDone] = useState(false)
-
-  async function handleSubmit() {
-    if (!rating) { setSaveErr('Please select a star rating.'); return }
-    setSaving(true); setSaveErr(null)
-    const { error } = await supabase.from('feedback').insert({
-      member_no: memberNo,
-      menu_id: menuId,
-      meal_type: mealType,
-      rating,
-      comment: comment.trim() || null,
-    })
-    setSaving(false)
-    if (error) { setSaveErr(error.message); return }
-    setDone(true)
-    setTimeout(onClose, 1800)
-  }
-
-  const mealOptions = [
-    { value: 'general', label: 'Overall', emoji: '🍽️' },
-    { value: 'lunch', label: 'Lunch', emoji: '☀️' },
-    { value: 'dinner', label: 'Dinner', emoji: '🌙' },
-  ]
-
-  return (
-    <div onClick={onClose}
-      style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: 24, background: t.popupBg, backdropFilter: 'blur(20px)',
-        animation: 'fadeIn 0.2s ease'
-      }}>
-      <div onClick={e => e.stopPropagation()}
-        style={{
-          width: '100%', maxWidth: 400, borderRadius: 28, padding: '28px 24px',
-          position: 'relative', background: t.card,
-          border: `2px solid ${t.accentBorder}`,
-          boxShadow: '0 28px 90px rgba(0,0,0,0.35)',
-          animation: 'fadeInUp 0.3s ease'
-        }}>
-
-        {/* Close */}
-        <button onClick={onClose}
-          style={{
-            position: 'absolute', top: 18, right: 18, background: 'none',
-            border: 'none', cursor: 'pointer', color: t.textSub,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            width: 32, height: 32, borderRadius: '50%',
-            transition: 'background 0.2s'
-          }}>
-          <X size={20} />
-        </button>
-
-        {done ? (
-          <div style={{ textAlign: 'center', padding: '20px 0' }}>
-            <div style={{ fontSize: 56, marginBottom: 12 }}>🎉</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 900, color: t.text }}>Thank you!</h3>
-            <p style={{ margin: 0, fontSize: 14, color: t.textSub, fontWeight: 500 }}>Your feedback has been recorded.</p>
-          </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 22 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 14, background: t.accentBg,
-                border: `2px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <MessageCircle size={22} color={t.accent} />
-              </div>
-              <div>
-                <p style={{
-                  margin: 0, fontSize: 11, fontWeight: 800, color: t.accent,
-                  textTransform: 'uppercase', letterSpacing: '0.15em', opacity: 0.85
-                }}>Feedback</p>
-                <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: t.text }}>{todayName}'s Meal</p>
-              </div>
-            </div>
-
-            {/* Meal Type Selector */}
-            <div style={{ marginBottom: 20 }}>
-              <p style={{
-                margin: '0 0 10px', fontSize: 12, fontWeight: 800, color: t.accent,
-                textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.9
-              }}>What are you rating?</p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                {mealOptions.map(opt => (
-                  <button key={opt.value}
-                    onClick={() => setMealType(opt.value)}
-                    style={{
-                      flex: 1, padding: '10px 6px', borderRadius: 14, cursor: 'pointer',
-                      border: `2px solid ${mealType === opt.value ? t.accentBorder : t.border}`,
-                      background: mealType === opt.value ? t.accentBg : 'transparent',
-                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                      transition: 'all 0.2s'
-                    }}>
-                    <span style={{ fontSize: 18 }}>{opt.emoji}</span>
-                    <span style={{
-                      fontSize: 12, fontWeight: 800,
-                      color: mealType === opt.value ? t.accent : t.textSub
-                    }}>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Star Rating */}
-            <div style={{ marginBottom: 20 }}>
-              <p style={{
-                margin: '0 0 12px', fontSize: 12, fontWeight: 800, color: t.accent,
-                textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.9, textAlign: 'center'
-              }}>Your Rating</p>
-              <StarRating value={rating} onChange={setRating} size={40} />
-              {rating && (
-                <p style={{ textAlign: 'center', margin: '8px 0 0', fontSize: 13, fontWeight: 700, color: t.textSub, opacity: 0.8 }}>
-                  {['', '😞 Poor', '😕 Fair', '😊 Good', '😄 Great', '🤩 Excellent!'][rating]}
-                </p>
-              )}
-            </div>
-
-            {/* Comment */}
-            <div style={{ marginBottom: 20 }}>
-              <p style={{
-                margin: '0 0 8px', fontSize: 12, fontWeight: 800, color: t.accent,
-                textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.9
-              }}>Comments (optional)</p>
-              <textarea
-                value={comment}
-                onChange={e => { setComment(e.target.value); setSaveErr(null) }}
-                placeholder="Tell us more about your experience…"
-                rows={3}
-                style={{
-                  width: '100%', boxSizing: 'border-box', resize: 'vertical',
-                  background: t.inputBg, border: `1.5px solid ${t.inputBorder}`,
-                  borderRadius: 14, color: t.text, fontSize: 14, padding: '12px 14px',
-                  outline: 'none', fontFamily: "'Inter', -apple-system, sans-serif",
-                  fontWeight: 500, lineHeight: 1.5, minHeight: 80,
-                  transition: 'border-color 0.25s'
-                }}
-                onFocus={e => e.target.style.borderColor = t.accent}
-                onBlur={e => e.target.style.borderColor = t.inputBorder}
-              />
-            </div>
-
-            {saveErr && <ErrorBanner msg={saveErr} />}
-
-            {/* Submit */}
-            <button onClick={handleSubmit} disabled={saving}
-              style={{
-                width: '100%', padding: '15px', borderRadius: 18, border: 'none',
-                cursor: saving ? 'wait' : 'pointer',
-                background: saving ? t.accentBg : t.accentGrad,
-                color: saving ? t.accent : '#fff',
-                fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: saving ? 'none' : `0 10px 32px ${t.accentBg}`,
-                transition: 'all 0.25s'
-              }}>
-              {saving
-                ? <><div className="spin" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTop: `2px solid ${t.accent}`, borderRadius: '50%' }} /> Submitting…</>
-                : <><Send size={16} /> Submit Feedback</>
-              }
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
-/* ─── Theme Switcher ─── */
-function ThemeSwitcher({ themeId, setThemeId, theme: t }) {
+/* ─── Theme Switcher (Profile Only) ─────────────────────────────────────────── */
+function ThemeSwitcher({ themeId, setThemeId, theme }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ position: 'fixed', bottom: 90, right: 16, zIndex: 200 }}>
-      <button onClick={() => setOpen(o => !o)} title="Switch Theme"
+    <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 100 }}>
+      <button onClick={() => setOpen(o => !o)}
         style={{
-          width: 50, height: 50, borderRadius: '50%', border: `2px solid ${t.accentBorder}`,
-          background: t.accentBg, cursor: 'pointer',
+          background: theme.card, border: `1.5px solid ${theme.border}`,
+          borderRadius: '50%', width: 44, height: 44, cursor: 'pointer',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          backdropFilter: 'blur(12px)', boxShadow: `0 6px 24px ${t.accentBg}`,
-          transition: 'all 0.3s ease'
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)', transition: 'all 0.3s',
+          WebkitTapHighlightColor: 'transparent', color: theme.accent
         }}>
-        <Palette size={22} color={t.accent} />
+        <Palette size={22} strokeWidth={2.4} />
       </button>
       {open && (
-        <>
-          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: -1 }} />
-          <div style={{
-            position: 'absolute', bottom: 60, right: 0, background: t.card,
-            border: `1px solid ${t.accentBorder}`, borderRadius: 20, padding: 12,
-            display: 'flex', flexDirection: 'column', gap: 6, minWidth: 170,
-            boxShadow: '0 16px 48px rgba(0,0,0,0.25)', backdropFilter: 'blur(20px)',
-            animation: 'fadeInUp 0.25s ease', zIndex: 300
-          }}>
-            <p style={{
-              margin: '0 6px 6px', fontSize: 10, fontWeight: 900,
-              textTransform: 'uppercase', letterSpacing: '0.2em', color: t.textSub, opacity: 0.7
-            }}>THEMES</p>
-            {Object.values(THEMES).map(th => (
-              <button key={th.id} onClick={() => { setThemeId(th.id); saveThemeId(th.id); setOpen(false) }}
+        <div style={{
+          position: 'absolute', top: 60, right: 0, background: theme.card,
+          border: `1.5px solid ${theme.border}`, borderRadius: 16,
+          padding: 12, display: 'flex', flexDirection: 'column', gap: 8,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.12)', minWidth: 180
+        }}>
+          {Object.values(THEMES).map(th => {
+            const active = th.id === themeId
+            return (
+              <button key={th.id} onClick={() => { setThemeId(th.id); setOpen(false) }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
-                  borderRadius: 14, border: 'none', cursor: 'pointer',
-                  background: themeId === th.id ? t.accentBg : 'transparent',
-                  width: '100%', textAlign: 'left', transition: 'all 0.2s'
+                  background: active ? th.accentBg : 'transparent',
+                  border: `1.5px solid ${active ? th.accentBorder : th.border}`,
+                  borderRadius: 10, padding: '10px 12px', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  transition: 'all 0.2s', WebkitTapHighlightColor: 'transparent'
                 }}>
                 <span style={{ fontSize: 18 }}>{th.emoji}</span>
-                <span style={{ fontSize: 14, fontWeight: 700, color: t.text, flex: 1 }}>{th.label}</span>
-                {themeId === th.id && <Check size={16} color={t.accent} strokeWidth={3} />}
+                <span style={{ fontSize: 13, fontWeight: 700, color: th.text }}>{th.label}</span>
+                {active && <Check size={16} color={th.accent} strokeWidth={2.5} style={{ marginLeft: 'auto' }} />}
               </button>
-            ))}
-          </div>
-        </>
+            )
+          })}
+        </div>
       )}
     </div>
   )
 }
 
-
-
-/* ═══════════════════════════════════════
-   LOGIN PAGE
-═══════════════════════════════════════ */
+/* ─── LOGIN PAGE ─────────────────────────────────────────────────────────────────── */
 function LoginPage({ themeId, setThemeId }) {
-  const t = THEMES[themeId] || THEMES.ivory
-  const [email, setEmail] = useState(() => { try { return localStorage.getItem('al-mawaid-email') || '' } catch { return '' } })
-  const [password, setPassword] = useState(() => { try { return localStorage.getItem('al-mawaid-pass') || '' } catch { return '' } })
+  const theme = THEMES[themeId]
+  const [email, setEmail] = useState('')
+  const [pass, setPass] = useState('')
   const [showPass, setShowPass] = useState(false)
-  const [remember, setRemember] = useState(() => { try { return !!localStorage.getItem('al-mawaid-email') } catch { return false } })
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState('')
 
-  async function handleLogin(e) {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (!email || !password) { setError('Please enter both email and password.'); return }
-    setLoading(true); setError(null)
-    const { error: err } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+    if (!email || !pass) return setError('Please enter email and password')
+    setLoading(true)
+    setError('')
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password: pass })
     setLoading(false)
-    if (err) { setError(err.message); return }
-    if (remember) {
-      try { localStorage.setItem('al-mawaid-email', email.trim()); localStorage.setItem('al-mawaid-pass', password) } catch { }
-    } else {
-      try { localStorage.removeItem('al-mawaid-email'); localStorage.removeItem('al-mawaid-pass') } catch { }
-    }
-  }
-
-  const inp = {
-    width: '100%', boxSizing: 'border-box',
-    background: t.inputBg, border: `1.5px solid ${t.inputBorder}`,
-    borderRadius: 16, color: t.loginText, fontSize: 15, padding: '15px 18px',
-    outline: 'none', fontFamily: "'Inter', -apple-system, sans-serif", transition: 'all 0.25s',
-    fontWeight: 500,
+    if (err) setError(err.message)
   }
 
   return (
     <div style={{
-      minHeight: '100vh', background: t.bgGrad,
-      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-      padding: '24px', fontFamily: "'Inter', -apple-system, sans-serif", position: 'relative', overflow: 'hidden'
+      minHeight: '100vh', background: theme.bgGrad,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24,
+      fontFamily: "'Inter', -apple-system, sans-serif", position: 'relative', overflow: 'hidden'
     }}>
-
-      <GeoBg t={t} />
-
+      <GeoBg t={theme} />
+      <ThemeSwitcher themeId={themeId} setThemeId={setThemeId} theme={theme} />
       <div style={{
-        position: 'absolute', top: -120, left: '50%', transform: 'translateX(-50%)',
-        width: 450, height: 450, borderRadius: '50%',
-        background: `radial-gradient(circle,${t.accentBg} 0%,transparent 70%)`, pointerEvents: 'none', opacity: 0.6
-      }} />
-
-      <ThemeSwitcher themeId={themeId} setThemeId={setThemeId} theme={t} />
-
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420 }}>
-
-        <div style={{ textAlign: 'center', marginBottom: 36 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            width: 110, height: 110, borderRadius: '50%', marginBottom: 20,
-            background: t.accentBg, border: `3px solid ${t.accentBorder}`,
-            boxShadow: `0 0 50px ${t.accentBg}`, fontSize: 38
-          }}>
-            <img src="/logo.png" alt="Al-Mawaid" style={{ width: 90, height: 90, objectFit: 'contain' }} />
+        position: 'relative', zIndex: 1, width: '100%', maxWidth: 420,
+        background: theme.loginCard, backdropFilter: 'blur(20px)',
+        border: `2px solid ${theme.border}`, borderRadius: 24, padding: '40px 32px',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.15)'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+            <img src="/logo.png" alt="Logo" style={{ width: 60, height: 60, objectFit: 'contain' }} />
           </div>
-          <p style={{
-            margin: '0 0 4px', fontSize: 12, color: t.textSub, fontWeight: 700,
-            letterSpacing: '0.25em', textTransform: 'uppercase', opacity: 0.8
-          }}>Welcome to</p>
           <h1 style={{
-            margin: '0 0 6px', fontSize: 36, fontWeight: 900, color: t.accent,
-            letterSpacing: '0.03em', textTransform: 'uppercase',
-            textShadow: `0 0 32px ${t.accentBg}`
+            margin: '0 0 8px', fontSize: 32, fontWeight: 900, color: theme.accent,
+            textShadow: `0 0 24px ${theme.accentBg}`, letterSpacing: '0.02em'
           }}>Al-Mawaid</h1>
-          <p style={{ margin: 0, fontFamily: "'Amiri', serif", fontSize: 16, color: t.accent, opacity: 0.7, fontWeight: 600 }}>
-            المَوَائِد · Daily Thali
+          <p style={{ margin: 0, fontSize: 13, color: theme.textSub, opacity: 0.7, letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 600 }}>
+            Sign in to continue
           </p>
         </div>
 
-        <div style={{
-          background: t.loginCard, backdropFilter: 'blur(24px)',
-          border: `1.5px solid ${t.accentBorder}`, borderRadius: 28, padding: '32px 26px',
-          boxShadow: '0 28px 90px rgba(0,0,0,0.3)'
-        }}>
-
-          <h2 style={{ margin: '0 0 24px', fontSize: 22, fontWeight: 900, color: t.text, textAlign: 'center', letterSpacing: '0.02em' }}>Sign In</h2>
-
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <div>
-              <label style={{
-                display: 'block', fontSize: 12, fontWeight: 800, color: t.accent,
-                letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8, opacity: 0.9
-              }}>
-                Email Address
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Mail size={16} color={t.accent} style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.7 }} />
-                <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(null) }}
-                  placeholder="you@example.com" autoComplete="email"
-                  style={{ ...inp, paddingLeft: 46 }}
-                  onFocus={e => e.target.style.borderColor = t.accent}
-                  onBlur={e => e.target.style.borderColor = t.inputBorder} />
-              </div>
-            </div>
-
-            <div>
-              <label style={{
-                display: 'block', fontSize: 12, fontWeight: 800, color: t.accent,
-                letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 8, opacity: 0.9
-              }}>
-                Password
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Lock size={16} color={t.accent} style={{ position: 'absolute', left: 15, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', opacity: 0.7 }} />
-                <input type={showPass ? 'text' : 'password'} value={password}
-                  onChange={e => { setPassword(e.target.value); setError(null) }}
-                  placeholder="••••••••" autoComplete="current-password"
-                  style={{ ...inp, paddingLeft: 46, paddingRight: 50 }}
-                  onFocus={e => e.target.style.borderColor = t.accent}
-                  onBlur={e => e.target.style.borderColor = t.inputBorder} />
-                <button type="button" onClick={() => setShowPass(s => !s)}
-                  style={{
-                    position: 'absolute', right: 15, top: '50%', transform: 'translateY(-50%)',
-                    background: 'none', border: 'none', cursor: 'pointer', padding: 0, color: t.accent, opacity: 0.7, display: 'flex'
-                  }}>
-                  {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <button type="button" onClick={() => setRemember(r => !r)}
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: theme.text, letterSpacing: '0.03em' }}>
+              EMAIL
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Mail size={18} color={theme.textSub} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
                 style={{
-                  width: 22, height: 22, borderRadius: 7, border: `2px solid ${t.accentBorder}`,
-                  background: remember ? t.accent : 'transparent', cursor: 'pointer', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s'
-                }}>
-                {remember && <Check size={14} color={t.id === 'midnight' ? '#0f172a' : '#fff'} strokeWidth={3} />}
-              </button>
-              <span onClick={() => setRemember(r => !r)}
-                style={{ fontSize: 14, color: t.textSub, cursor: 'pointer', userSelect: 'none', fontWeight: 600 }}>
-                Remember me
-              </span>
+                  width: '100%', padding: '14px 14px 14px 44px', fontSize: 15, fontWeight: 500,
+                  background: theme.inputBg, border: `1.5px solid ${theme.inputBorder}`,
+                  borderRadius: 12, color: theme.text, outline: 'none', transition: 'all 0.3s'
+                }}
+                placeholder="your.email@example.com"
+              />
             </div>
+          </div>
 
-            {error && (
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10, padding: '12px 15px',
-                borderRadius: 14, background: 'rgba(239,68,68,0.14)', border: '1px solid rgba(239,68,68,0.35)',
-                color: '#dc2626', fontSize: 14, fontWeight: 600
-              }}>
-                <AlertCircle size={16} style={{ flexShrink: 0 }} />{error}
-              </div>
-            )}
+          <div>
+            <label style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 700, color: theme.text, letterSpacing: '0.03em' }}>
+              PASSWORD
+            </label>
+            <div style={{ position: 'relative' }}>
+              <Lock size={18} color={theme.textSub} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+              <input type={showPass ? 'text' : 'password'} value={pass} onChange={e => setPass(e.target.value)} required
+                style={{
+                  width: '100%', padding: '14px 44px 14px 44px', fontSize: 15, fontWeight: 500,
+                  background: theme.inputBg, border: `1.5px solid ${theme.inputBorder}`,
+                  borderRadius: 12, color: theme.text, outline: 'none', transition: 'all 0.3s'
+                }}
+                placeholder="••••••••"
+              />
+              <button type="button" onClick={() => setShowPass(!showPass)}
+                style={{
+                  position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                  background: 'none', border: 'none', cursor: 'pointer', padding: 4, display: 'flex'
+                }}>
+                {showPass ? <EyeOff size={18} color={theme.textSub} /> : <Eye size={18} color={theme.textSub} />}
+              </button>
+            </div>
+          </div>
 
-            <button type="submit" disabled={loading}
-              style={{
-                marginTop: 6, padding: '16px', borderRadius: 18, border: 'none', cursor: loading ? 'wait' : 'pointer',
-                background: loading ? t.accentBg : t.accentGrad,
-                color: loading ? t.accent : '#fff',
-                fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.1em',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-                boxShadow: loading ? 'none' : `0 10px 32px ${t.accentBg}`, transition: 'all 0.25s'
-              }}>
-              {loading
-                ? <><div className="spin" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTop: `2px solid ${t.accent}`, borderRadius: '50%' }} /> Signing in…</>
-                : 'Sign In'
-              }
-            </button>
-          </form>
-        </div>
+          {error && <ErrorBanner msg={error} />}
 
-        <p style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: t.textSub, letterSpacing: '0.05em', opacity: 0.5, fontWeight: 600 }}>
-          Al-Mawaid
+          <button type="submit" disabled={loading}
+            style={{
+              marginTop: 8, padding: '16px', fontSize: 15, fontWeight: 800, letterSpacing: '0.08em',
+              textTransform: 'uppercase', color: '#fff', background: theme.accentGrad,
+              border: 'none', borderRadius: 14, cursor: loading ? 'not-allowed' : 'pointer',
+              boxShadow: `0 6px 24px ${theme.accentBg}`, transition: 'all 0.3s',
+              opacity: loading ? 0.7 : 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
+            }}>
+            {loading ? <Spinner fullPage={false} /> : 'Sign In'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+/* ─── HOME PAGE WITH WEEKLY MENU ─────────────────────────────────────────────────────────────── */
+function HomePage() {
+  const t = useTheme()
+  const { user } = useAuth()
+  const [profile, setProfile] = useState(null)
+  const [weeklyMenu, setWeeklyMenu] = useState([])
+  const [expandedDay, setExpandedDay] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [feedbackRatings, setFeedbackRatings] = useState({})
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    setLoading(true)
+    // Load profile
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+    setProfile(profileData)
+
+    // Get current week's Monday
+    const today = new Date()
+    const dayOfWeek = today.getDay()
+    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+    const monday = new Date(today)
+    monday.setDate(today.getDate() + mondayOffset)
+    const weekStart = monday.toISOString().split('T')[0]
+
+    // Load weekly menu
+    const { data: menuData } = await supabase
+      .from('weekly_menu')
+      .select('*')
+      .eq('week_start_date', weekStart)
+      .order('day_name')
+      .order('meal_type')
+
+    setWeeklyMenu(menuData || [])
+
+    // Load user's feedback ratings
+    if (menuData) {
+      const menuIds = menuData.map(m => m.id)
+      const { data: feedbackData } = await supabase
+        .from('menu_feedback')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('menu_id', menuIds)
+
+      const ratings = {}
+      feedbackData?.forEach(f => {
+        ratings[f.menu_id] = f.rating
+      })
+      setFeedbackRatings(ratings)
+    }
+
+    setLoading(false)
+  }
+
+  const handleFeedbackSubmit = async (menuId, rating) => {
+    // Check if this meal is from today or past
+    const meal = weeklyMenu.find(m => m.id === menuId)
+    if (!meal) return
+
+    const today = new Date().getDay() // 0 = Sunday, 1 = Monday, etc.
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+    const currentDay = dayNames[today]
+
+    // Only allow feedback for today and past days
+    const dayOrder = {
+      'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4,
+      'Friday': 5, 'Saturday': 6, 'Sunday': 7
+    }
+
+    if (dayOrder[meal.day_name] > dayOrder[currentDay]) {
+      alert('Feedback is locked for future days!')
+      return
+    }
+
+    // Upsert feedback
+    const { error } = await supabase
+      .from('menu_feedback')
+      .upsert({
+        user_id: user.id,
+        menu_id: menuId,
+        rating: rating
+      }, { onConflict: 'user_id,menu_id' })
+
+    if (!error) {
+      setFeedbackRatings({ ...feedbackRatings, [menuId]: rating })
+      alert('Feedback submitted! Thank you.')
+    }
+  }
+
+  if (loading) return <Spinner />
+
+  const dayOrder = {
+    'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4,
+    'Friday': 5, 'Saturday': 6, 'Sunday': 7
+  }
+
+  const groupedByDay = weeklyMenu.reduce((acc, meal) => {
+    if (!acc[meal.day_name]) acc[meal.day_name] = []
+    acc[meal.day_name].push(meal)
+    return acc
+  }, {})
+
+  const sortedDays = Object.keys(groupedByDay).sort((a, b) => dayOrder[a] - dayOrder[b])
+
+  const todayDay = new Date().getDay()
+  const dayNamesArr = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const currentDay = dayNamesArr[todayDay]
+
+  const filteredDays = sortedDays.filter(day => day !== 'Sunday')
+
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening'
+
+  return (
+    <div style={{ flex: 1, padding: '20px 20px 100px', background: t.bg }}>
+      {/* Personalized Header */}
+      <div style={{ marginBottom: 28, padding: '0 4px' }}>
+        <p style={{ margin: '0 0 4px', fontSize: 13, fontWeight: 700, color: t.textSub, opacity: 0.7, letterSpacing: '0.05em' }}>
+          {greeting.toUpperCase()}
         </p>
+        <h2 style={{ margin: 0, fontSize: 28, fontWeight: 900, color: t.text, letterSpacing: '-0.02em' }}>
+          {profile?.full_name?.split(' ')[0] || 'Member'} <span style={{ color: t.accent }}>👋</span>
+        </h2>
       </div>
 
+      {/* Profile Summary Card */}
+      {profile && (
+        <div style={{
+          background: t.cardActive || t.card, border: `1.5px solid ${t.borderActive || t.border}`,
+          borderRadius: 24, padding: '24px', marginBottom: 32,
+          display: 'flex', alignItems: 'center', gap: 20,
+          boxShadow: `0 12px 32px ${t.accentBg}`, position: 'relative', overflow: 'hidden'
+        }}>
+          <div style={{
+            width: 80, height: 80, borderRadius: '24px',
+            background: profile.profile_pic_url ? `url(${profile.profile_pic_url})` : t.accentGrad,
+            backgroundSize: 'cover', backgroundPosition: 'center',
+            border: `3px solid rgba(255,255,255,0.2)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 32, fontWeight: 900, color: '#fff', boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+          }}>
+            {!profile.profile_pic_url && (profile.full_name?.[0] || 'U')}
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 4 }}>
+              <span style={{ fontSize: 13, fontWeight: 800, color: t.textSub, opacity: 0.6 }}>Thali Number</span>
+              <span style={{ fontSize: 24, fontWeight: 900, color: t.accent }}>#{profile.thali_number}</span>
+            </div>
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              background: 'rgba(0,0,0,0.05)', padding: '6px 12px', borderRadius: 10,
+              fontSize: 12, fontWeight: 700, color: t.textSub
+            }}>
+              <Check size={14} color={t.accent} /> Active Member
+            </div>
+          </div>
+          <div style={{
+            position: 'absolute', right: -20, top: -20, width: 100, height: 100,
+            background: t.accent, opacity: 0.05, borderRadius: '50%'
+          }} />
+        </div>
+      )}
+
+      {/* Weekly Menu */}
+      <h2 style={{
+        margin: '0 0 16px', fontSize: 22, fontWeight: 800, color: t.accent,
+        textTransform: 'uppercase', letterSpacing: '0.05em'
+      }}>
+        Weekly Menu
+      </h2>
+
+      {filteredDays.map(day => {
+        const meals = groupedByDay[day]
+        const isExpanded = expandedDay === day
+        const isToday = day === currentDay
+
+        return (
+          <div key={day} style={{ marginBottom: 16 }}>
+            <div style={{
+              background: t.card, border: `2px solid ${isExpanded ? t.accent : t.border}`,
+              borderRadius: 20, overflow: 'hidden',
+              boxShadow: isExpanded ? `0 8px 32px ${t.accentBg}` : '0 4px 16px rgba(0,0,0,0.04)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            }}>
+              {/* Day Accordion Header */}
+              <div
+                onClick={() => setExpandedDay(isExpanded ? null : day)}
+                style={{
+                  padding: '20px 24px', background: isExpanded ? t.accentBg : 'transparent',
+                  cursor: 'pointer', display: 'flex', alignItems: 'center',
+                  justifyContent: 'space-between', borderBottom: isExpanded ? `1.5px solid ${t.border}` : 'none'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div style={{ 
+                    width: 34, height: 34, borderRadius: 10, overflow: 'hidden', 
+                    background: '#fff', display: 'flex', alignItems: 'center', 
+                    justifyContent: 'center', border: `1.5px solid ${t.border}`,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                  }}>
+                    <img src="/al-mawaid.png" alt="" style={{ width: '82%', height: '82%', objectFit: 'contain' }} />
+                  </div>
+                  <h3 style={{
+                    margin: 0, fontSize: 18, fontWeight: 800,
+                    color: isExpanded ? t.accent : t.text
+                  }}>
+                    {day}
+                  </h3>
+                  {isToday && (
+                    <span style={{
+                      fontSize: 10, fontWeight: 800, color: '#fff',
+                      background: t.accentGrad, padding: '4px 10px',
+                      borderRadius: 8, boxShadow: `0 4px 12px ${t.accentBg}`
+                    }}>
+                      TODAY
+                    </span>
+                  )}
+                </div>
+                <div style={{
+                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
+                  transition: 'transform 0.3s ease', display: 'flex'
+                }}>
+                  <ChevronDown size={20} color={t.textSub} />
+                </div>
+              </div>
+
+              {/* Day Accordion Body (Meals) */}
+              {isExpanded && (
+                <div style={{
+                  animation: 'fadeIn 0.4s ease',
+                  background: t.bg === '#111111' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)'
+                }}>
+                  {meals.map((meal, idx) => (
+                    <div key={meal.id} style={{
+                      padding: '24px', borderBottom: idx === meals.length - 1 ? 'none' : `1px solid ${t.border}`,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
+                        <div style={{
+                          background: t.accentBg, borderRadius: 12, padding: 10,
+                          color: t.accent, display: 'flex'
+                        }}>
+                          <Utensils size={20} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 15, fontWeight: 800, color: t.text, marginBottom: 6 }}>
+                            {meal.meal_type}
+                          </div>
+                          <div style={{ fontSize: 14, color: t.textSub, lineHeight: 1.6, fontWeight: 500 }}>
+                            {meal.items}
+                          </div>
+                          {meal.special_notes && (
+                            <div style={{
+                              marginTop: 10, padding: '8px 12px', background: t.card,
+                              borderRadius: 8, fontSize: 12, fontStyle: 'italic',
+                              color: t.accent, opacity: 0.8, border: `1px dashed ${t.border}`
+                            }}>
+                              Note: {meal.special_notes}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Integrated Feedback System */}
+                      <div style={{
+                        marginTop: 20, paddingTop: 20, borderTop: `1.5px solid ${t.border}`,
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12
+                      }}>
+                        <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          Rate this food
+                        </p>
+                        <StarRating
+                          rating={feedbackRatings[meal.id] || 0}
+                          onChange={(r) => handleFeedbackSubmit(meal.id, r)}
+                          theme={t}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      })}
+
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap');
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spin { animation: spin 0.85s linear infinite; }
-        @keyframes fadeInDown { from { opacity:0; transform:translateY(-10px) } to { opacity:1; transform:translateY(0) } }
-        @keyframes fadeInUp { from { opacity:0; transform:translateY(10px) } to { opacity:1; transform:translateY(0) } }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
       `}</style>
     </div>
   )
 }
 
-/* ═══════════════════════════════════════
-   PAGE 1 — HOME (Menu Display)
-═══════════════════════════════════════ */
-function HomePage() {
-  const t = useTheme()
-  const { user } = useAuth()
-  const [menuData, setMenuData] = useState([])
-  const [memberNo, setMemberNo] = useState(null)
-  const [memberName, setMemberName] = useState(null)
-  const [profilePic, setProfilePic] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [activeDay, setActiveDay] = useState(null)
-  const [showInfo, setShowInfo] = useState(false)
-  const [feedbackMenuId, setFeedbackMenuId] = useState(null)  // which day's feedback modal is open
-  const [submittedToday, setSubmittedToday] = useState(false) // already submitted for today?
 
-  const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' })
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const [{ data: menu, error: mErr }, { data: mem }] = await Promise.all([
-        supabase.from('menu_arrays').select('*').order('id'),
-        user
-          ? supabase.from('members').select('member_no,name_en').eq('user_id', user.id).maybeSingle()
-          : Promise.resolve({ data: null }),
-      ])
-      if (cancelled) return
-      if (mErr) setError(mErr.message); else setMenuData(menu || [])
-      if (mem?.member_no) {
-        setMemberNo(mem.member_no)
-        setMemberName(mem.name_en)
-
-        supabase.from('member_profile_pics').select('pic_url').eq('member_no', mem.member_no).maybeSingle().then(({ data: p }) => {
-          if (!cancelled && p?.pic_url) setProfilePic(p.pic_url)
-        })
-
-        // Check if already submitted feedback for today
-        const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
-        const { data: existing } = await supabase
-          .from('feedback')
-          .select('id')
-          .eq('member_no', mem.member_no)
-          .gte('created_at', todayStart.toISOString())
-          .limit(1)
-        if (!cancelled && existing?.length > 0) setSubmittedToday(true)
-      }
-      setLoading(false)
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
-
-  function joinItems(arr) {
-    if (!arr) return ''
-    return Array.isArray(arr) ? arr.filter(Boolean).join(', ') : String(arr)
-  }
-
-  if (loading) return <Spinner />
-  if (error) return <ErrorBanner msg={error} />
-
+// ─── Survey Percentage Bar Component ──────────────────────────────────────
+const QuantityBar = ({ value, onChange, theme }) => {
+  const steps = [0, 25, 50, 100]
   return (
-    <div style={{ flex: 1, padding: '10px 16px 120px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-
-      {memberName && (
+    <div style={{ width: '100%', padding: '10px 0' }}>
+      <div style={{
+        height: 8, background: theme.border, borderRadius: 10,
+        position: 'relative', marginBottom: 16, display: 'flex', alignItems: 'center'
+      }}>
         <div style={{
-          borderRadius: 20, padding: '16px 18px', background: t.cardActive,
-          border: `2px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          boxShadow: `0 6px 24px ${t.accentBg}`
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{
-              width: 48, height: 48, borderRadius: '50%', background: t.accentBg,
-              border: `2px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center',
-              justifyContent: 'center', overflow: 'hidden', fontSize: 20, fontWeight: 900, color: t.accent, flexShrink: 0
-            }}>
-              {profilePic
-                ? <img src={profilePic} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                : (memberName?.[0] || '?')
-              }
-            </div>
-            <div>
-              <p style={{ margin: 0, fontSize: 11, color: t.textSub, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700 }}>Welcome back</p>
-              <p style={{ margin: '3px 0 0', fontSize: 18, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>{memberName}</p>
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ margin: 0, fontSize: 11, color: t.textSub, opacity: 0.6, fontWeight: 700 }}>Thaali No.</p>
-            <p style={{ margin: 0, fontSize: 26, fontWeight: 900, color: t.accent, lineHeight: 1.1 }}>{memberNo}</p>
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <button onClick={() => setShowInfo(true)}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer',
-            background: t.accentBg, border: `1.5px solid ${t.accentBorder}`,
-            color: t.accent, borderRadius: 999, padding: '9px 18px',
-            fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em'
-          }}>
-          <Info size={14} /> Menu Information
-        </button>
-      </div>
-
-      {menuData.map((item, index) => {
-        const open = activeDay === index
-        const isToday = item.day_name?.toLowerCase() === todayName.toLowerCase()
-        const lunch = Array.isArray(item.lunch_items) ? item.lunch_items.filter(Boolean) : [item.lunch_items].filter(Boolean)
-        const dinner = Array.isArray(item.dinner_items) ? item.dinner_items.filter(Boolean) : [item.dinner_items].filter(Boolean)
-
-        return (
-          <div key={item.id} style={{
-            borderRadius: 22, overflow: 'hidden',
-            background: open ? t.cardActive : t.card,
-            border: `2px solid ${open ? t.borderActive : isToday ? t.accentBorder : t.border}`,
-            transition: 'all 0.35s ease',
-            boxShadow: isToday ? `0 0 0 3px ${t.accentBorder}` : open ? `0 6px 24px ${t.accentBg}` : 'none'
-          }}>
-
-            <button onClick={() => setActiveDay(open ? null : index)}
-              style={{
-                width: '100%', background: 'none', border: 'none', cursor: 'pointer',
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                padding: '16px 18px', color: 'inherit'
-              }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{
-                  position: 'relative', width: 64, height: 64, flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: t.accentBg, borderRadius: 18, border: `2px solid ${t.accentBorder}`
-                }}>
-                  <img src="/logo.png" alt="" style={{ width: 52, height: 52, objectFit: 'contain' }} />
-                </div>
-
-                <div style={{ textAlign: 'left' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 900, fontSize: 17, color: t.text, letterSpacing: '0.01em' }}>{item.day_name}</span>
-                    <span style={{ fontSize: 13, color: t.accent, opacity: 0.7, fontFamily: "'Amiri', serif", fontWeight: 600 }}>{item.day_name_ar}</span>
-                    {isToday && (
-                      <span style={{
-                        fontSize: 10, fontWeight: 900, padding: '3px 10px', borderRadius: 999,
-                        background: t.accent, color: t.id === 'midnight' ? '#0f172a' : '#fff',
-                        textTransform: 'uppercase', letterSpacing: '0.08em'
-                      }}>Today</span>
-                    )}
-                  </div>
-                  {!open && (
-                    <span style={{
-                      fontSize: 12, color: t.textSub, opacity: 0.6, display: 'block',
-                      maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 500
-                    }}>
-                      {lunch.join(', ')}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                background: open ? t.accent : t.accentBg,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transform: open ? 'rotate(180deg)' : 'none', transition: 'all 0.35s'
-              }}>
-                <ChevronDown size={16} color={open ? (t.id === 'midnight' ? '#0f172a' : '#fff') : t.accent} strokeWidth={3} />
-              </div>
-            </button>
-
-            {open && (
-              <div style={{ padding: '0 16px 18px' }}>
-                <div style={{ height: 2, background: `linear-gradient(90deg,${t.accentBorder},transparent)`, marginBottom: 14 }} />
-
-                <div style={{
-                  borderRadius: 16, padding: '16px', background: t.accentBg,
-                  border: `1.5px solid ${t.accentBorder}`, marginBottom: 12
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <Sun size={15} color={t.accent} />
-                    <span style={{ fontSize: 12, fontWeight: 900, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Lunch</span>
-                  </div>
-                  <ul style={{ margin: 0, padding: '0 0 0 18px' }}>
-                    {lunch.map((d, i) => <li key={i} style={{ fontSize: 14, color: t.textBody, lineHeight: 1.8, fontWeight: 500 }}>{d}</li>)}
-                  </ul>
-                </div>
-
-                <div style={{ borderRadius: 16, padding: '16px', background: t.card, border: `1.5px solid ${t.border}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                    <Moon size={15} color={t.textSub} />
-                    <span style={{ fontSize: 12, fontWeight: 900, color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.12em' }}>Dinner</span>
-                  </div>
-                  <ul style={{ margin: 0, padding: '0 0 0 18px' }}>
-                    {dinner.map((d, i) => <li key={i} style={{ fontSize: 14, color: t.textBody, lineHeight: 1.8, fontWeight: 500 }}>{d}</li>)}
-                  </ul>
-                </div>
-
-                {/* ── Feedback Button ── */}
-                <div style={{ marginTop: 14 }}>
-                  {isToday ? (
-                    submittedToday ? (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                        padding: '12px 16px', borderRadius: 16,
-                        background: t.accentBg, border: `1.5px solid ${t.accentBorder}`
-                      }}>
-                        <Check size={16} color={t.accent} strokeWidth={3} />
-                        <span style={{ fontSize: 13, fontWeight: 800, color: t.accent }}>Feedback submitted — thank you!</span>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={e => { e.stopPropagation(); setFeedbackMenuId(item.id) }}
-                        style={{
-                          width: '100%', padding: '13px 16px', borderRadius: 16, border: 'none',
-                          cursor: 'pointer', background: t.accentGrad, color: '#fff',
-                          fontWeight: 900, fontSize: 14, textTransform: 'uppercase', letterSpacing: '0.08em',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                          boxShadow: `0 6px 20px ${t.accentBg}`, transition: 'all 0.25s',
-                          animation: 'feedbackPulse 2.5s ease-in-out infinite'
-                        }}>
-                        <MessageCircle size={16} /> Leave Feedback
-                      </button>
-                    )
-                  ) : (
-                    <div style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                      padding: '12px 16px', borderRadius: 16, opacity: 0.5,
-                      background: 'transparent', border: `1.5px dashed ${t.border}`,
-                      cursor: 'not-allowed'
-                    }}>
-                      <Lock size={14} color={t.textSub} />
-                      <span style={{ fontSize: 13, fontWeight: 700, color: t.textSub }}>Feedback only available on this day</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        )
-      })}
-
-      {showInfo && (
-        <div style={{
-          position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center',
-          justifyContent: 'center', padding: 24, background: t.popupBg, backdropFilter: 'blur(16px)'
-        }}>
-          <div style={{
-            width: '100%', maxWidth: 380, borderRadius: 28, padding: '32px 26px',
-            position: 'relative', background: t.cardActive, border: `2px solid ${t.accentBorder}`,
-            boxShadow: '0 28px 90px rgba(0,0,0,0.35)'
-          }}>
-            <button onClick={() => setShowInfo(false)}
-              style={{ position: 'absolute', top: 18, right: 18, background: 'none', border: 'none', cursor: 'pointer', color: t.textSub }}>
-              <X size={22} />
-            </button>
-            <h2 style={{ margin: '0 0 12px', fontSize: 24, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>Notice</h2>
-            <p style={{ margin: 0, fontSize: 15, color: t.textBody, lineHeight: 1.7, fontWeight: 500 }}>
-              Menu may change based on availability. Tap any day to expand and view the full menu.
-              Shukran!
-
-            </p>
-            <button onClick={() => setShowInfo(false)}
-              style={{
-                marginTop: 24, width: '100%', padding: '15px', borderRadius: 18, border: 'none', cursor: 'pointer',
-                background: t.accentGrad, color: '#fff', fontWeight: 900, fontSize: 14,
-                textTransform: 'uppercase', letterSpacing: '0.08em'
-              }}>
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Feedback Modal */}
-      {feedbackMenuId !== null && (() => {
-        const feedbackItem = menuData.find(m => m.id === feedbackMenuId)
-        return (
-          <FeedbackModal
-            t={t}
-            menuId={feedbackMenuId}
-            memberNo={memberNo}
-            todayName={todayName}
-            onClose={() => {
-              setFeedbackMenuId(null)
-              setSubmittedToday(true)
+          position: 'absolute', height: '100%', background: theme.accentGrad,
+          width: `${value}%`, borderRadius: 10, transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        }} />
+        {steps.map(s => (
+          <button key={s}
+            onClick={() => onChange(s)}
+            style={{
+              position: 'absolute', left: `calc(${s}% - 12px)`, width: 24, height: 24,
+              borderRadius: '50%', background: value === s ? theme.card : '#fff',
+              border: `3px solid ${value === s ? theme.accent : theme.border}`,
+              cursor: 'pointer', zIndex: 2, transition: 'all 0.2s',
+              boxShadow: value === s ? `0 0 12px ${theme.accentBg}` : 'none'
             }}
           />
-        )
-      })()}
+        ))}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0 4px' }}>
+        {steps.map(s => (
+          <span key={s} style={{
+            fontSize: 10, fontWeight: 800, color: value === s ? theme.accent : theme.textSub,
+            opacity: value === s ? 1 : 0.5
+          }}>
+            {s}%
+          </span>
+        ))}
+      </div>
     </div>
   )
 }
 
-/* ═══════════════════════════════════════
-   PAGE 2 — SURVEY
-═══════════════════════════════════════ */
+/* ─── SURVEY PAGE (Overhauled) ─────────────────────────────────────────────────────────────── */
 function SurveyPage() {
   const t = useTheme()
   const { user } = useAuth()
-  const [menuData, setMenuData] = useState([])
-  const [memberNo, setMemberNo] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  // Survey state
-  const [step, setStep] = useState(0) // 0=init, 1=lunch yes/no, 2=lunch detail, 3=dinner yes/no, 4=dinner detail
-  const [lunchAte, setLunchAte] = useState(null)
-  const [dinnerAte, setDinnerAte] = useState(null)
-  const [lunchItems, setLunchItems] = useState([])
-  const [dinnerItems, setDinnerItems] = useState([])
-  const [lunchPercent, setLunchPercent] = useState({})
-  const [dinnerPercent, setDinnerPercent] = useState({})
-  const [saving, setSaving] = useState(false)
-  const [saveErr, setSaveErr] = useState(null)
-  const [toast, setToast] = useState(null)
-  const [hasSubmittedToday, setHasSubmittedToday] = useState(false)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-
-  const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' })
-  const todayMenu = menuData.find(m => m.day_name?.toLowerCase() === todayName.toLowerCase())
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      const [{ data: menu, error: mErr }, { data: mem }] = await Promise.all([
-        supabase.from('menu_arrays').select('*').order('id'),
-        user
-          ? supabase.from('members').select('member_no').eq('user_id', user.id).maybeSingle()
-          : Promise.resolve({ data: null }),
-      ])
-      if (cancelled) return
-      if (mErr) { setError(mErr.message); setLoading(false); return }
-      setMenuData(menu || [])
-      if (mem?.member_no) {
-        setMemberNo(mem.member_no)
-        const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
-        const { data: existingSurvey } = await supabase
-          .from('survey_responses')
-          .select('id')
-          .eq('member_no', mem.member_no)
-          .gte('created_at', todayStart.toISOString())
-          .limit(1)
-        if (!cancelled && existingSurvey?.length > 0) setHasSubmittedToday(true)
-      }
-      setLoading(false)
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
+  const [weeklyMenu, setWeeklyMenu] = useState([])
+  const [surveyResponses, setSurveyResponses] = useState({}) // { menu_id: { item_name: rating, roti: 'No' } }
+  const [expandedMeal, setExpandedMeal] = useState(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (todayMenu) {
-      const lunch = Array.isArray(todayMenu.lunch_items) ? todayMenu.lunch_items.filter(Boolean) : [todayMenu.lunch_items].filter(Boolean)
-      const dinner = Array.isArray(todayMenu.dinner_items) ? todayMenu.dinner_items.filter(Boolean) : [todayMenu.dinner_items].filter(Boolean)
-      setLunchItems(lunch)
-      setDinnerItems(dinner)
-      // Initialize percent tracking
-      const lp = {}; lunch.forEach(item => { lp[item] = null })
-      const dp = {}; dinner.forEach(item => { dp[item] = null })
-      setLunchPercent(lp)
-      setDinnerPercent(dp)
-    }
-  }, [todayMenu])
+    loadData()
+  }, [])
 
-  async function handleSubmit() {
-    if (!memberNo || !todayMenu) return
-    setSaving(true); setSaveErr(null)
+  const loadData = async () => {
+    setLoading(true)
+    const today = new Date()
+    const monday = getMondayOfWeek(today)
+    const weekStart = monday.toISOString().split('T')[0]
 
-    const records = []
+    // Load menu
+    const { data: menuData } = await supabase
+      .from('weekly_menu')
+      .select('*')
+      .eq('week_start_date', weekStart)
+      .order('day_name')
 
-    // Lunch
-    if (lunchAte) {
-      Object.entries(lunchPercent).forEach(([item, pct]) => {
-        if (pct !== null) {
-          records.push({
-            member_no: memberNo,
-            day_name: todayName,
-            meal_type: 'lunch',
-            menu_item: item,
-            percent: pct,
-          })
-        }
-      })
+    const sortedMenu = (menuData || []).filter(m => m.day_name !== 'Sunday')
+    setWeeklyMenu(sortedMenu)
+
+    // Load existing response
+    const { data: existingResponse } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('week_start_date', weekStart)
+      .single()
+
+    if (existingResponse) {
+      setSurveyResponses(existingResponse.responses || {})
+      setHasSubmitted(true)
     }
 
-    // Dinner
-    if (dinnerAte) {
-      Object.entries(dinnerPercent).forEach(([item, pct]) => {
-        if (pct !== null) {
-          records.push({
-            member_no: memberNo,
-            day_name: todayName,
-            meal_type: 'dinner',
-            menu_item: item,
-            percent: pct,
-          })
-        }
-      })
-    }
+    setLoading(false)
+  }
 
-    if (records.length > 0) {
-      if (isEditing) {
-        const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0)
-        await supabase.from('survey_responses')
-          .delete()
-          .eq('member_no', memberNo)
-          .gte('created_at', todayStart.toISOString())
+  const getMondayOfWeek = (date) => {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1)
+    return new Date(d.setDate(diff))
+  }
+
+  const handleUpdateItemRating = (menuId, itemName, value) => {
+    setSurveyResponses(prev => ({
+      ...prev,
+      [menuId]: {
+        ...(prev[menuId] || {}),
+        [itemName]: value
       }
-      const { error: err } = await supabase.from('survey_responses').insert(records)
-      if (err) { setSaveErr(err.message); setSaving(false); return }
-    }
+    }))
+  }
 
-    setSaving(false)
-    setToast('✅ Survey submitted successfully!')
-    setTimeout(() => {
-      setToast(null)
-      setHasSubmittedToday(true)
+  const handleSubmitSurvey = async () => {
+    setIsSubmitting(true)
+    const monday = getMondayOfWeek(new Date())
+    const weekStart = monday.toISOString().split('T')[0]
+
+    const { error } = await supabase
+      .from('survey_responses')
+      .upsert({
+        user_id: user.id,
+        week_start_date: weekStart,
+        responses: surveyResponses
+      }, { onConflict: 'user_id,week_start_date' })
+
+    setIsSubmitting(false)
+    if (!error) {
+      setHasSubmitted(true)
       setIsEditing(false)
-      // Reset
-      setStep(0)
-      setLunchAte(null)
-      setDinnerAte(null)
-      const lp = {}; lunchItems.forEach(item => { lp[item] = null })
-      const dp = {}; dinnerItems.forEach(item => { dp[item] = null })
-      setLunchPercent(lp)
-      setDinnerPercent(dp)
-    }, 2000)
+    } else {
+      alert('Error saving survey: ' + error.message)
+    }
   }
 
   if (loading) return <Spinner />
-  if (error) return <ErrorBanner msg={error} />
-  if (!todayMenu) {
+
+  if (hasSubmitted && !isEditing) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', gap: 16 }}>
-        <ClipboardList size={48} color={t.accentBorder} />
-        <p style={{ margin: 0, fontSize: 16, color: t.textSub, opacity: 0.6, fontWeight: 600, textAlign: 'center' }}>
-          No menu available for today.
-        </p>
+      <div style={{ flex: 1, padding: '20px 20px 100px', background: t.bg }}>
+        <div style={{
+          textAlign: 'center', marginBottom: 32, padding: '40px 20px',
+          background: t.card, borderRadius: 32, border: `2px solid ${t.border}`,
+          boxShadow: `0 20px 48px ${t.accentBg}`, animation: 'fadeInUp 0.6s ease'
+        }}>
+          <div style={{
+            width: 80, height: 80, background: t.accentBg, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 20px', fontSize: 40, border: `2px solid ${t.accentBorder}`
+          }}>
+            ✅
+          </div>
+          <h2 style={{ margin: '0 0 8px', fontSize: 26, fontWeight: 900, color: t.accent }}>Submission Successful</h2>
+          <p style={{ margin: 0, fontSize: 14, color: t.textSub, fontWeight: 600, opacity: 0.7 }}>
+            Your quantity responses for this week have been recorded.
+          </p>
+          <button onClick={() => setIsEditing(true)}
+            style={{
+              marginTop: 24, padding: '12px 24px', fontSize: 14, fontWeight: 800,
+              color: t.accent, background: t.accentBg, border: `1.5px solid ${t.accentBorder}`,
+              borderRadius: 12, cursor: 'pointer', transition: 'all 0.2s',
+              display: 'inline-flex', alignItems: 'center', gap: 8
+            }}>
+            <Palette size={18} /> Edit My Responses
+          </button>
+        </div>
+
+        <h3 style={{
+          margin: '0 0 20px', fontSize: 13, fontWeight: 800,
+          color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.15em',
+          display: 'flex', alignItems: 'center', gap: 10
+        }}>
+          <div style={{ height: 1.5, flex: 1, background: t.border }} />
+          Your Submitted Data
+          <div style={{ height: 1.5, flex: 1, background: t.border }} />
+        </h3>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {sortedDays.map(day => {
+            const meals = groupedMenu[day].filter(m => surveyResponses[m.id])
+            if (meals.length === 0) return null
+            return (
+              <div key={day} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div style={{ fontSize: 14, fontWeight: 900, color: t.text, opacity: 0.6, marginLeft: 4 }}>{day}</div>
+                {meals.map(meal => {
+                  const res = surveyResponses[meal.id]
+                  return (
+                    <div key={meal.id} style={{
+                      background: t.card, border: `1.5px solid ${t.border}`,
+                      borderRadius: 24, padding: '20px 24px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+                        <div style={{ color: t.accent }}>
+                          {meal.meal_type.toLowerCase().includes('lunch') ? <Sun size={18} /> : <Moon size={18} />}
+                        </div>
+                        <div style={{ fontSize: 15, fontWeight: 800, color: t.text }}>{meal.meal_type}</div>
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                        {Object.entries(res).map(([item, val]) => {
+                          if (item.endsWith('_received')) return null
+                          return (
+                            <div key={item} style={{
+                              padding: '10px 16px', background: t.bg, borderRadius: 14,
+                              border: `1.5px solid ${t.border}`, flex: '1 1 calc(50% - 10px)',
+                              minWidth: 140
+                            }}>
+                              <div style={{ fontSize: 11, fontWeight: 800, color: t.textSub, marginBottom: 4, textTransform: 'uppercase' }}>{item}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <span style={{ fontSize: 16, fontWeight: 900, color: t.accent }}>{val}%</span>
+                                {res[`${item}_received`] && (
+                                  <span style={{ 
+                                    fontSize: 9, fontWeight: 900, padding: '3px 6px', 
+                                    borderRadius: 6, background: res[`${item}_received`] === 'Yes' ? '#22c55e20' : '#ef444420',
+                                    color: res[`${item}_received`] === 'Yes' ? '#10b981' : '#ef4444',
+                                    border: `1px solid ${res[`${item}_received`] === 'Yes' ? '#10b98140' : '#ef444440'}`
+                                  }}>
+                                    {res[`${item}_received`] === 'Yes' ? 'RECEIVED' : 'NOT REC'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
       </div>
     )
   }
 
-  const percentOptions = [100, 50, 25, 0]
-
-  // Roti helper — any item whose name contains "roti" gets Yes/No instead of %
-  const isRoti = (name) => /roti/i.test(String(name))
-  const sortWithRotiFirst = (arr) => [...arr].sort((a, b) => isRoti(a) ? -1 : isRoti(b) ? 1 : 0)
-  const sortedLunchItems = sortWithRotiFirst(lunchItems)
-  const sortedDinnerItems = sortWithRotiFirst(dinnerItems)
-
-  return (
-    <div style={{ flex: 1, background: t.surveyBg, padding: '16px 16px 120px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-      {/* Header */}
-      <div style={{
-        borderRadius: 20, padding: '18px 20px', background: t.cardActive,
-        border: `2px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', gap: 14,
-        boxShadow: `0 6px 24px ${t.accentBg}`
-      }}>
-        <ClipboardList size={24} color={t.accent} />
-        <div style={{ flex: 1 }}>
-          <p style={{ margin: 0, fontSize: 11, color: t.textSub, opacity: 0.7, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700 }}>Survey for</p>
-          <p style={{ margin: '3px 0 0', fontSize: 18, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>{todayName}'s Meal</p>
-        </div>
-      </div>
-
-      {/* Show Lock Screen if submitted and not editing */}
-      {hasSubmittedToday && !isEditing && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', gap: 20 }}>
-          <div style={{
-            width: 80, height: 80, borderRadius: '50%', background: t.accentBg,
-            border: `3px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Lock size={40} color={t.accent} />
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>Survey Completed</h2>
-            <p style={{ margin: '8px 0 0', fontSize: 14, color: t.textSub, fontWeight: 500 }}>
-              You have already completed today's survey.
-            </p>
-          </div>
-          <button onClick={() => { setIsEditing(true); setStep(1); }}
-            style={{
-              padding: '16px 40px', borderRadius: 18, border: `2px solid ${t.accentBorder}`, cursor: 'pointer',
-              background: 'transparent', color: t.accent, fontWeight: 900, fontSize: 15,
-              textTransform: 'uppercase', letterSpacing: '0.1em',
-              transition: 'all 0.25s'
-            }}>
-            Edit Response
-          </button>
-        </div>
-      )}
-
-      {(!hasSubmittedToday || isEditing) && (
-        <>
-          {/* Step 0: Start */}
-          {step === 0 && (
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', gap: 20 }}>
-              <div style={{
-                width: 80, height: 80, borderRadius: '50%', background: t.accentBg,
-                border: `3px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}>
-                <ClipboardList size={40} color={t.accent} />
-              </div>
-              <div style={{ textAlign: 'center' }}>
-                <h2 style={{ margin: 0, fontSize: 24, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>Daily Survey</h2>
-                <p style={{ margin: '8px 0 0', fontSize: 14, color: t.textSub, fontWeight: 500 }}>
-                  Tell us about your meal experience today
-                </p>
-              </div>
-              <button onClick={() => setStep(1)}
-                style={{
-                  padding: '16px 40px', borderRadius: 18, border: 'none', cursor: 'pointer',
-                  background: t.accentGrad, color: '#fff', fontWeight: 900, fontSize: 15,
-                  textTransform: 'uppercase', letterSpacing: '0.1em',
-                  boxShadow: `0 8px 28px ${t.accentBg}`, transition: 'all 0.25s'
-                }}>
-                Start Survey
-              </button>
-            </div>
-          )}
-
-          {/* Step 1: Lunch Yes/No */}
-      {step === 1 && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <button onClick={() => setStep(0)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', cursor: 'pointer', color: t.textSub, fontSize: 14, fontWeight: 700
-            }}>
-            <ArrowLeft size={16} /> Back
-          </button>
-
-          <div style={{
-            borderRadius: 20, padding: '24px', background: t.surveyCard,
-            border: `2px solid ${t.border}`, textAlign: 'center'
-          }}>
-            <h3 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 900, color: t.text }}>
-              {todayName} Lunch
-            </h3>
-            <p style={{ margin: '0 0 24px', fontSize: 15, color: t.textBody, fontWeight: 500 }}>
-              Did you have lunch today?
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => { setLunchAte(true); setStep(2) }}
-                style={{
-                  flex: 1, maxWidth: 140, padding: '14px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                  background: t.accentGrad, color: '#fff', fontWeight: 900, fontSize: 15,
-                  textTransform: 'uppercase', letterSpacing: '0.08em'
-                }}>
-                Yes
-              </button>
-              <button onClick={() => { setLunchAte(false); setStep(3) }}
-                style={{
-                  flex: 1, maxWidth: 140, padding: '14px', borderRadius: 16, border: `2px solid ${t.border}`,
-                  background: 'transparent', color: t.textSub, fontWeight: 900, fontSize: 15, cursor: 'pointer',
-                  textTransform: 'uppercase', letterSpacing: '0.08em'
-                }}>
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step 2: Lunch Detail */}
-      {step === 2 && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <button onClick={() => setStep(1)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', cursor: 'pointer', color: t.textSub, fontSize: 14, fontWeight: 700
-            }}>
-            <ArrowLeft size={16} /> Back
-          </button>
-
-          <div style={{ borderRadius: 20, padding: '20px', background: t.surveyCard, border: `2px solid ${t.accentBorder}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <Sun size={18} color={t.accent} />
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: t.text }}>Lunch Items</h3>
-            </div>
-
-            {sortedLunchItems.map((item, idx) => (
-              <div key={idx} style={{
-                marginBottom: 20, padding: '16px', borderRadius: 16,
-                background: t.id === 'midnight' ? '#0f172a' : '#fff',
-                border: `1.5px solid ${isRoti(item) ? t.accentBorder : t.border}`
-              }}>
-                <p style={{
-                  margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: t.text,
-                  textAlign: 'center'
-                }}>
-                  {item}
-                </p>
-                {isRoti(item) ? (
-                  /* Yes / No for Roti */
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                    <button onClick={() => setLunchPercent(prev => ({ ...prev, [item]: 100 }))}
-                      style={{
-                        flex: 1, maxWidth: 130, padding: '12px', borderRadius: 14, cursor: 'pointer',
-                        border: `2px solid ${lunchPercent[item] === 100 ? t.accentBorder : t.border}`,
-                        background: lunchPercent[item] === 100 ? t.accentGrad : 'transparent',
-                        color: lunchPercent[item] === 100 ? '#fff' : t.textSub,
-                        fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'all 0.2s'
-                      }}>
-                      ✅ Yes
-                    </button>
-                    <button onClick={() => setLunchPercent(prev => ({ ...prev, [item]: 0 }))}
-                      style={{
-                        flex: 1, maxWidth: 130, padding: '12px', borderRadius: 14, cursor: 'pointer',
-                        border: `2px solid ${lunchPercent[item] === 0 ? t.accentBorder : t.border}`,
-                        background: lunchPercent[item] === 0 ? t.accentBg : 'transparent',
-                        color: lunchPercent[item] === 0 ? t.accent : t.textSub,
-                        fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'all 0.2s'
-                      }}>
-                      ❌ No
-                    </button>
-                  </div>
-                ) : (
-                  /* % buttons for other items */
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    {percentOptions.map(pct => (
-                      <button key={pct} onClick={() => setLunchPercent(prev => ({ ...prev, [item]: pct }))}
-                        style={{
-                          flex: '1 0 auto', minWidth: 70, padding: '10px 12px', borderRadius: 12,
-                          border: `2px solid ${lunchPercent[item] === pct ? t.accentBorder : t.border}`,
-                          background: lunchPercent[item] === pct ? t.accentBg : 'transparent',
-                          color: lunchPercent[item] === pct ? t.accent : t.textSub,
-                          fontWeight: 800, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s'
-                        }}>
-                        {pct}%
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          <button onClick={() => setStep(3)}
-            disabled={Object.values(lunchPercent).some(v => v === null)}
-            style={{
-              padding: '16px', borderRadius: 18, border: 'none',
-              cursor: Object.values(lunchPercent).every(v => v !== null) ? 'pointer' : 'not-allowed',
-              background: Object.values(lunchPercent).every(v => v !== null) ? t.accentGrad : t.accentBg,
-              color: Object.values(lunchPercent).every(v => v !== null) ? '#fff' : t.accent,
-              fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em',
-              transition: 'all 0.25s'
-            }}>
-            Next
-          </button>
-        </div>
-      )}
-
-      {/* Step 3: Dinner Yes/No */}
-      {step === 3 && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <button onClick={() => setStep(lunchAte ? 2 : 1)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', cursor: 'pointer', color: t.textSub, fontSize: 14, fontWeight: 700
-            }}>
-            <ArrowLeft size={16} /> Back
-          </button>
-
-          <div style={{
-            borderRadius: 20, padding: '24px', background: t.surveyCard,
-            border: `2px solid ${t.border}`, textAlign: 'center'
-          }}>
-            <h3 style={{ margin: '0 0 20px', fontSize: 20, fontWeight: 900, color: t.text }}>
-              {todayName} Dinner
-            </h3>
-            <p style={{ margin: '0 0 24px', fontSize: 15, color: t.textBody, fontWeight: 500 }}>
-              Did you have dinner today?
-            </p>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
-              <button onClick={() => { setDinnerAte(true); setStep(4) }}
-                style={{
-                  flex: 1, maxWidth: 140, padding: '14px', borderRadius: 16, border: 'none', cursor: 'pointer',
-                  background: t.accentGrad, color: '#fff', fontWeight: 900, fontSize: 15,
-                  textTransform: 'uppercase', letterSpacing: '0.08em'
-                }}>
-                Yes
-              </button>
-              <button onClick={() => { setDinnerAte(false); handleSubmit() }}
-                style={{
-                  flex: 1, maxWidth: 140, padding: '14px', borderRadius: 16, border: `2px solid ${t.border}`,
-                  background: 'transparent', color: t.textSub, fontWeight: 900, fontSize: 15, cursor: 'pointer',
-                  textTransform: 'uppercase', letterSpacing: '0.08em'
-                }}>
-                No
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Step 4: Dinner Detail */}
-      {step === 4 && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <button onClick={() => setStep(3)}
-            style={{
-              alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 6,
-              background: 'none', border: 'none', cursor: 'pointer', color: t.textSub, fontSize: 14, fontWeight: 700
-            }}>
-            <ArrowLeft size={16} /> Back
-          </button>
-
-          <div style={{ borderRadius: 20, padding: '20px', background: t.surveyCard, border: `2px solid ${t.accentBorder}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <Moon size={18} color={t.accent} />
-              <h3 style={{ margin: 0, fontSize: 18, fontWeight: 900, color: t.text }}>Dinner Items</h3>
-            </div>
-
-            {sortedDinnerItems.map((item, idx) => (
-              <div key={idx} style={{
-                marginBottom: 20, padding: '16px', borderRadius: 16,
-                background: t.id === 'midnight' ? '#0f172a' : '#fff',
-                border: `1.5px solid ${isRoti(item) ? t.accentBorder : t.border}`
-              }}>
-                <p style={{
-                  margin: '0 0 12px', fontSize: 15, fontWeight: 700, color: t.text,
-                  textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6
-                }}>
-                  {isRoti(item) && <span style={{ fontSize: 20 }}>🫓</span>} {item}
-                </p>
-                {isRoti(item) ? (
-                  /* Yes / No for Roti */
-                  <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-                    <button onClick={() => setDinnerPercent(prev => ({ ...prev, [item]: 100 }))}
-                      style={{
-                        flex: 1, maxWidth: 130, padding: '12px', borderRadius: 14, cursor: 'pointer',
-                        border: `2px solid ${dinnerPercent[item] === 100 ? t.accentBorder : t.border}`,
-                        background: dinnerPercent[item] === 100 ? t.accentGrad : 'transparent',
-                        color: dinnerPercent[item] === 100 ? '#fff' : t.textSub,
-                        fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'all 0.2s'
-                      }}>
-                      ✅ Yes
-                    </button>
-                    <button onClick={() => setDinnerPercent(prev => ({ ...prev, [item]: 0 }))}
-                      style={{
-                        flex: 1, maxWidth: 130, padding: '12px', borderRadius: 14, cursor: 'pointer',
-                        border: `2px solid ${dinnerPercent[item] === 0 ? t.accentBorder : t.border}`,
-                        background: dinnerPercent[item] === 0 ? t.accentBg : 'transparent',
-                        color: dinnerPercent[item] === 0 ? t.accent : t.textSub,
-                        fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em', transition: 'all 0.2s'
-                      }}>
-                      ❌ No
-                    </button>
-                  </div>
-                ) : (
-                  /* % buttons for other items */
-                  <div style={{ display: 'flex', gap: 8, justifyContent: 'center', flexWrap: 'wrap' }}>
-                    {percentOptions.map(pct => (
-                      <button key={pct} onClick={() => setDinnerPercent(prev => ({ ...prev, [item]: pct }))}
-                        style={{
-                          flex: '1 0 auto', minWidth: 70, padding: '10px 12px', borderRadius: 12,
-                          border: `2px solid ${dinnerPercent[item] === pct ? t.accentBorder : t.border}`,
-                          background: dinnerPercent[item] === pct ? t.accentBg : 'transparent',
-                          color: dinnerPercent[item] === pct ? t.accent : t.textSub,
-                          fontWeight: 800, fontSize: 14, cursor: 'pointer', transition: 'all 0.2s'
-                        }}>
-                        {pct}%
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {saveErr && <ErrorBanner msg={saveErr} />}
-
-          <button onClick={handleSubmit}
-            disabled={Object.values(dinnerPercent).some(v => v === null) || saving}
-            style={{
-              padding: '16px', borderRadius: 18, border: 'none',
-              cursor: (Object.values(dinnerPercent).every(v => v !== null) && !saving) ? 'pointer' : 'not-allowed',
-              background: (Object.values(dinnerPercent).every(v => v !== null) && !saving) ? t.accentGrad : t.accentBg,
-              color: (Object.values(dinnerPercent).every(v => v !== null) && !saving) ? '#fff' : t.accent,
-              fontWeight: 900, fontSize: 15, textTransform: 'uppercase', letterSpacing: '0.08em',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-              transition: 'all 0.25s'
-            }}>
-            {saving
-              ? <><div className="spin" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%' }} /> Submitting…</>
-              : <><Send size={16} /> Submit Survey</>
-            }
-          </button>
-        </div>
-      )}
-        </>
-      )}
-
-      {toast && (
-        <div style={{
-          position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)',
-          background: t.accent, color: t.id === 'midnight' ? '#0f172a' : '#fff',
-          padding: '12px 24px', borderRadius: 16, fontSize: 14, fontWeight: 800,
-          boxShadow: '0 10px 28px rgba(0,0,0,0.25)', zIndex: 120, whiteSpace: 'nowrap'
-        }}>
-          {toast}
-        </div>
-      )}
-    </div>
-  )
-}
-
-/* ═══════════════════════════════════════
-   PAGE 3 — ANNOUNCEMENTS
-═══════════════════════════════════════ */
-function PostPage() {
-  const t = useTheme()
-  const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    supabase.from('posts').select('*').order('created_at', { ascending: false }).then(({ data, error }) => {
-      if (cancelled) return
-      if (error) setError(error.message); else setPosts(data)
-      setLoading(false)
-    })
-    return () => { cancelled = true }
-  }, [])
-
-  if (loading) return <Spinner />
-  if (error) return <ErrorBanner msg={error} />
-
-  const typeColor = { 
-    announcement: t.accent, notice: '#f59e0b', reminder: '#a78bfa', info: '#34d399' 
-  }
-  const typeIcon = {
-    announcement: '📣', notice: '⚠️', reminder: '⏰', info: '💡'
-  }
+  const dayOrder = { 'Monday': 1, 'Tuesday': 2, 'Wednesday': 3, 'Thursday': 4, 'Friday': 5, 'Saturday': 6 }
+  const groupedMenu = weeklyMenu.reduce((acc, m) => {
+    if (!acc[m.day_name]) acc[m.day_name] = []
+    acc[m.day_name].push(m)
+    return acc
+  }, {})
+  const sortedDays = Object.keys(groupedMenu).sort((a, b) => dayOrder[a] - dayOrder[b])
 
   return (
-    <div style={{ flex: 1, padding: '16px 16px 120px', display: 'flex', flexDirection: 'column', gap: 18 }}>
-      
-      {/* Dynamic Header */}
-      <div style={{
-        position: 'relative', overflow: 'hidden',
-        borderRadius: 24, padding: '24px 22px', 
-        background: `linear-gradient(135deg, ${t.cardActive}, ${t.accentBg})`,
-        border: `2px solid ${t.accentBorder}`,
-        boxShadow: `0 12px 40px ${t.accentBg}`,
-        display: 'flex', alignItems: 'center', gap: 16
-      }}>
-        <div style={{
-          position: 'absolute', top: -30, right: -30, width: 100, height: 100,
-          background: t.accent, opacity: 0.1, borderRadius: '50%', filter: 'blur(30px)'
-        }} />
-        <div style={{
-          width: 52, height: 52, borderRadius: 16, background: t.card,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: `0 8px 24px ${t.accentBg}`,
-          border: `2px solid ${t.accentBorder}`, zIndex: 1
-        }}>
-          <Bell size={26} color={t.accent} />
-        </div>
-        <div style={{ flex: 1, zIndex: 1 }}>
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 800, color: t.accent, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Notice Board</p>
-          <p style={{ margin: '2px 0 0', fontSize: 22, fontWeight: 900, color: t.text, letterSpacing: '0.01em' }}>Announcements</p>
-        </div>
-        <div style={{ 
-          background: t.accent, color: '#fff', fontSize: 13, fontWeight: 900, 
-          padding: '6px 14px', borderRadius: 999, zIndex: 1, boxShadow: `0 4px 12px ${t.accentBg}` 
-        }}>
-          {posts.length}
-        </div>
+    <div style={{ flex: 1, padding: '20px 20px 120px', background: t.bg }}>
+      <div style={{ marginBottom: 32, textAlign: 'center' }}>
+        <h2 style={{ margin: '0 0 8px', fontSize: 28, fontWeight: 900, color: t.accent, letterSpacing: '-0.02em' }}>Quantity Survey</h2>
+        <p style={{ margin: 0, fontSize: 14, color: t.textSub, fontWeight: 600, opacity: 0.6 }}>Tell us how much you consumed of each item</p>
       </div>
 
-      {posts.length === 0 && (
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px', gap: 16 }}>
-          <div style={{ opacity: 0.2 }}><Bell size={56} color={t.text} /></div>
-          <p style={{ margin: 0, fontSize: 16, color: t.textSub, opacity: 0.8, fontWeight: 600 }}>No announcements at the moment.</p>
-        </div>
-      )}
+      {sortedDays.map(day => (
+        <div key={day} style={{ marginBottom: 32 }}>
+          <h3 style={{
+            margin: '0 0 16px', fontSize: 13, fontWeight: 800,
+            color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.15em',
+            paddingLeft: 4, opacity: 0.8
+          }}>{day}</h3>
 
-      {posts.map(post => {
-        const isUrgent = post.is_urgent
-        const cColor = typeColor[post.type] || t.accent
-        
-        return (
-          <div key={post.id} style={{
-            position: 'relative', overflow: 'hidden',
-            borderRadius: 24, padding: '22px', 
-            background: t.card,
-            border: `1.5px solid ${isUrgent ? t.accentBorder : t.border}`,
-            boxShadow: isUrgent ? `0 12px 40px ${t.accentBg}` : '0 8px 24px rgba(0,0,0,0.03)',
-            transition: 'all 0.3s ease'
-          }}>
-            
-            {/* Urgent glowing orb */}
-            {isUrgent && (
-              <div style={{
-                position: 'absolute', top: 0, right: 0, width: '150px', height: '150px',
-                background: `radial-gradient(circle, ${t.accentBg} 0%, transparent 70%)`,
-                transform: 'translate(40%, -40%)', pointerEvents: 'none', borderRadius: '50%'
-              }} />
-            )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {groupedMenu[day].map(meal => {
+              const res = surveyResponses[meal.id] || {}
+              const isExpanded = expandedMeal === meal.id
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, position: 'relative', zIndex: 1 }}>
-              
-              <div style={{ 
-                width: 50, height: 50, borderRadius: '50%', flexShrink: 0,
-                background: t.cardActive, border: `2px solid ${t.borderActive}`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 24, boxShadow: `0 4px 16px rgba(0,0,0,0.05)`
-              }}>
-                {post.emoji || typeIcon[post.type] || '📌'}
-              </div>
+              const rawItems = meal.items.split(',').map(i => i.trim())
+              // Prioritize Roti
+              const items = [
+                ...rawItems.filter(i => i.toLowerCase().includes('roti')),
+                ...rawItems.filter(i => !i.toLowerCase().includes('roti'))
+              ]
 
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 8, justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: 17, fontWeight: 900, color: t.text, lineHeight: 1.3 }}>{post.title_en}</span>
-                  {isUrgent && (
-                    <span style={{
-                      fontSize: 10, fontWeight: 900, padding: '4px 10px', borderRadius: 999,
-                      background: t.accentGrad, color: '#fff', textTransform: 'uppercase', letterSpacing: '0.1em',
-                      boxShadow: `0 4px 12px ${t.accentBg}`, flexShrink: 0
-                    }}>Important</span>
+              return (
+                <div key={meal.id} style={{
+                  background: t.card, border: `1.5px solid ${isExpanded ? t.accent : t.border}`,
+                  borderRadius: 24, overflow: 'hidden', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: isExpanded ? `0 12px 32px ${t.accentBg}` : 'none'
+                }}>
+                  <div
+                    onClick={() => setExpandedMeal(isExpanded ? null : meal.id)}
+                    style={{
+                      padding: '20px 24px', cursor: 'pointer', display: 'flex',
+                      alignItems: 'center', justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 14, background: t.accentBg,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: t.accent, fontSize: 22, boxShadow: `inset 0 0 0 1.5px ${t.accentBorder}`
+                      }}>
+                        {meal.meal_type.toLowerCase().includes('lunch') ? <Sun size={20} /> : <Moon size={20} />}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: t.text }}>{meal.meal_type}</div>
+                        <div style={{ fontSize: 12, color: t.accent, fontWeight: 800, opacity: 0.8 }}>
+                          {Object.keys(res).length} items rated
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{
+                      transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)',
+                      transition: 'transform 0.3s ease', color: t.textSub
+                    }}>
+                      <ChevronDown size={20} />
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div style={{ padding: '0 24px 24px', animation: 'fadeIn 0.3s ease' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+                        {items.map(itemName => (
+                          <div key={itemName} style={{
+                            padding: '16px', background: t.bg, borderRadius: 18,
+                            border: `1.5px solid ${t.border}`, transition: 'all 0.2s'
+                          }}>
+                            <div style={{
+                              fontSize: 14, fontWeight: 800, color: t.text, marginBottom: 12,
+                              display: 'flex', alignItems: 'center', gap: 8
+                            }}>
+                              {itemName.toLowerCase().includes('roti') && <span style={{ fontSize: 18 }}>🍞</span>}
+                              {itemName}
+                            </div>
+                            <QuantityBar
+                              value={res[itemName] || 0}
+                              onChange={(v) => handleUpdateItemRating(meal.id, itemName, v)}
+                              theme={t}
+                            />
+                            {itemName.toLowerCase().includes('roti') && (
+                              <div style={{
+                                marginTop: 12, display: 'flex', alignItems: 'center',
+                                gap: 12, paddingTop: 12, borderTop: `1px dashed ${t.border}`
+                              }}>
+                                <span style={{ fontSize: 11, fontWeight: 800, color: t.textSub }}>RECEIVED?</span>
+                                <div style={{ display: 'flex', gap: 6 }}>
+                                  {['Yes', 'No'].map(opt => (
+                                    <button key={opt}
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleUpdateItemRating(meal.id, `${itemName}_received`, opt)
+                                      }}
+                                      style={{
+                                        padding: '4px 12px', borderRadius: 8, fontSize: 11, fontWeight: 800,
+                                        background: res[`${itemName}_received`] === opt ? t.accent : t.card,
+                                        color: res[`${itemName}_received`] === opt ? '#fff' : t.textSub,
+                                        border: `1px solid ${res[`${itemName}_received`] === opt ? t.accent : t.border}`
+                                      }}
+                                    >
+                                      {opt}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-                
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em',
-                    color: cColor, background: `${cColor}15`, padding: '4px 10px', borderRadius: 8
-                  }}>{post.type || 'Notice'}</span>
-                  <span style={{ fontSize: 12, color: t.textSub, opacity: 0.6, fontWeight: 600 }}>
-                    {new Date(post.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                  </span>
-                </div>
-                
-                <div style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  padding: '14px 16px', borderRadius: 16, border: `1px solid ${t.border}`,
-                  marginBottom: 10
-                }}>
-                  <p style={{ margin: 0, fontSize: 14, color: t.textBody, lineHeight: 1.6, fontWeight: 500 }}>
-                    {post.body}
-                  </p>
-                </div>
-
-                {post.title_ar && (
-                  <p style={{ margin: 0, fontSize: 15, color: t.accent, opacity: 0.8, fontFamily: "'Amiri', serif", fontWeight: 700, textAlign: 'right' }}>
-                    {post.title_ar}
-                  </p>
-                )}
-              </div>
-            </div>
+              )
+            })}
           </div>
-        )
-      })}
-    </div>
-  )
-}
+        </div>
+      ))}
 
-/* ═══════════════════════════════════════
-   PAGE 4 — PROFILE (Locked upload)
-═══════════════════════════════════════ */
-function ProfilePage() {
-  const t = useTheme()
-  const { user, signOut } = useAuth()
-  const [member, setMember] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [profilePic, setProfilePic] = useState(null)
-
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
-      if (!user) { setError('No user session'); setLoading(false); return }
-      const { data: m, error: e } = await supabase.from('members').select('*').eq('user_id', user.id).single()
-      if (cancelled) return
-      if (e) { setError('Profile not linked to this account'); setLoading(false); return }
-      setMember(m)
-      const { data: p } = await supabase.from('member_profile_pics').select('pic_url').eq('member_no', m.member_no).maybeSingle()
-      if (p?.pic_url) setProfilePic(p.pic_url)
-      setLoading(false)
-    }
-    load()
-    return () => { cancelled = true }
-  }, [user])
-
-  if (loading) return <Spinner />
-  if (error) return <ErrorBanner msg={error} />
-  if (!member) return <ErrorBanner msg="Member not found" />
-
-  const stats = [
-    { label: 'Member Since', value: new Date(member.joined_date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' }) },
-    { label: 'Status', value: member.is_active ? '✅ Active' : '❌ Inactive' },
-  ]
-
-  return (
-    <div style={{ flex: 1, padding: '16px 16px 120px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
+      <div style={{ height: 100 }} /> {/* Spacer for fixed button */}
+      
       <div style={{
-        borderRadius: 24, padding: '24px 22px',
-        background: `linear-gradient(135deg,${t.cardActive},${t.accentBg})`,
-        border: `2px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center', gap: 18,
-        boxShadow: `0 12px 40px ${t.accentBg}`
+        position: 'fixed', bottom: 90, left: 0, right: 0,
+        padding: '20px 24px', background: `linear-gradient(0deg, ${t.bg} 80%, transparent)`,
+        zIndex: 100
       }}>
-        <div style={{ position: 'relative', flexShrink: 0 }}>
-          <div style={{
-            width: 76, height: 76, borderRadius: '50%', background: t.accentBg,
-            border: `3px solid ${t.accentBorder}`, display: 'flex', alignItems: 'center',
-            justifyContent: 'center', overflow: 'hidden', fontSize: 32, fontWeight: 900, color: t.accent
-          }}>
-            {profilePic
-              ? <img src={profilePic} alt="profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : (member.name_ar?.[0] || member.name_en?.[0] || '?')
-            }
-          </div>
-          {/* Camera icon locked - no upload */}
-          <div style={{
-            position: 'absolute', bottom: -2, right: -2, width: 28, height: 28,
-            background: 'rgba(100,100,100,0.6)', border: `2px solid ${t.bg}`, borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <Lock size={14} color="#fff" />
-          </div>
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: '0 0 3px', fontSize: 'clamp(9px,2.5vw,11px)', color: t.accent, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em' }}>Active Member</p>
-          <p style={{ margin: '0 0 3px', fontSize: 'clamp(13px,4vw,17px)', fontWeight: 900, color: t.text, wordBreak: 'break-word' }}>{member.name_en}</p>
-          {user?.email && <p style={{ margin: 0, fontSize: 'clamp(10px,2.8vw,12px)', color: t.textSub, opacity: 0.6, fontWeight: 500, wordBreak: 'break-all' }}>{user.email}</p>}
-        </div>
-        <div style={{ textAlign: 'right', flexShrink: 0 }}>
-          <p style={{ margin: 0, fontSize: 'clamp(9px,2.5vw,11px)', color: t.textSub, opacity: 0.6, fontWeight: 700 }}>Thaali No.</p>
-          <p style={{ margin: 0, fontSize: 'clamp(22px,6vw,32px)', fontWeight: 900, color: t.accent, lineHeight: 1 }}>{member.member_no}</p>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {stats.map(s => (
-          <div key={s.label} style={{ borderRadius: 18, padding: 'clamp(12px,3.5vw,18px)', background: t.card, border: `2px solid ${t.border}` }}>
-            <p style={{ margin: '0 0 6px', fontSize: 'clamp(9px,2.5vw,11px)', color: t.textSub, opacity: 0.6, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{s.label}</p>
-            <p style={{ margin: 0, fontSize: 'clamp(13px,4vw,17px)', fontWeight: 900, color: t.accent }}>{s.value}</p>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ borderRadius: 20, padding: '20px', background: t.card, border: `2px solid ${t.border}` }}>
-        <p style={{ margin: '0 0 6px', fontSize: 'clamp(13px,4vw,16px)', fontWeight: 900, color: t.text }}>Account</p>
-        <p style={{ margin: '0 0 18px', fontSize: 'clamp(10px,3vw,13px)', color: t.textSub, opacity: 0.6, fontWeight: 500, wordBreak: 'break-all' }}>{user?.email}</p>
-        <button onClick={signOut}
+        <button onClick={handleSubmitSurvey} disabled={isSubmitting}
           style={{
-            width: '100%', padding: '15px', borderRadius: 16, border: '1.5px solid rgba(239,68,68,0.4)',
-            background: 'rgba(239,68,68,0.1)', color: '#ef4444', fontWeight: 800, fontSize: 'clamp(12px,3.5vw,14px)',
-            cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
+            width: '100%', padding: '20px', fontSize: 16, fontWeight: 900,
+            color: '#fff', background: t.accentGrad, border: 'none',
+            borderRadius: 20, cursor: isSubmitting ? 'not-allowed' : 'pointer', 
+            boxShadow: `0 12px 32px ${t.accentBg}`,
+            textTransform: 'uppercase', letterSpacing: '0.12em',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+            opacity: isSubmitting ? 0.8 : 1, transition: 'all 0.3s'
           }}>
-          <LogOut size={16} /> Sign Out
+          {isSubmitting ? (
+            <div className="spin" style={{ width: 20, height: 20, border: '3px solid rgba(255,255,255,0.3)', borderTop: '3px solid #fff', borderRadius: '50%' }} />
+          ) : (
+            <Send size={20} strokeWidth={2.5} />
+          )}
+          {isSubmitting ? 'Saving...' : 'Save Survey Responses'}
         </button>
       </div>
     </div>
   )
 }
 
-/* ═══════════════════════════════════════
-   MAIN APP
-═══════════════════════════════════════ */
-export default function App() {
-  const [session, setSession] = useState(undefined)
-  const [activeTab, setActiveTab] = useState('home')
-  const [themeId, setThemeId] = useState(getSavedThemeId)
-  const theme = THEMES[themeId] || THEMES.ivory
+/* ─── THALI REQUESTS PAGE (POSTS) ─────────────────────────────────────────────────────────────── */
+function ThaliRequestsPage() {
+  const t = useTheme()
+  const { user, showToast } = useAuth()
 
-  useEffect(() => { saveThemeId(themeId) }, [themeId])
+  // Form state
+  const [stopDates, setStopDates] = useState({ start: '', end: '' })
+  const [resumeDates, setResumeDates] = useState({ start: '', end: '' })
+  const [extra, setExtra] = useState({ qty: 1, start: '', end: '' })
+  const [issue, setIssue] = useState({ message: '', media: null })
+  const [loading, setLoading] = useState(false)
+
+  const handleInsert = async (type, payload) => {
+    setLoading(true)
+    const { error } = await supabase.from('thali_requests').insert({
+      user_id: user.id,
+      thali_number: (await supabase.from('profiles').select('thali_number').eq('id', user.id).single()).data?.thali_number,
+      request_type: type,
+      ...payload
+    })
+    setLoading(false)
+    if (error) {
+      showToast(error.message, 'error')
+    } else {
+      showToast('Request submitted')
+      // reset relevant fields
+      if (type === 'stop') setStopDates({ start: '', end: '' })
+      if (type === 'resume') setResumeDates({ start: '', end: '' })
+      if (type === 'extra') setExtra({ qty: 1, start: '', end: '' })
+      if (type === 'issue') setIssue({ message: '', media: null })
+    }
+  }
+
+  const uploadMedia = async (file) => {
+    const fileExt = file.name.split('.').pop()
+    const fileName = `${Date.now()}.${fileExt}`
+    const { data, error } = await supabase.storage.from('thali_media').upload(fileName, file)
+    if (error) throw error
+    const { publicURL } = supabase.storage.from('thali_media').getPublicUrl(fileName)
+    return publicURL
+  }
+
+  const submitIssue = async () => {
+    let mediaUrl = null
+    if (issue.media) {
+      try { mediaUrl = await uploadMedia(issue.media) } catch (e) { showToast(e.message, 'error'); return }
+    }
+    await handleInsert('issue', { message: issue.message, media_url: mediaUrl })
+  }
+
+  return (
+    <div style={{ flex: 1, padding: '20px 20px 120px', background: t.bg }}>
+      <h2 style={{ margin: '0 0 16px', fontSize: 24, fontWeight: 900, color: t.text }}>Thali Requests</h2>
+
+      {/* Stop Thali */}
+      <section style={{ marginBottom: 28 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: t.textSub }}>Stop Thali</h3>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <input type="date" value={stopDates.start} onChange={e => setStopDates({ ...stopDates, start: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+          <input type="date" value={stopDates.end} onChange={e => setStopDates({ ...stopDates, end: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+        </div>
+        <button onClick={() => handleInsert('stop', { start_date: stopDates.start, end_date: stopDates.end })} disabled={loading} style={primaryBtn(t)}>{loading ? 'Saving...' : 'Submit Stop'}</button>
+      </section>
+
+      {/* Resume Thali */}
+      <section style={{ marginBottom: 28 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: t.textSub }}>Resume Thali</h3>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <input type="date" value={resumeDates.start} onChange={e => setResumeDates({ ...resumeDates, start: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+          <input type="date" value={resumeDates.end} onChange={e => setResumeDates({ ...resumeDates, end: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+        </div>
+        <button onClick={() => handleInsert('resume', { start_date: resumeDates.start, end_date: resumeDates.end })} disabled={loading} style={primaryBtn(t)}>{loading ? 'Saving...' : 'Submit Resume'}</button>
+      </section>
+
+      {/* Extra Food */}
+      <section style={{ marginBottom: 28 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: t.textSub }}>Extra Food</h3>
+        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+          <select value={extra.qty} onChange={e => setExtra({ ...extra, qty: Number(e.target.value) })} style={inputStyle(t)}>
+            {[1,2,3,4].map(n => (<option key={n} value={n}>{n} portion{n>1?'s':''}</option>))}
+          </select>
+          <input type="date" value={extra.start} onChange={e => setExtra({ ...extra, start: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+          <input type="date" value={extra.end} onChange={e => setExtra({ ...extra, end: e.target.value })} style={{ flex: 1, ...inputStyle(t) }} />
+        </div>
+        <button onClick={() => handleInsert('extra', { quantity: extra.qty, start_date: extra.start, end_date: extra.end })} disabled={loading} style={primaryBtn(t)}>{loading ? 'Saving...' : 'Submit Extra Food'}</button>
+      </section>
+
+      {/* Report Issue */}
+      <section style={{ marginBottom: 28 }}>
+        <h3 style={{ fontSize: 18, fontWeight: 800, color: t.textSub }}>Report Issue</h3>
+        <textarea placeholder="Describe the issue..." value={issue.message} onChange={e => setIssue({ ...issue, message: e.target.value })} style={{ width: '100%', minHeight: 80, marginTop: 8, ...inputStyle(t) }} />
+        <input type="file" accept="image/*,video/*" onChange={e => setIssue({ ...issue, media: e.target.files[0] })} style={{ marginTop: 8 }} />
+        <button onClick={submitIssue} disabled={loading} style={primaryBtn(t)}>{loading ? 'Saving...' : 'Submit Issue'}</button>
+      </section>
+    </div>
+  )
+}
+
+// Helper styles used in the request page
+const inputStyle = (t) => ({
+  background: t.inputBg, border: `1.5px solid ${t.inputBorder}`,
+  borderRadius: 8, padding: '8px 12px', color: t.text, fontSize: 14, outline: 'none'
+})
+
+const primaryBtn = (t) => ({
+  marginTop: 8,
+  padding: '10px 16px',
+  background: t.accentGrad,
+  color: '#fff',
+  border: 'none',
+  borderRadius: 8,
+  cursor: 'pointer',
+  fontWeight: 600
+})
+
+      /* ─── PROFILE PAGE WITH LOGOUT ─────────────────────────────────────────────────────────────────── */
+      function ProfilePage() {
+  const t = useTheme()
+      const {user, signOut} = useAuth()
+      const [profile, setProfile] = useState(null)
+      const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, session) => setSession(session))
+        loadProfile()
+      }, [])
+
+  const loadProfile = async () => {
+    const {data} = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+      setProfile(data)
+      setLoading(false)
+  }
+
+  const handleLogout = async () => {
+    if (confirm('Are you sure you want to log out?')) {
+        await signOut()
+      }
+  }
+
+      if (loading) return <Spinner />
+
+      return (
+      <div style={{ flex: 1, padding: '20px 20px 100px', background: t.bg }}>
+        {/* Profile Card */}
+        {profile && (
+          <div style={{
+            background: t.card, border: `2px solid ${t.border}`,
+            borderRadius: 20, padding: 32, marginBottom: 24, textAlign: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.06)'
+          }}>
+            <div style={{
+              width: 100, height: 100, borderRadius: '50%',
+              background: profile.profile_pic_url ? `url(${profile.profile_pic_url})` : t.accentGrad,
+              backgroundSize: 'cover', backgroundPosition: 'center',
+              border: `4px solid ${t.accent}`, margin: '0 auto 20px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 40, fontWeight: 900, color: '#fff'
+            }}>
+              {!profile.profile_pic_url && (profile.full_name?.[0] || 'U')}
+            </div>
+
+            <h2 style={{ margin: '0 0 8px', fontSize: 24, fontWeight: 800, color: t.text }}>
+              {profile.full_name}
+            </h2>
+            <p style={{ margin: '0 0 16px', fontSize: 14, color: t.textSub }}>
+              {profile.email}
+            </p>
+            <div style={{
+              display: 'inline-block', background: t.accentBg,
+              border: `2px solid ${t.accentBorder}`, borderRadius: 10,
+              padding: '8px 16px', fontSize: 15, fontWeight: 800,
+              color: t.accent, letterSpacing: '0.05em'
+            }}>
+              Thali #{profile.thali_number}
+            </div>
+          </div>
+        )}
+
+        {/* Profile Details */}
+        <div style={{
+          background: t.card, border: `2px solid ${t.border}`,
+          borderRadius: 16, overflow: 'hidden', marginBottom: 24
+        }}>
+          {profile?.phone && (
+            <div style={{
+              padding: '16px 20px', borderBottom: `1px solid ${t.border}`,
+              display: 'flex', justifyContent: 'space-between'
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: t.textSub }}>Phone</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{profile.phone}</span>
+            </div>
+          )}
+          {profile?.address && (
+            <div style={{
+              padding: '16px 20px', borderBottom: `1px solid ${t.border}`,
+              display: 'flex', justifyContent: 'space-between'
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: t.textSub }}>Address</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: t.text, textAlign: 'right' }}>
+                {profile.address}
+              </span>
+            </div>
+          )}
+          {profile?.city && (
+            <div style={{
+              padding: '16px 20px',
+              display: 'flex', justifyContent: 'space-between'
+            }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: t.textSub }}>City</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: t.text }}>{profile.city}, {profile.state}</span>
+            </div>
+          )}
+        </div>
+
+        {/* General Section */}
+        <h3 style={{
+          margin: '0 0 16px', fontSize: 14, fontWeight: 700,
+          color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.08em'
+        }}>
+          General
+        </h3>
+        <div style={{
+          background: t.card, border: `2px solid ${t.border}`,
+          borderRadius: 16, overflow: 'hidden', marginBottom: 24
+        }}>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', borderBottom: `1px solid ${t.border}`,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Survey Data</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', borderBottom: `1px solid ${t.border}`,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Your Requests</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', borderBottom: `1px solid ${t.border}`,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Khidmat Guzar List</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>About us</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+        </div>
+
+        {/* Support Section */}
+        <h3 style={{
+          margin: '0 0 16px', fontSize: 14, fontWeight: 700,
+          color: t.textSub, textTransform: 'uppercase', letterSpacing: '0.08em'
+        }}>
+          Support
+        </h3>
+        <div style={{
+          background: t.card, border: `2px solid ${t.border}`,
+          borderRadius: 16, overflow: 'hidden', marginBottom: 24
+        }}>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', borderBottom: `1px solid ${t.border}`,
+            cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Contact us</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+          <button style={{
+            width: '100%', padding: '18px 20px', background: 'none',
+            border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center',
+            justifyContent: 'space-between', transition: 'background 0.2s'
+          }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Support ticket</span>
+            <ChevronRight size={20} color={t.textSub} />
+          </button>
+        </div>
+
+        {/* Logout Button */}
+        <button onClick={handleLogout}
+          style={{
+            width: '100%', padding: 18, fontSize: 15, fontWeight: 800,
+            textTransform: 'uppercase', letterSpacing: '0.08em',
+            color: '#fff', background: 'linear-gradient(135deg, #ef4444, #dc2626)',
+            border: 'none', borderRadius: 14, cursor: 'pointer',
+            boxShadow: '0 6px 24px rgba(239,68,68,0.3)',
+            transition: 'all 0.3s', display: 'flex', alignItems: 'center',
+            justifyContent: 'center', gap: 10
+          }}>
+          <LogOut size={20} />
+          Log Out
+        </button>
+      </div>
+      )
+}
+
+      /* ─── MAIN APP ─────────────────────────────────────────────────────────────────── */
+      export default function App() {
+  const [session, setSession] = useState(undefined)
+      const [activeTab, setActiveTab] = useState('home')
+      const [themeId, setThemeId] = useState(getSavedThemeId())
+const theme = THEMES[themeId]
+  // Toast state for global feedback
+  const [toastInfo, setToastInfo] = useState(null)
+  const showToast = (msg, type = 'success') => {
+    setToastInfo({msg, type})
+    setTimeout(() => setToastInfo(null), 4000)
+  }
+
+  useEffect(() => {
+        saveThemeId(themeId)
+      }, [themeId])
+
+  useEffect(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
+    const {data: {subscription} } = supabase.auth.onAuthStateChange((_event, session) => setSession(session))
     return () => subscription.unsubscribe()
   }, [])
 
-  const signOut = useCallback(async () => { await supabase.auth.signOut() }, [])
+  const signOut = async () => {
+        await supabase.auth.signOut()
+      }
 
-  const tabs = [
-    { id: 'home', label: 'Home', Icon: Home },
-    { id: 'survey', label: 'Survey', Icon: ClipboardList },
-    { id: 'post', label: 'Announcements', Icon: Bell },
-    { id: 'profile', label: 'Profile', Icon: User },
-  ]
+      const tabs = [
+      {id: 'home', label: 'Home', Icon: Home },
+      {id: 'survey', label: 'Survey', Icon: ClipboardList },
+      {id: 'thali', label: 'Post', Icon: FileText },
+      {id: 'profile', label: 'Profile', Icon: User },
+      ]
 
-  const pageTitles = {
-    home: { en: 'Al-Mawaid', sub: 'Daily Menu' },
-    survey: { en: 'Survey', sub: 'Share your experience' },
-    post: { en: 'Announcements', sub: 'Latest updates' },
-    profile: { en: 'My Profile', sub: 'Member details' },
+      const pageTitles = {
+        home: {en: 'Al-Mawaid', sub: 'Weekly Menu & Feedback' },
+      survey: {en: 'Weekly Survey', sub: 'Share your feedback' },
+      thali: {en: 'Posts', sub: 'Latest Updates' },
+      profile: {en: 'My Profile', sub: 'Member details' },
   }
-  const title = pageTitles[activeTab]
+      const title = pageTitles[activeTab]
 
-  if (session === undefined) {
+      if (session === undefined) {
     return (
       <div style={{
         minHeight: '100vh', background: theme.bgGrad,
-        display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter', -apple-system, sans-serif"
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'Inter', -apple-system, sans-serif"
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 }}>
           <div className="spin" style={{
             width: 44, height: 44,
-            border: `3px solid ${theme.spinnerBorder}`, borderTop: `3px solid ${theme.spinnerTop}`, borderRadius: '50%'
+            border: `3px solid ${theme.spinnerBorder}`,
+            borderTop: `3px solid ${theme.spinnerTop}`, borderRadius: '50%'
           }} />
           <p style={{ margin: 0, fontSize: 14, color: theme.textSub, opacity: 0.6, fontWeight: 600 }}>Loading…</p>
         </div>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .85s linear infinite}body{margin:0;font-family:'Inter',-apple-system,sans-serif}`}</style>
       </div>
-    )
+      )
   }
 
-  if (!session) return <LoginPage themeId={themeId} setThemeId={setThemeId} />
+      if (!session) return <LoginPage themeId={themeId} setThemeId={setThemeId} />
 
-  return (
-    <ThemeCtx.Provider value={{ ...theme, theme, setThemeId }}>
-      <AuthCtx.Provider value={{ user: session.user, signOut }}>
-        <div style={{
-          fontFamily: "'Inter', -apple-system, sans-serif",
-          minHeight: '100vh', background: theme.bg, color: theme.text,
-          display: 'flex', flexDirection: 'column', transition: 'background 0.4s ease, color 0.4s ease'
-        }}>
-
-          <ThemeSwitcher themeId={themeId} setThemeId={setThemeId} theme={theme} />
-
-          {/* HEADER */}
-          <header style={{
-            position: 'relative', overflow: 'hidden',
-            background: theme.bgGrad, padding: '24px 20px 0', transition: 'background 0.4s ease'
-          }}>
-            <GeoBg t={theme} />
-
-            <div style={{
-              position: 'relative', zIndex: 1, display: 'flex',
-              justifyContent: 'space-between', alignItems: 'center', marginBottom: 16
-            }}>
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 10, fontSize: 11,
-                letterSpacing: '0.2em', textTransform: 'uppercase', color: theme.textSub, opacity: 0.9, paddingLeft: 50, fontWeight: 700
-              }}>
-                <img src="/logo.png" alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} /> Al-Mawaid
-              </div>
-              <span style={{ fontSize: 11, color: theme.textSub, opacity: 0.5, fontWeight: 600 }}>
-                {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </span>
-            </div>
-
-            {activeTab === 'home' && (
-              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 10 }}>
-                <p style={{ fontFamily: "'Amiri', serif", fontSize: 20, letterSpacing: '0.08em', color: theme.accent, margin: 0, fontWeight: 700 }}>
-                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-                </p>
-              </div>
-            )}
-
-            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 14 }}>
-              {activeTab === 'home' && (
-                <p style={{
-                  fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase',
-                  color: theme.textSub, opacity: 0.5, margin: '0 0 4px', fontWeight: 700
-                }}>Welcome to</p>
-              )}
-              <h1 style={{
-                margin: 0, fontSize: activeTab === 'home' ? 38 : 28,
-                fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.1,
-                color: theme.accent, textShadow: `0 0 24px ${theme.accentBg}`
-              }}>
-                {title.en}
-              </h1>
-              <p style={{
-                margin: '4px 0 0', fontSize: 12, letterSpacing: '0.18em',
-                textTransform: 'uppercase', color: theme.textSub, opacity: 0.5, fontWeight: 700
-              }}>{title.sub}</p>
-            </div>
-
-            <svg style={{ display: 'block', position: 'relative', zIndex: 1 }}
-              width="100%" viewBox="0 0 1440 48" preserveAspectRatio="none">
-              <path d="M0,16 C200,48 400,0 600,24 C800,48 1000,6 1200,28 C1320,42 1400,16 1440,22 L1440,48 L0,48 Z"
-                fill={theme.bg} />
-            </svg>
-          </header>
-
-          {activeTab === 'home' && <HomePage />}
-          {activeTab === 'survey' && <SurveyPage />}
-          {activeTab === 'post' && <PostPage />}
-          {activeTab === 'profile' && <ProfilePage />}
-
-          {/* Bottom nav — 4 tabs */}
-          <nav style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
-            display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-            padding: '12px 10px 16px', background: theme.navBg,
-            borderTop: `2px solid ${theme.navBorder}`, boxShadow: '0 -8px 36px rgba(0,0,0,0.12)',
-            transition: 'background 0.4s ease'
-          }}>
-            {tabs.map(({ id, label, Icon }) => {
-              const active = activeTab === id
+      return (
+      <ThemeCtx.Provider value={{ ...theme, theme, setThemeId }}>
+        <AuthCtx.Provider value={authValue}>
+            {/* Toast handling */}
+            {(() => {
+              const [toastInfo, setToastInfo] = useState(null)
+              const showToast = (msg, type = 'success') => {
+                setToastInfo({msg, type})
+                setTimeout(() => setToastInfo(null), 4000)
+              }
+              // Expose showToast via a custom attribute on AuthCtx for children to consume
+              const authValue = { user: session.user, signOut, showToast }
               return (
-                <button key={id} onClick={() => setActiveTab(id)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
-                    padding: '4px 20px', position: 'relative', WebkitTapHighlightColor: 'transparent'
-                  }}>
-                  {active && (
-                    <div style={{
-                      position: 'absolute', top: -12, left: '50%', transform: 'translateX(-50%)',
-                      width: 36, height: 4, borderRadius: 8, background: theme.accent,
-                      boxShadow: `0 0 14px ${theme.accentBg}`
-                    }} />
-                  )}
-                  <Icon size={24} color={active ? theme.accent : theme.border} strokeWidth={active ? 2.4 : 1.8} />
-                  <span style={{
-                    fontSize: 11, fontWeight: 800, letterSpacing: '0.04em',
-                    color: active ? theme.accent : theme.textSub, opacity: active ? 1 : 0.6
-                  }}>
-                    {label}
-                  </span>
-                </button>
+                <AuthCtx.Provider value={authValue}>
+                  {/* Toast UI */}
+                  {toastInfo && <Toast {...toastInfo} />}
+                </AuthCtx.Provider>
               )
-            })}
-          </nav>
+            })() }
+          <div style={{
+            fontFamily: "'Inter', -apple-system, sans-serif",
+            minHeight: '100vh', background: theme.bg, color: theme.text,
+            display: 'flex', flexDirection: 'column',
+            transition: 'background 0.4s ease, color 0.4s ease'
+          }}>
 
-          <style>{`
+            {/* Theme Switcher only on Profile */}
+            {activeTab === 'profile' && <ThemeSwitcher themeId={themeId} setThemeId={setThemeId} theme={theme} />}
+
+            {/* HEADER */}
+            <header style={{
+              position: 'relative', overflow: 'hidden',
+              background: theme.bgGrad, padding: '24px 20px 0',
+              transition: 'background 0.4s ease'
+            }}>
+              <GeoBg t={theme} />
+
+              <div style={{
+                position: 'relative', zIndex: 1, display: 'flex',
+                justifyContent: 'space-between', alignItems: 'center', marginBottom: 16
+              }}>
+                <div />
+
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  color: theme.textSub, opacity: 0.8
+                }}>
+                  <img src="/logo.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+                  <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.1em' }}>
+                    {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+              </div>
+
+              {activeTab === 'home' && (
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 10 }}>
+                  <p style={{
+                    fontFamily: "'Amiri', serif", fontSize: 20, letterSpacing: '0.08em',
+                    color: theme.accent, margin: 0, fontWeight: 700
+                  }}>
+                    بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                  </p>
+                </div>
+              )}
+
+              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 14 }}>
+                {activeTab === 'home' && (
+                  <p style={{
+                    fontSize: 11, letterSpacing: '0.28em', textTransform: 'uppercase',
+                    color: theme.textSub, opacity: 0.5, margin: '0 0 4px', fontWeight: 700
+                  }}>Welcome to</p>
+                )}
+                <h1 style={{
+                  margin: 0, fontSize: activeTab === 'home' ? 38 : 28,
+                  fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.03em',
+                  lineHeight: 1.1, color: theme.accent, textShadow: `0 0 24px ${theme.accentBg}`
+                }}>
+                  {title.en}
+                </h1>
+                <p style={{
+                  margin: '4px 0 0', fontSize: 12, letterSpacing: '0.18em',
+                  textTransform: 'uppercase', color: theme.textSub, opacity: 0.5, fontWeight: 700
+                }}>{title.sub}</p>
+              </div>
+
+              <svg style={{ display: 'block', position: 'relative', zIndex: 1 }}
+                width="100%" viewBox="0 0 1440 48" preserveAspectRatio="none">
+                <path d="M0,16 C200,48 400,0 600,24 C800,48 1000,6 1200,28 C1320,42 1400,16 1440,22 L1440,48 L0,48 Z"
+                  fill={theme.bg} />
+              </svg>
+            </header>
+
+            {activeTab === 'home' && <HomePage />}
+            {activeTab === 'survey' && <SurveyPage />}
+            {activeTab === 'thali' && <ThaliRequestsPage />}
+            {activeTab === 'profile' && <ProfilePage />}
+
+            {/* Bottom nav */}
+            <nav style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 1000,
+              display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+              padding: '12px 10px 24px', background: theme.navBg || theme.card,
+              borderTop: `2px solid ${theme.navBorder || theme.border}`,
+              boxShadow: '0 -8px 36px rgba(0,0,0,0.12)',
+              transition: 'background 0.4s ease'
+            }}>
+              {tabs.map(({ id, label, Icon }) => {
+                const active = activeTab === id
+                return (
+                  <button key={id} onClick={() => setActiveTab(id)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center',
+                      gap: 4, padding: '8px 16px', position: 'relative',
+                      WebkitTapHighlightColor: 'transparent'
+                    }}>
+                    {active && (
+                      <div style={{
+                        position: 'absolute', top: -14, left: '50%', transform: 'translateX(-50%)',
+                        width: 36, height: 4, borderRadius: 8, background: theme.accent,
+                        boxShadow: `0 0 14px ${theme.accentBg}`
+                      }} />
+                    )}
+                    <Icon size={22} color={active ? theme.accent : theme.textSub} strokeWidth={active ? 2.5 : 2} />
+                    <span style={{
+                      fontSize: 10, fontWeight: active ? 800 : 600, letterSpacing: '0.02em',
+                      color: active ? theme.accent : theme.textSub, opacity: active ? 1 : 0.7
+                    }}>
+                      {label}
+                    </span>
+                  </button>
+                )
+              })}
+            </nav>
+
+
+            <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&display=swap');
             @keyframes spin { to { transform: rotate(360deg); } }
             .spin { animation: spin 0.85s linear infinite; }
@@ -1825,15 +1590,12 @@ export default function App() {
               from { opacity:0 }
               to   { opacity:1 }
             }
-            @keyframes feedbackPulse {
-              0%, 100% { box-shadow: 0 6px 20px var(--accent-bg, rgba(0,0,0,0.15)); }
-              50%       { box-shadow: 0 8px 32px var(--accent-bg, rgba(0,0,0,0.3)); transform: translateY(-1px); }
-            }
             * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+{toastInfo && <Toast {...toastInfo} />}
             body { margin: 0; font-family: 'Inter', -apple-system, sans-serif; }
           `}</style>
-        </div>
-      </AuthCtx.Provider>
-    </ThemeCtx.Provider>
-  )
+          </div>
+        </AuthCtx.Provider>
+      </ThemeCtx.Provider>
+      )
 }

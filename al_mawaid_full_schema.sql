@@ -95,20 +95,44 @@ CREATE TABLE IF NOT EXISTS public.survey_responses (
 -- AUTOMATIC PLAYS (VIEWS & TRIGGERS)
 -- =========================================================================
 
--- AUTO-PLAY 1: Abstract Survey Pivot View
--- Automatically generates a dynamic table-like view summarizing survey metrics in text columns
-CREATE OR REPLACE VIEW public.survey_results_summary AS
+-- AUTO-PLAY 1: Comprehensive Survey Analytical Views
+-- View A: Raw Unpivoted Export
+-- Follows the exact breakdown: Member Name, Thaali No, Days, Meal, Dish Name, Quantity
+CREATE OR REPLACE VIEW public.survey_raw_data AS
 SELECT 
-    survey_date,
-    meal_type,
-    menu_item,
-    string_agg('User ' || member_no::text || ': ' || percent::text || '%', ', ') as user_responses
+    m.name_en AS member_name,
+    s.member_no AS thaali_no,
+    s.day_name AS days,
+    s.meal_type AS meal_type,
+    s.menu_item AS dish_name,
+    s.percent AS quantity_percentage,
+    s.survey_date
 FROM 
-    public.survey_responses
-GROUP BY 
-    survey_date, meal_type, menu_item
+    public.survey_responses s
+LEFT JOIN 
+    public.members m ON s.member_no = m.member_no
 ORDER BY 
-    survey_date DESC, meal_type DESC;
+    s.survey_date DESC, s.meal_type DESC;
+
+
+-- View B: Grouped Dish Summary
+-- Row shows the dish name (and the day/meal). 
+-- Column shows the name and percentage entered by recipients (e.g. Hatim: 50%)
+CREATE OR REPLACE VIEW public.survey_dish_summary AS
+SELECT 
+    s.survey_date,
+    s.day_name,
+    s.meal_type,
+    s.menu_item AS dish_name,
+    string_agg(COALESCE(m.name_en, 'Member') || ' (Thaali ' || s.member_no::text || '): ' || s.percent::text || '%', ' | ') AS name_and_percentage_entered
+FROM 
+    public.survey_responses s
+LEFT JOIN 
+    public.members m ON s.member_no = m.member_no
+GROUP BY 
+    s.survey_date, s.day_name, s.meal_type, s.menu_item
+ORDER BY 
+    s.survey_date DESC, s.meal_type DESC;
 
 
 -- AUTO-PLAY 2: Automatic Timestamp Updater Function
