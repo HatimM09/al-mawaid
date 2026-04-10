@@ -96,58 +96,6 @@ const THEMES = {
   },
 }
 
-// ─── Theme persistence helpers ────────────────────────────────
-function getSavedThemeId() { try { return localStorage.getItem('al-mawaid-theme') || 'ivory' } catch { return 'ivory' } }
-function saveThemeId(id) { try { localStorage.setItem('al-mawaid-theme', id) } catch { } }
-
-const ThemeCtx = createContext(null)
-const useTheme = () => useContext(ThemeCtx)
-const AuthCtx = createContext(null)
-const useAuth = () => useContext(AuthCtx)
-
-/* ─── Shared helpers ─────────────────────────────────────────── */
-const GeoBg = ({ t: tProp }) => {
-  const ctx = useTheme()
-  const t = tProp || ctx
-  return (
-    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.4 }}>
-      <defs>
-        <pattern id="geo" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
-          <circle cx="25" cy="25" r="1.5" fill={t.geo} />
-          <circle cx="0" cy="0" r="1" fill={t.geo} />
-          <circle cx="50" cy="0" r="1" fill={t.geo} />
-          <circle cx="0" cy="50" r="1" fill={t.geo} />
-          <circle cx="50" cy="50" r="1" fill={t.geo} />
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#geo)" />
-    </svg>
-  )
-}
-
-const Spinner = ({ fullPage = true }) => {
-  const t = useTheme()
-  const inner = (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <div className="spin" style={{ width: 40, height: 40, border: `3px solid ${t.spinnerBorder}`, borderTop: `3px solid ${t.spinnerTop}`, borderRadius: '50%' }} />
-      {fullPage && <p style={{ margin: 0, fontSize: 14, color: t.textSub, opacity: 0.6, fontWeight: 600 }}>Loading…</p>}
-    </div>
-  )
-  return fullPage
-    ? <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>{inner}</div>
-    : inner
-}
-
-const ErrorBanner = ({ msg }) => (
-  <div style={{
-    margin: '10px 0', padding: '14px 16px', borderRadius: 14,
-    background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
-    color: '#dc2626', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600
-  }}>
-    <AlertCircle size={16} style={{ flexShrink: 0 }} />{msg}
-  </div>
-)
-
 /* ─── Theme Switcher ─── */
 function ThemeSwitcher({ themeId, setThemeId, theme: t }) {
   const [open, setOpen] = useState(false)
