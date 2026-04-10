@@ -110,26 +110,67 @@ const GeoBg = ({ t: tProp }) => {
 }
 
 const Spinner = ({ fullPage = true }) => {
-  const t = useTheme()
+  // Fallback to an empty object if useTheme returns null/undefined
+  const t = useTheme() || {};
+
   const inner = (
-    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
-      <div className="spin" style={{ width:36, height:36, border:`3px solid ${t.spinnerBorder}`, borderTop:`3px solid ${t.spinnerTop}`, borderRadius:'50%' }}/>
-      {fullPage && <p style={{ margin:0, fontSize:13, color:t.textSub, opacity:0.5 }}>Loading…</p>}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <div 
+        className="spin" 
+        style={{ 
+          width: 36, 
+          height: 36, 
+          // Added optional chaining and default fallback colors (adjust hex codes as needed)
+          border: `3px solid ${t?.spinnerBorder || '#e5e7eb'}`, 
+          borderTop: `3px solid ${t?.spinnerTop || '#3b82f6'}`, 
+          borderRadius: '50%' 
+        }}
+      />
+      {fullPage && (
+        <p style={{ 
+          margin: 0, 
+          fontSize: 13, 
+          color: t?.textSub || '#6b7280', 
+          opacity: 0.5 
+        }}>
+          Loading…
+        </p>
+      )}
     </div>
-  )
-  return fullPage
-    ? <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', padding:'60px 20px' }}>{inner}</div>
-    : inner
-}
+  );
+
+  return fullPage ? (
+    <div style={{ 
+      flex: 1, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '60px 20px' 
+    }}>
+      {inner}
+    </div>
+  ) : (
+    inner
+  );
+};
 
 const ErrorBanner = ({ msg }) => (
-  <div style={{ margin:'8px 0', padding:'12px 14px', borderRadius:12,
-    background:'rgba(239,68,68,0.10)', border:'1px solid rgba(239,68,68,0.3)',
-    color:'#ef4444', fontSize:13, display:'flex', alignItems:'center', gap:8 }}>
-    <AlertCircle size={14} style={{ flexShrink:0 }}/>{msg}
+  <div style={{ 
+    margin: '8px 0', 
+    padding: '12px 14px', 
+    borderRadius: 12,
+    background: 'rgba(239, 68, 68, 0.10)', 
+    border: '1px solid rgba(239, 68, 68, 0.3)',
+    color: '#ef4444', 
+    fontSize: 13, 
+    display: 'flex', 
+    alignItems: 'center', 
+    gap: 8 
+  }}>
+    <AlertCircle size={14} style={{ flexShrink: 0 }} />
+    {msg}
   </div>
-)
-
+);
 /* ─── Login Page ─────────────────────────────────────────────── */
 function LoginPage({ themeId, setThemeId }) {
   const theme = THEMES[themeId]
