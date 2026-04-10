@@ -17,21 +17,186 @@ if (!supabaseUrl || !supabaseKey) {
 }
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// ─── FIXED NIGHT THEME ───────────────────────────────────────
-const THEME = {
-  id:'night',
-  bg:'#060d1a', bgGrad:'linear-gradient(180deg,#060d1a 0%,#0d1f3c 60%,#0a1828 100%)',
-  card:'#0d1a30', cardActive:'linear-gradient(135deg,#0d2044,#0a1828)',
-  border:'rgba(59,130,246,0.14)', borderActive:'rgba(201,168,76,0.45)',
-  accent:'#c9a84c', accentGrad:'linear-gradient(135deg,#c9a84c,#a8883a)',
-  accentBg:'rgba(201,168,76,0.10)', accentBorder:'rgba(201,168,76,0.35)',
-  text:'#fff', textSub:'#93c5fd', textBody:'#bfdbfe',
-  navBg:'linear-gradient(180deg,#0a1828,#060d1a)', navBorder:'rgba(201,168,76,0.22)',
-  geo:'rgba(255,255,255,0.06)',
-  spinnerBorder:'rgba(201,168,76,0.2)', spinnerTop:'#c9a84c',
-  inputBg:'rgba(255,255,255,0.05)', inputBorder:'rgba(201,168,76,0.25)',
-  loginCard:'rgba(13,26,48,0.85)',
+// ─── 5 PREMIUM THEMES ────────────────────────────────────────
+const THEMES = {
+  ivory: {
+    id: 'ivory', label: 'Ivory Gold', emoji: '✨',
+    bg: '#faf8f5', bgGrad: 'linear-gradient(180deg,#faf8f5 0%,#f5f0e8 60%,#ede4d4 100%)',
+    card: '#f5f0e8', cardActive: 'linear-gradient(135deg,#f5f0e8,#ede4d4)',
+    border: 'rgba(180,140,60,0.18)', borderActive: 'rgba(180,140,60,0.45)',
+    accent: '#b48c3c', accentGrad: 'linear-gradient(135deg,#d4a84b,#b48c3c)',
+    accentBg: 'rgba(180,140,60,0.1)', accentBorder: 'rgba(180,140,60,0.35)',
+    text: '#3d3426', textSub: '#7a6b52', textBody: '#5c4f3a',
+    navBg: 'linear-gradient(180deg,#ede4d4,#faf8f5)', navBorder: 'rgba(180,140,60,0.25)',
+    geo: 'rgba(180,140,60,0.06)', popupBg: 'rgba(250,248,245,0.96)',
+    spinnerBorder: 'rgba(180,140,60,0.2)', spinnerTop: '#b48c3c',
+    inputBg: 'rgba(255,255,255,0.7)', inputBorder: 'rgba(180,140,60,0.25)',
+    loginCard: 'rgba(245,240,232,0.92)', loginText: '#3d3426',
+    surveyBg: '#faf8f5', surveyCard: '#f5f0e8',
+  },
+  obsidian: {
+    id: 'obsidian', label: 'Obsidian Night', emoji: '🌑',
+    bg: '#111111', bgGrad: 'linear-gradient(180deg,#111111 0%,#1a1a1a 60%,#111111 100%)',
+    card: '#1e1e1e', cardActive: 'linear-gradient(135deg,#1e1e1e,#2a2a2a)',
+    border: 'rgba(255,255,255,0.08)', borderActive: 'rgba(255,255,255,0.2)',
+    accent: '#e8c547', accentGrad: 'linear-gradient(135deg,#f0d264,#e8c547)',
+    accentBg: 'rgba(232,197,71,0.1)', accentBorder: 'rgba(232,197,71,0.3)',
+    text: '#f0ece4', textSub: '#9a9488', textBody: '#c8c2b6',
+    navBg: 'linear-gradient(180deg,#1a1a1a,#111111)', navBorder: 'rgba(232,197,71,0.2)',
+    geo: 'rgba(255,255,255,0.03)', popupBg: 'rgba(17,17,17,0.96)',
+    spinnerBorder: 'rgba(232,197,71,0.2)', spinnerTop: '#e8c547',
+    inputBg: 'rgba(255,255,255,0.05)', inputBorder: 'rgba(232,197,71,0.25)',
+    loginCard: 'rgba(30,30,30,0.94)', loginText: '#f0ece4',
+    surveyBg: '#161616', surveyCard: '#222222',
+  },
+  ocean: {
+    id: 'ocean', label: 'Ocean Teal', emoji: '🌊',
+    bg: '#f0fafa', bgGrad: 'linear-gradient(180deg,#f0fafa 0%,#d5f0ee 60%,#b2e4e0 100%)',
+    card: '#d5f0ee', cardActive: 'linear-gradient(135deg,#d5f0ee,#b2e4e0)',
+    border: 'rgba(14,116,120,0.18)', borderActive: 'rgba(14,116,120,0.45)',
+    accent: '#0e7478', accentGrad: 'linear-gradient(135deg,#14919b,#0e7478)',
+    accentBg: 'rgba(14,116,120,0.1)', accentBorder: 'rgba(14,116,120,0.35)',
+    text: '#0a3d3f', textSub: '#1a6567', textBody: '#155e60',
+    navBg: 'linear-gradient(180deg,#b2e4e0,#f0fafa)', navBorder: 'rgba(14,116,120,0.25)',
+    geo: 'rgba(14,116,120,0.06)', popupBg: 'rgba(240,250,250,0.96)',
+    spinnerBorder: 'rgba(14,116,120,0.2)', spinnerTop: '#14919b',
+    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(14,116,120,0.25)',
+    loginCard: 'rgba(213,240,238,0.92)', loginText: '#0a3d3f',
+    surveyBg: '#f0fafa', surveyCard: '#d5f0ee',
+  },
+  burgundy: {
+    id: 'burgundy', label: 'Rich Burgundy', emoji: '🍷',
+    bg: '#faf2f2', bgGrad: 'linear-gradient(180deg,#faf2f2 0%,#f0dada 60%,#e4c4c4 100%)',
+    card: '#f0dada', cardActive: 'linear-gradient(135deg,#f0dada,#e4c4c4)',
+    border: 'rgba(128,30,40,0.18)', borderActive: 'rgba(128,30,40,0.45)',
+    accent: '#801e28', accentGrad: 'linear-gradient(135deg,#a52834,#801e28)',
+    accentBg: 'rgba(128,30,40,0.1)', accentBorder: 'rgba(128,30,40,0.3)',
+    text: '#3d1015', textSub: '#8c3a42', textBody: '#6b2630',
+    navBg: 'linear-gradient(180deg,#e4c4c4,#faf2f2)', navBorder: 'rgba(128,30,40,0.25)',
+    geo: 'rgba(128,30,40,0.06)', popupBg: 'rgba(250,242,242,0.96)',
+    spinnerBorder: 'rgba(128,30,40,0.2)', spinnerTop: '#a52834',
+    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(128,30,40,0.25)',
+    loginCard: 'rgba(240,218,218,0.92)', loginText: '#3d1015',
+    surveyBg: '#faf2f2', surveyCard: '#f0dada',
+  },
+  sage: {
+    id: 'sage', label: 'Slate Sage', emoji: '🌿',
+    bg: '#f4f7f4', bgGrad: 'linear-gradient(180deg,#f4f7f4 0%,#dce8dc 60%,#c2d8c2 100%)',
+    card: '#dce8dc', cardActive: 'linear-gradient(135deg,#dce8dc,#c2d8c2)',
+    border: 'rgba(70,110,70,0.18)', borderActive: 'rgba(70,110,70,0.45)',
+    accent: '#466e46', accentGrad: 'linear-gradient(135deg,#5a8a5a,#466e46)',
+    accentBg: 'rgba(70,110,70,0.1)', accentBorder: 'rgba(70,110,70,0.35)',
+    text: '#1e3320', textSub: '#4a6f4c', textBody: '#355838',
+    navBg: 'linear-gradient(180deg,#c2d8c2,#f4f7f4)', navBorder: 'rgba(70,110,70,0.25)',
+    geo: 'rgba(70,110,70,0.06)', popupBg: 'rgba(244,247,244,0.96)',
+    spinnerBorder: 'rgba(70,110,70,0.2)', spinnerTop: '#5a8a5a',
+    inputBg: 'rgba(255,255,255,0.6)', inputBorder: 'rgba(70,110,70,0.25)',
+    loginCard: 'rgba(220,232,220,0.92)', loginText: '#1e3320',
+    surveyBg: '#f4f7f4', surveyCard: '#dce8dc',
+  },
 }
+
+// ─── Theme persistence helpers ────────────────────────────────
+function getSavedThemeId() { try { return localStorage.getItem('al-mawaid-theme') || 'ivory' } catch { return 'ivory' } }
+function saveThemeId(id) { try { localStorage.setItem('al-mawaid-theme', id) } catch { } }
+
+const ThemeCtx = createContext(null)
+const useTheme = () => useContext(ThemeCtx)
+const AuthCtx = createContext(null)
+const useAuth = () => useContext(AuthCtx)
+
+/* ─── Shared helpers ─────────────────────────────────────────── */
+const GeoBg = ({ t: tProp }) => {
+  const ctx = useTheme()
+  const t = tProp || ctx
+  return (
+    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', opacity: 0.4 }}>
+      <defs>
+        <pattern id="geo" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+          <circle cx="25" cy="25" r="1.5" fill={t.geo} />
+          <circle cx="0" cy="0" r="1" fill={t.geo} />
+          <circle cx="50" cy="0" r="1" fill={t.geo} />
+          <circle cx="0" cy="50" r="1" fill={t.geo} />
+          <circle cx="50" cy="50" r="1" fill={t.geo} />
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#geo)" />
+    </svg>
+  )
+}
+
+const Spinner = ({ fullPage = true }) => {
+  const t = useTheme()
+  const inner = (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+      <div className="spin" style={{ width: 40, height: 40, border: `3px solid ${t.spinnerBorder}`, borderTop: `3px solid ${t.spinnerTop}`, borderRadius: '50%' }} />
+      {fullPage && <p style={{ margin: 0, fontSize: 14, color: t.textSub, opacity: 0.6, fontWeight: 600 }}>Loading…</p>}
+    </div>
+  )
+  return fullPage
+    ? <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '60px 20px' }}>{inner}</div>
+    : inner
+}
+
+const ErrorBanner = ({ msg }) => (
+  <div style={{
+    margin: '10px 0', padding: '14px 16px', borderRadius: 14,
+    background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)',
+    color: '#dc2626', fontSize: 14, display: 'flex', alignItems: 'center', gap: 10, fontWeight: 600
+  }}>
+    <AlertCircle size={16} style={{ flexShrink: 0 }} />{msg}
+  </div>
+)
+
+/* ─── Theme Switcher ─── */
+function ThemeSwitcher({ themeId, setThemeId, theme: t }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div style={{ position: 'fixed', bottom: 90, right: 16, zIndex: 200 }}>
+      <button onClick={() => setOpen(o => !o)} title="Switch Theme"
+        style={{
+          width: 50, height: 50, borderRadius: '50%', border: `2px solid ${t.accentBorder}`,
+          background: t.accentBg, cursor: 'pointer',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          backdropFilter: 'blur(12px)', boxShadow: `0 6px 24px ${t.accentBg}`,
+          transition: 'all 0.3s ease'
+        }}>
+        <Palette size={22} color={t.accent} />
+      </button>
+      {open && (
+        <>
+          <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: -1 }} />
+          <div style={{
+            position: 'absolute', bottom: 60, right: 0, background: t.card,
+            border: `1px solid ${t.accentBorder}`, borderRadius: 20, padding: 12,
+            display: 'flex', flexDirection: 'column', gap: 6, minWidth: 170,
+            boxShadow: '0 16px 48px rgba(0,0,0,0.25)', backdropFilter: 'blur(20px)',
+            animation: 'fadeInUp 0.25s ease', zIndex: 300
+          }}>
+            <p style={{
+              margin: '0 6px 6px', fontSize: 10, fontWeight: 900,
+              textTransform: 'uppercase', letterSpacing: '0.2em', color: t.textSub, opacity: 0.7
+            }}>THEMES</p>
+            {Object.values(THEMES).map(th => (
+              <button key={th.id} onClick={() => { setThemeId(th.id); saveThemeId(th.id); setOpen(false) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px',
+                  borderRadius: 14, border: 'none', cursor: 'pointer',
+                  background: themeId === th.id ? t.accentBg : 'transparent',
+                  width: '100%', textAlign: 'left', transition: 'all 0.2s'
+                }}>
+                <span style={{ fontSize: 18 }}>{th.emoji}</span>
+                <span style={{ fontSize: 14, fontWeight: 700, color: t.text, flex: 1 }}>{th.label}</span>
+                {themeId === th.id && <Check size={16} color={t.accent} strokeWidth={3} />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
+
 
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
@@ -365,7 +530,7 @@ function HomePage() {
                 transition:'all 0.3s', boxShadow: isExpanded ? `0 4px 16px ${t.accentBg}` : 'none' }}>
               <div style={{ display:'flex', alignItems:'center', gap:12, textAlign:'left' }}>
                 <CircleIcon size={36} style={{ boxShadow:'none' }}>
-                  <span style={{ fontSize:16 }}>🍽️</span>
+                  <span style={{ fontSize:16 }}></span>
                 </CircleIcon>
                 <div>
                   <div style={{ fontSize:15, fontWeight:700, color:t.accent }}>{menu.en}</div>
@@ -383,7 +548,7 @@ function HomePage() {
             {isExpanded && (
               <div style={{ marginTop:6, padding:16, background:t.inputBg,
                 borderRadius:12, border:`1px solid ${t.border}` }}>
-                {[['🍛 Lunch', menu.lunch], ['🍽️ Dinner', menu.dinner]].map(([label, dishes], li) => (
+                {[[' Lunch', menu.lunch], [' Dinner', menu.dinner]].map(([label, dishes], li) => (
                   <div key={label} style={{ marginBottom: li === 0 ? 14 : 0 }}>
                     <h4 style={{ margin:'0 0 8px', fontSize:13, fontWeight:700, color:t.accent }}>{label}</h4>
                     <ul style={{ margin:0, paddingLeft:18, fontSize:13, color:t.textBody, lineHeight:1.9 }}>
@@ -468,7 +633,7 @@ function SurveyModal({ onClose }) {
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
           <div>
             <h2 style={{ margin:0, fontSize:18, fontWeight:700, color:THEME.accent }}>
-              {menu.en} · {currentMeal === 'lunch' ? 'Lunch 🍛' : 'Dinner 🍽️'}
+              {menu.en} · {currentMeal === 'lunch' ? 'Lunch' : 'Dinner'}
             </h2>
             <p style={{ margin:'4px 0 0', fontSize:12, color:THEME.textSub, fontFamily:"'Amiri','Georgia',serif" }}>{menu.ar}</p>
           </div>
