@@ -889,99 +889,466 @@ function ProfilePage() {
 function PostPage() {
   const t = useTheme()
   const { user } = useAuth()
-  const [posts, setPosts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [newPost, setNewPost] = useState('')
+  // sub-tabs: 'requests' | 'queries'
+  const [subTab, setSubTab] = useState('requests')
+
+  return (
+    <main style={{ flex:1, padding:'20px 20px 80px', maxWidth:600, margin:'0 auto', width:'100%' }}>
+      {/* Sub-tab switcher */}
+      <div style={{ display:'flex', gap:8, marginBottom:20, background:t.card,
+        borderRadius:12, padding:6, border:`1px solid ${t.border}` }}>
+        {[{ id:'requests', label:'📋 Requests' }, { id:'queries', label:'❓ Queries' }].map(({ id, label }) => (
+          <button key={id} onClick={() => setSubTab(id)}
+            style={{ flex:1, padding:'10px 12px', borderRadius:8, border:'none',
+              background: subTab === id ? t.accentGrad : 'transparent',
+              color: subTab === id ? '#fff' : t.textSub,
+              fontWeight:700, fontSize:13, cursor:'pointer', transition:'all 0.3s' }}>
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === 'requests' && <ThaliRequestsSection/>}
+      {subTab === 'queries'  && <QueriesSection/>}
+    </main>
+  )
+}
+
+/* ─── Thali Requests Section ─────────────────────────────────── */
+function ThaliRequestsSection() {
+  const t = useTheme()
+  const { user } = useAuth()
+  const [activeRequest, setActiveRequest] = useState(null) // 'resume' | 'stop' | 'extra'
   const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState('')
+  const [error, setError] = useState('')
 
-  useEffect(() => {
-    loadPosts()
-  }, [])
+  // Resume Thali state
+  const [resumeFrom, setResumeFrom] = useState('')
+  const [resumeTo, setResumeTo]     = useState('')
 
-  const loadPosts = async () => {
-    try {
-      const { data } = await supabase
-        .from('posts')
-        .select('*, profiles(email)')
-        .order('created_at', { ascending: false })
-        .limit(20)
-      setPosts(data || [])
-    } catch (err) {
-      console.error('Load posts error:', err)
-    } finally {
-      setLoading(false)
-    }
+  // Stop Thali state
+  const [stopFrom, setStopFrom] = useState('')
+  const [stopTo, setStopTo]     = useState('')
+
+  // Extra Food state
+  const [extraItems, setExtraItems] = useState([{ name:'', qty: 1 }])
+
+  const resetAll = () => {
+    setResumeFrom(''); setResumeTo('')
+    setStopFrom(''); setStopTo('')
+    setExtraItems([{ name:'', qty:1 }])
+    setError(''); setSuccess('')
   }
 
-  const handlePost = async () => {
-    if (!newPost.trim()) return
-    setSubmitting(true)
+  const openRequest = (type) => {
+    resetAll()
+    setActiveRequest(activeRequest === type ? null : type)
+  }
 
+  const addExtraItem = () => setExtraItems(prev => [...prev, { name:'', qty:1 }])
+  const removeExtraItem = (i) => setExtraItems(prev => prev.filter((_,idx) => idx !== i))
+  const updateExtraItem = (i, field, val) =>
+    setExtraItems(prev => prev.map((item, idx) => idx === i ? { ...item, [field]: val } : item))
+
+  const handleSubmit = async (type) => {
+    setError(''); setSuccess(''); setSubmitting(true)
     try {
-      const { error } = await supabase
-        .from('posts')
-        .insert([{ user_id: user.id, content: newPost.trim() }])
-      
-      if (error) throw error
-      setNewPost('')
-      loadPosts()
+      let payload = { user_id: user.id, request_type: type, status: 'pending' }
+
+      if (type === 'resume') {
+        if (!resumeFrom || !resumeTo) throw new Error('Please select both From and To dates')
+        if (new Date(resumeFrom) > new Date(resumeTo)) throw new Error('From date must be before To date')
+        payload = { ...payload, from_date: resumeFrom, to_date: resumeTo }
+      } else if (type === 'stop') {
+        if (!stopFrom || !stopTo) throw new Error('Please select both From and To dates')
+        if (new Date(stopFrom) > new Date(stopTo)) throw new Error('From date must be before To date')
+        payload = { ...payload, from_date: stopFrom, to_date: stopTo }
+      } else if (type === 'extra') {
+        const valid = extraItems.filter(item => item.name.trim())
+        if (valid.length === 0) throw new Error('Please add at least one food item')
+        payload = { ...payload, extra_items: valid }
+      }
+
+      const { error: dbErr } = await supabase.from('thali_requests').insert([payload])
+      if (dbErr) throw dbErr
+
+      setSuccess(`✅ ${type === 'resume' ? 'Resume' : type === 'stop' ? 'Stop' : 'Extra food'} request submitted!`)
+      resetAll()
+      setActiveRequest(null)
     } catch (err) {
-      alert('Error posting: ' + err.message)
+      setError(err.message)
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) return <Spinner/>
+  const cardStyle = (type) => ({
+    marginBottom: 12, borderRadius: 14,
+    border: `1px solid ${activeRequest === type ? t.borderActive : t.border}`,
+    background: activeRequest === type ? t.cardActive : t.card,
+    overflow: 'hidden', transition: 'all 0.3s'
+  })
+
+  const headerBtn = (type, emoji, label, desc) => (
+    <button onClick={() => openRequest(type)}
+      style={{ width:'100%', padding:16, background:'transparent', border:'none',
+        cursor:'pointer', display:'flex', alignItems:'center', gap:14, textAlign:'left' }}>
+      <div style={{ width:44, height:44, borderRadius:'50%', background:t.accentGrad, flexShrink:0,
+        display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>
+        {emoji}
+      </div>
+      <div style={{ flex:1 }}>
+        <div style={{ fontSize:15, fontWeight:700, color: activeRequest === type ? t.accent : t.text }}>{label}</div>
+        <div style={{ fontSize:12, color:t.textSub, marginTop:2 }}>{desc}</div>
+      </div>
+      <div style={{ fontSize:18, color:t.accent }}>{activeRequest === type ? '▲' : '▼'}</div>
+    </button>
+  )
+
+  const dateInputStyle = {
+    width:'100%', padding:'10px 12px', borderRadius:10, boxSizing:'border-box',
+    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
+    fontSize:14, outline:'none', fontFamily:'inherit'
+  }
+
+  const sectionPad = { padding:'0 16px 16px' }
+
+  const today = new Date().toISOString().split('T')[0]
 
   return (
-    <main style={{ flex:1, padding:'20px 20px 80px', maxWidth:600, margin:'0 auto', width:'100%' }}>
-      {/* Create Post */}
-      <div style={{ marginBottom:24, padding:16, background:t.card, borderRadius:12, border:`1px solid ${t.border}` }}>
-        <textarea value={newPost} onChange={e => setNewPost(e.target.value)}
-          style={{ width:'100%', minHeight:80, padding:12, borderRadius:10, boxSizing:'border-box',
+    <div>
+      {success && (
+        <div style={{ marginBottom:16, padding:12, borderRadius:10, background:'rgba(34,197,94,0.12)',
+          border:'1px solid rgba(34,197,94,0.3)', color:'#22c55e', fontSize:13, fontWeight:600 }}>
+          {success}
+        </div>
+      )}
+
+      {/* ── Resume Thali ── */}
+      <div style={cardStyle('resume')}>
+        {headerBtn('resume', '▶️', 'Resume Thali', 'Restart your thali service for a date range')}
+        {activeRequest === 'resume' && (
+          <div style={sectionPad}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+              <div>
+                <label style={{ display:'block', fontSize:11, fontWeight:600, color:t.textSub, marginBottom:5 }}>From Date</label>
+                <input type="date" value={resumeFrom} min={today}
+                  onChange={e => setResumeFrom(e.target.value)} style={dateInputStyle}/>
+              </div>
+              <div>
+                <label style={{ display:'block', fontSize:11, fontWeight:600, color:t.textSub, marginBottom:5 }}>To Date</label>
+                <input type="date" value={resumeTo} min={resumeFrom || today}
+                  onChange={e => setResumeTo(e.target.value)} style={dateInputStyle}/>
+              </div>
+            </div>
+            {error && <ErrorBanner msg={error}/>}
+            <button onClick={() => handleSubmit('resume')} disabled={submitting}
+              style={{ width:'100%', padding:12, borderRadius:10, border:'none',
+                background: submitting ? t.border : t.accentGrad, color:'#fff',
+                fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+              {submitting ? 'Submitting...' : '✅ Submit Resume Request'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Stop Thali ── */}
+      <div style={cardStyle('stop')}>
+        {headerBtn('stop', '⏹️', 'Stop Thali', 'Pause your thali service for a date range')}
+        {activeRequest === 'stop' && (
+          <div style={sectionPad}>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
+              <div>
+                <label style={{ display:'block', fontSize:11, fontWeight:600, color:t.textSub, marginBottom:5 }}>From Date</label>
+                <input type="date" value={stopFrom} min={today}
+                  onChange={e => setStopFrom(e.target.value)} style={dateInputStyle}/>
+              </div>
+              <div>
+                <label style={{ display:'block', fontSize:11, fontWeight:600, color:t.textSub, marginBottom:5 }}>To Date</label>
+                <input type="date" value={stopTo} min={stopFrom || today}
+                  onChange={e => setStopTo(e.target.value)} style={dateInputStyle}/>
+              </div>
+            </div>
+            {error && <ErrorBanner msg={error}/>}
+            <button onClick={() => handleSubmit('stop')} disabled={submitting}
+              style={{ width:'100%', padding:12, borderRadius:10, border:'none',
+                background: submitting ? t.border : 'linear-gradient(135deg,#ef4444,#dc2626)',
+                color:'#fff', fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+              {submitting ? 'Submitting...' : '⏹️ Submit Stop Request'}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Add Extra Food ── */}
+      <div style={cardStyle('extra')}>
+        {headerBtn('extra', '➕', 'Add Extra Food', 'Request additional food items (choose 1–4 each)')}
+        {activeRequest === 'extra' && (
+          <div style={sectionPad}>
+            {extraItems.map((item, i) => (
+              <div key={i} style={{ display:'flex', gap:8, alignItems:'center', marginBottom:10 }}>
+                <input type="text" value={item.name} placeholder={`Food item ${i + 1}`}
+                  onChange={e => updateExtraItem(i, 'name', e.target.value)}
+                  style={{ ...dateInputStyle, flex:1 }}/>
+                {/* Quantity 1–4 */}
+                <div style={{ display:'flex', gap:4, flexShrink:0 }}>
+                  {[1,2,3,4].map(n => (
+                    <button key={n} onClick={() => updateExtraItem(i, 'qty', n)}
+                      style={{ width:32, height:36, borderRadius:8, border:`1.5px solid ${item.qty === n ? t.accent : t.border}`,
+                        background: item.qty === n ? t.accentBg : 'transparent',
+                        color: item.qty === n ? t.accent : t.textSub,
+                        fontWeight:700, fontSize:13, cursor:'pointer', transition:'all 0.2s' }}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                {extraItems.length > 1 && (
+                  <button onClick={() => removeExtraItem(i)}
+                    style={{ background:'none', border:'none', cursor:'pointer', padding:4, flexShrink:0 }}>
+                    <X size={16} color="#ef4444"/>
+                  </button>
+                )}
+              </div>
+            ))}
+            {extraItems.length < 6 && (
+              <button onClick={addExtraItem}
+                style={{ width:'100%', padding:10, borderRadius:10, border:`1px dashed ${t.accent}`,
+                  background:'transparent', color:t.accent, fontWeight:600, fontSize:13,
+                  cursor:'pointer', marginBottom:12 }}>
+                + Add Another Item
+              </button>
+            )}
+            {error && <ErrorBanner msg={error}/>}
+            <button onClick={() => handleSubmit('extra')} disabled={submitting}
+              style={{ width:'100%', padding:12, borderRadius:10, border:'none',
+                background: submitting ? t.border : t.accentGrad, color:'#fff',
+                fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer' }}>
+              {submitting ? 'Submitting...' : '➕ Submit Extra Food Request'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ─── Queries Section ────────────────────────────────────────── */
+function QueriesSection() {
+  const t = useTheme()
+  const { user } = useAuth()
+  const [queries, setQueries]     = useState([])
+  const [loading, setLoading]     = useState(true)
+  const [comment, setComment]     = useState('')
+  const [mediaFiles, setMediaFiles] = useState([]) // [{file, url, type}]
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError]         = useState('')
+  const [success, setSuccess]     = useState('')
+  const fileInputRef = useRef(null)
+
+  useEffect(() => { loadQueries() }, [])
+
+  const loadQueries = async () => {
+    try {
+      const { data } = await supabase
+        .from('queries')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      setQueries(data || [])
+    } catch (err) {
+      console.error('Load queries error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileSelect = (e) => {
+    const files = Array.from(e.target.files)
+    const allowed = files.filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'))
+    if (mediaFiles.length + allowed.length > 4) {
+      setError('Maximum 4 media files allowed')
+      return
+    }
+    const newItems = allowed.map(file => ({
+      file,
+      url: URL.createObjectURL(file),
+      type: file.type.startsWith('image/') ? 'image' : 'video',
+      name: file.name
+    }))
+    setMediaFiles(prev => [...prev, ...newItems])
+    e.target.value = ''
+  }
+
+  const removeMedia = (i) => {
+    setMediaFiles(prev => {
+      URL.revokeObjectURL(prev[i].url)
+      return prev.filter((_,idx) => idx !== i)
+    })
+  }
+
+  const handleSubmit = async () => {
+    if (!comment.trim() && mediaFiles.length === 0) {
+      setError('Please add a comment or attach a file')
+      return
+    }
+    setError(''); setSuccess(''); setSubmitting(true)
+
+    try {
+      // Upload media files to Supabase Storage
+      const uploadedUrls = []
+      for (const item of mediaFiles) {
+        const ext = item.file.name.split('.').pop()
+        const path = `queries/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
+        const { error: upErr } = await supabase.storage
+          .from('query-media')
+          .upload(path, item.file, { cacheControl:'3600', upsert:false })
+        if (upErr) {
+          // If storage not configured, store name only
+          uploadedUrls.push({ type: item.type, name: item.file.name, path: null })
+        } else {
+          const { data: urlData } = supabase.storage.from('query-media').getPublicUrl(path)
+          uploadedUrls.push({ type: item.type, name: item.file.name, path: urlData.publicUrl })
+        }
+      }
+
+      const { error: dbErr } = await supabase.from('queries').insert([{
+        user_id: user.id,
+        comment: comment.trim(),
+        media: uploadedUrls,
+        status: 'open'
+      }])
+      if (dbErr) throw dbErr
+
+      setSuccess('✅ Query submitted! Our team will respond shortly.')
+      setComment('')
+      setMediaFiles([])
+      loadQueries()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const statusColor = (s) => s === 'open' ? '#f59e0b' : s === 'resolved' ? '#22c55e' : '#93c5fd'
+
+  return (
+    <div>
+      {/* New Query Form */}
+      <div style={{ marginBottom:20, padding:16, background:t.card, borderRadius:14, border:`1px solid ${t.border}` }}>
+        <h3 style={{ margin:'0 0 14px', fontSize:16, fontWeight:700, color:t.accent }}>✉️ New Query</h3>
+
+        {/* Comment box */}
+        <textarea value={comment} onChange={e => setComment(e.target.value)}
+          style={{ width:'100%', minHeight:90, padding:12, borderRadius:10, boxSizing:'border-box',
             background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
             fontSize:14, resize:'vertical', outline:'none', fontFamily:'inherit', marginBottom:12 }}
-          placeholder="Share an announcement or update..."/>
-        <button onClick={handlePost} disabled={submitting || !newPost.trim()}
+          placeholder="Describe your query or issue..."/>
+
+        {/* Media previews */}
+        {mediaFiles.length > 0 && (
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:12 }}>
+            {mediaFiles.map((item, i) => (
+              <div key={i} style={{ position:'relative', width:80, height:80, borderRadius:10,
+                overflow:'hidden', border:`1px solid ${t.border}`, flexShrink:0 }}>
+                {item.type === 'image' ? (
+                  <img src={item.url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+                ) : (
+                  <div style={{ width:'100%', height:'100%', background:t.inputBg,
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2 }}>
+                    <span style={{ fontSize:22 }}>🎬</span>
+                    <span style={{ fontSize:9, color:t.textSub, textAlign:'center', padding:'0 4px',
+                      overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:72 }}>
+                      {item.name}
+                    </span>
+                  </div>
+                )}
+                <button onClick={() => removeMedia(i)}
+                  style={{ position:'absolute', top:3, right:3, width:20, height:20, borderRadius:'50%',
+                    background:'rgba(0,0,0,0.7)', border:'none', cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
+                  <X size={11} color="#fff"/>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Attach media button */}
+        <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple
+          onChange={handleFileSelect} style={{ display:'none' }}/>
+        {mediaFiles.length < 4 && (
+          <button onClick={() => fileInputRef.current?.click()}
+            style={{ width:'100%', padding:10, borderRadius:10, border:`1px dashed ${t.accentBorder}`,
+              background:t.accentBg, color:t.accent, fontWeight:600, fontSize:13,
+              cursor:'pointer', marginBottom:12, display:'flex', alignItems:'center',
+              justifyContent:'center', gap:6 }}>
+            <Camera size={16}/> Attach Photo / Video ({mediaFiles.length}/4)
+          </button>
+        )}
+
+        {error   && <ErrorBanner msg={error}/>}
+        {success && (
+          <div style={{ marginBottom:10, padding:10, borderRadius:8, background:'rgba(34,197,94,0.12)',
+            border:'1px solid rgba(34,197,94,0.3)', color:'#22c55e', fontSize:13, fontWeight:600 }}>
+            {success}
+          </div>
+        )}
+
+        <button onClick={handleSubmit} disabled={submitting}
           style={{ width:'100%', padding:12, borderRadius:10, border:'none',
-            background: submitting || !newPost.trim() ? t.border : t.accentGrad,
-            color:'#fff', fontWeight:700, cursor: submitting || !newPost.trim() ? 'not-allowed' : 'pointer',
-            opacity: submitting || !newPost.trim() ? 0.5 : 1 }}>
-          {submitting ? 'Posting...' : 'Post Update'}
+            background: submitting ? t.border : t.accentGrad, color:'#fff',
+            fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer', transition:'all 0.3s' }}>
+          {submitting ? 'Submitting...' : '📨 Submit Query'}
         </button>
       </div>
 
-      {/* Posts List */}
-      {posts.length === 0 ? (
-        <div style={{ textAlign:'center', padding:40, color:t.textSub }}>
-          No posts yet. Be the first to share!
+      {/* Previous Queries */}
+      <h3 style={{ margin:'0 0 12px', fontSize:14, fontWeight:700, color:t.textSub, letterSpacing:'0.05em' }}>
+        MY QUERIES
+      </h3>
+      {loading ? <Spinner/> : queries.length === 0 ? (
+        <div style={{ textAlign:'center', padding:32, color:t.textSub, fontSize:13 }}>
+          No queries submitted yet.
         </div>
-      ) : (
-        posts.map(post => (
-          <div key={post.id} style={{ marginBottom:12, padding:16, background:t.card,
-            borderRadius:12, border:`1px solid ${t.border}` }}>
-            <div style={{ display:'flex', gap:12, marginBottom:8 }}>
-              <div style={{ width:40, height:40, borderRadius:'50%', background:t.accentGrad,
-                display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <User size={20} color="#fff"/>
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:13, fontWeight:700, color:t.text }}>
-                  {post.profiles?.email || 'User'}
-                </div>
-                <div style={{ fontSize:11, color:t.textSub }}>
-                  {new Date(post.created_at).toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <p style={{ margin:0, fontSize:14, color:t.textBody, lineHeight:1.6 }}>
-              {post.content}
-            </p>
+      ) : queries.map(q => (
+        <div key={q.id} style={{ marginBottom:12, padding:14, background:t.card,
+          borderRadius:12, border:`1px solid ${t.border}` }}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+            <span style={{ fontSize:11, color:t.textSub }}>
+              {new Date(q.created_at).toLocaleString()}
+            </span>
+            <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px', borderRadius:20,
+              background:`${statusColor(q.status)}22`, color:statusColor(q.status) }}>
+              {q.status?.toUpperCase()}
+            </span>
           </div>
-        ))
-      )}
-    </main>
+          {q.comment && (
+            <p style={{ margin:'0 0 8px', fontSize:13, color:t.textBody, lineHeight:1.6 }}>
+              {q.comment}
+            </p>
+          )}
+          {q.media?.length > 0 && (
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
+              {q.media.map((m, i) => (
+                <div key={i} style={{ fontSize:11, color:t.accent, background:t.accentBg,
+                  padding:'3px 8px', borderRadius:6 }}>
+                  {m.type === 'image' ? '🖼️' : '🎬'} {m.name}
+                </div>
+              ))}
+            </div>
+          )}
+          {q.admin_reply && (
+            <div style={{ marginTop:10, padding:10, borderRadius:8, background:t.accentBg,
+              border:`1px solid ${t.accentBorder}`, fontSize:12, color:t.accent }}>
+              💬 <strong>Reply:</strong> {q.admin_reply}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -1035,7 +1402,7 @@ export default function App() {
   const tabs = [
     { id:'home', label:'Home', Icon: Home },
     { id:'profile', label:'Profile', Icon: User },
-    { id:'post', label:'Posts', Icon: FileText },
+    { id:'post', label:'Requests', Icon: FileText },
   ]
 
   if (session === undefined) {
@@ -1087,7 +1454,7 @@ export default function App() {
               <h1 style={{ margin:0, fontSize: activeTab === 'home' ? 34 : 26,
                 fontWeight:900, textTransform:'uppercase', letterSpacing:'0.05em', lineHeight:1.1,
                 color:theme.accent }}>
-                {activeTab === 'home' ? 'AL-MAWAID' : activeTab === 'profile' ? 'PROFILE' : 'POSTS'}
+                {activeTab === 'home' ? 'AL-MAWAID' : activeTab === 'profile' ? 'PROFILE' : 'REQUESTS'}
               </h1>
             </div>
 
