@@ -1,12 +1,11 @@
-// src/App.jsx — Al-Mawaid Food Survey System v3
+// src/App.jsx — Al-Mawaid Food Survey System v4
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, User, X,
   Star, Camera, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ChevronUp,
-  ClipboardList, Edit3, MessageCircle, ChevronLeft, ChevronRight,
-  Palette, Sun, Moon, Sparkles, Phone, MapPin, Clock, Info,
-  Upload, Heart, Users, Award, BookOpen, Bell
+  ClipboardList, MessageCircle, ChevronLeft, ChevronRight,
+  Phone, MapPin, Users, Upload
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -15,77 +14,104 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-// ─── THEMES ──────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+// THEMES — 3 Classic, Soothing Themes
+// ══════════════════════════════════════════════════════════════
 const THEMES = {
-  royal: {
-    id: 'royal', name: 'Royal Indigo', icon: '👑',
-    bg: '#0f0c29', bgGrad: 'linear-gradient(160deg,#0f0c29 0%,#1a1050 50%,#0f0c29 100%)',
-    card: '#1a1650', cardActive: 'linear-gradient(135deg,#231a6e,#1a1050)',
-    border: 'rgba(139,92,246,0.18)', borderActive: 'rgba(251,191,36,0.5)',
-    accent: '#fbbf24', accentGrad: 'linear-gradient(135deg,#fbbf24,#d97706)',
-    accentBg: 'rgba(251,191,36,0.10)', accentBorder: 'rgba(251,191,36,0.35)',
-    text: '#f5f3ff', textSub: '#a78bfa', textBody: '#c4b5fd',
-    navBg: 'linear-gradient(180deg,#1a1050,#0f0c29)', navBorder: 'rgba(251,191,36,0.2)',
-    geo: 'rgba(139,92,246,0.07)',
-    spinnerBorder: 'rgba(251,191,36,0.2)', spinnerTop: '#fbbf24',
-    inputBg: 'rgba(139,92,246,0.08)', inputBorder: 'rgba(139,92,246,0.3)',
-    loginCard: 'rgba(26,22,80,0.90)', headerWave: '#0f0c29',
-  },
-  dusk: {
-    id: 'dusk', name: 'Desert Dusk', icon: '🌅',
-    bg: '#1c0f0a', bgGrad: 'linear-gradient(160deg,#1c0f0a 0%,#2d1810 50%,#1c0f0a 100%)',
-    card: '#2a1610', cardActive: 'linear-gradient(135deg,#3d2015,#2a1610)',
-    border: 'rgba(251,146,60,0.18)', borderActive: 'rgba(251,191,36,0.5)',
-    accent: '#fb923c', accentGrad: 'linear-gradient(135deg,#fb923c,#ea580c)',
-    accentBg: 'rgba(251,146,60,0.10)', accentBorder: 'rgba(251,146,60,0.35)',
-    text: '#fff7ed', textSub: '#fdba74', textBody: '#fed7aa',
-    navBg: 'linear-gradient(180deg,#2a1610,#1c0f0a)', navBorder: 'rgba(251,146,60,0.22)',
-    geo: 'rgba(251,146,60,0.06)',
-    spinnerBorder: 'rgba(251,146,60,0.2)', spinnerTop: '#fb923c',
-    inputBg: 'rgba(251,146,60,0.06)', inputBorder: 'rgba(251,146,60,0.25)',
-    loginCard: 'rgba(42,22,16,0.92)', headerWave: '#1c0f0a',
-  },
-  sage: {
-    id: 'sage', name: 'Sage & Cream', icon: '🌿',
-    bg: '#f9f6f0', bgGrad: 'linear-gradient(160deg,#f9f6f0 0%,#f0ebe0 50%,#f9f6f0 100%)',
-    card: '#ffffff', cardActive: 'linear-gradient(135deg,#fffdf7,#fdf8ee)',
-    border: 'rgba(101,163,13,0.18)', borderActive: 'rgba(101,163,13,0.45)',
-    accent: '#4d7c0f', accentGrad: 'linear-gradient(135deg,#65a30d,#4d7c0f)',
-    accentBg: 'rgba(101,163,13,0.08)', accentBorder: 'rgba(101,163,13,0.3)',
-    text: '#1a2e05', textSub: '#3f6212', textBody: '#365314',
-    navBg: 'linear-gradient(180deg,#f9f6f0,#f0ebe0)', navBorder: 'rgba(101,163,13,0.2)',
-    geo: 'rgba(101,163,13,0.06)',
-    spinnerBorder: 'rgba(101,163,13,0.2)', spinnerTop: '#65a30d',
-    inputBg: 'rgba(101,163,13,0.04)', inputBorder: 'rgba(101,163,13,0.22)',
-    loginCard: 'rgba(255,255,255,0.95)', headerWave: '#f9f6f0',
-  },
+  // 1. Midnight Oud — deep navy + warm amber (dark, luxurious)
   midnight: {
-    id: 'midnight', name: 'Midnight Gold', icon: '🌙',
-    bg: '#060d1a', bgGrad: 'linear-gradient(180deg,#060d1a 0%,#0d1f3c 60%,#0a1828 100%)',
-    card: '#0d1a30', cardActive: 'linear-gradient(135deg,#0d2044,#0a1828)',
-    border: 'rgba(59,130,246,0.14)', borderActive: 'rgba(201,168,76,0.45)',
-    accent: '#c9a84c', accentGrad: 'linear-gradient(135deg,#c9a84c,#a8883a)',
-    accentBg: 'rgba(201,168,76,0.10)', accentBorder: 'rgba(201,168,76,0.35)',
-    text: '#fff', textSub: '#93c5fd', textBody: '#bfdbfe',
-    navBg: 'linear-gradient(180deg,#0a1828,#060d1a)', navBorder: 'rgba(201,168,76,0.22)',
-    geo: 'rgba(255,255,255,0.06)',
-    spinnerBorder: 'rgba(201,168,76,0.2)', spinnerTop: '#c9a84c',
-    inputBg: 'rgba(255,255,255,0.05)', inputBorder: 'rgba(201,168,76,0.25)',
-    loginCard: 'rgba(13,26,48,0.85)', headerWave: '#060d1a',
+    id: 'midnight',
+    name: 'Midnight Oud',
+    icon: '🌙',
+    bg: '#0b0f1a',
+    bgGrad: 'linear-gradient(160deg,#0b0f1a 0%,#111827 60%,#0d1120 100%)',
+    card: '#141d2e',
+    cardActive: 'linear-gradient(135deg,#1a2540,#111827)',
+    border: 'rgba(180,140,80,0.14)',
+    borderActive: 'rgba(196,156,90,0.45)',
+    accent: '#c49c5a',
+    accentGrad: 'linear-gradient(135deg,#d4aa6a,#a87c40)',
+    accentBg: 'rgba(196,156,90,0.10)',
+    accentBorder: 'rgba(196,156,90,0.32)',
+    text: '#f0ead8',
+    textSub: '#9aabb8',
+    textBody: '#c8d0da',
+    navBg: 'rgba(11,15,26,0.97)',
+    navBorder: 'rgba(196,156,90,0.18)',
+    geo: 'rgba(196,156,90,0.05)',
+    spinnerBorder: 'rgba(196,156,90,0.2)',
+    spinnerTop: '#c49c5a',
+    inputBg: 'rgba(255,255,255,0.04)',
+    inputBorder: 'rgba(196,156,90,0.22)',
+    loginCard: 'rgba(20,29,46,0.92)',
+    headerWave: '#0b0f1a',
+    successBg: 'rgba(74,163,110,0.12)',
+    successBorder: 'rgba(74,163,110,0.3)',
+    successText: '#5eba82',
   },
-  emerald: {
-    id: 'emerald', name: 'Emerald Dusk', icon: '✨',
-    bg: '#0a1a12', bgGrad: 'linear-gradient(180deg,#0a1a12 0%,#0d2218 60%,#081510 100%)',
-    card: '#0d1f16', cardActive: 'linear-gradient(135deg,#0d2a1a,#081510)',
-    border: 'rgba(52,211,153,0.14)', borderActive: 'rgba(212,175,55,0.45)',
-    accent: '#d4af37', accentGrad: 'linear-gradient(135deg,#d4af37,#a8880a)',
-    accentBg: 'rgba(212,175,55,0.10)', accentBorder: 'rgba(212,175,55,0.35)',
-    text: '#f0faf4', textSub: '#6ee7b7', textBody: '#a7f3d0',
-    navBg: 'linear-gradient(180deg,#0a1a12,#081510)', navBorder: 'rgba(212,175,55,0.22)',
-    geo: 'rgba(52,211,153,0.06)',
-    spinnerBorder: 'rgba(212,175,55,0.2)', spinnerTop: '#d4af37',
-    inputBg: 'rgba(52,211,153,0.05)', inputBorder: 'rgba(212,175,55,0.25)',
-    loginCard: 'rgba(10,26,18,0.88)', headerWave: '#0a1a12',
+
+  // 2. Ivory Dune — warm cream + terracotta (light, earthy)
+  ivory: {
+    id: 'ivory',
+    name: 'Ivory Dune',
+    icon: '🏺',
+    bg: '#faf6ef',
+    bgGrad: 'linear-gradient(160deg,#faf6ef 0%,#f3ece0 60%,#faf6ef 100%)',
+    card: '#ffffff',
+    cardActive: 'linear-gradient(135deg,#fffdf8,#fef9f0)',
+    border: 'rgba(160,100,60,0.14)',
+    borderActive: 'rgba(185,105,55,0.4)',
+    accent: '#9c5a2a',
+    accentGrad: 'linear-gradient(135deg,#b8672f,#874a20)',
+    accentBg: 'rgba(156,90,42,0.08)',
+    accentBorder: 'rgba(156,90,42,0.28)',
+    text: '#2a1a0e',
+    textSub: '#7a5a40',
+    textBody: '#5a3d28',
+    navBg: 'rgba(250,246,239,0.97)',
+    navBorder: 'rgba(156,90,42,0.18)',
+    geo: 'rgba(156,90,42,0.06)',
+    spinnerBorder: 'rgba(156,90,42,0.2)',
+    spinnerTop: '#9c5a2a',
+    inputBg: 'rgba(156,90,42,0.04)',
+    inputBorder: 'rgba(156,90,42,0.2)',
+    loginCard: 'rgba(255,255,255,0.96)',
+    headerWave: '#faf6ef',
+    successBg: 'rgba(60,140,80,0.08)',
+    successBorder: 'rgba(60,140,80,0.28)',
+    successText: '#3a7a50',
+  },
+
+  // 3. Forest Qalam — deep forest green + gold (dark, serene)
+  forest: {
+    id: 'forest',
+    name: 'Forest Qalam',
+    icon: '🌿',
+    bg: '#0a130e',
+    bgGrad: 'linear-gradient(160deg,#0a130e 0%,#0f1f15 60%,#091108 100%)',
+    card: '#111e14',
+    cardActive: 'linear-gradient(135deg,#162a1a,#0f1f15)',
+    border: 'rgba(120,180,100,0.13)',
+    borderActive: 'rgba(180,158,80,0.42)',
+    accent: '#b89e50',
+    accentGrad: 'linear-gradient(135deg,#cab060,#9a7e38)',
+    accentBg: 'rgba(184,158,80,0.10)',
+    accentBorder: 'rgba(184,158,80,0.30)',
+    text: '#e8f0e2',
+    textSub: '#7aab82',
+    textBody: '#a8c8a0',
+    navBg: 'rgba(10,19,14,0.97)',
+    navBorder: 'rgba(184,158,80,0.18)',
+    geo: 'rgba(120,180,100,0.06)',
+    spinnerBorder: 'rgba(184,158,80,0.2)',
+    spinnerTop: '#b89e50',
+    inputBg: 'rgba(120,180,100,0.05)',
+    inputBorder: 'rgba(184,158,80,0.22)',
+    loginCard: 'rgba(17,30,20,0.92)',
+    headerWave: '#0a130e',
+    successBg: 'rgba(80,180,100,0.12)',
+    successBorder: 'rgba(80,180,100,0.3)',
+    successText: '#60c078',
   },
 }
 
@@ -102,13 +128,48 @@ const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday']
 const ROTI_ITEMS = ['roti','chapati','naan','paratha']
 const isRotiItem = (dish) => ROTI_ITEMS.some(r => dish.toLowerCase().includes(r))
 
-// Get today's day key
 const getTodayKey = () => {
-  const d = new Date().getDay() // 0=Sun,1=Mon...6=Sat
-  const map = { 1:'monday',2:'tuesday',3:'wednesday',4:'thursday',5:'friday',6:'saturday' }
+  const d = new Date().getDay()
+  const map = { 1:'monday', 2:'tuesday', 3:'wednesday', 4:'thursday', 5:'friday', 6:'saturday' }
   return map[d] || 'monday'
 }
 
+// ─── Survey Window Check ──────────────────────────────────────
+// Open: Saturday 20:00 → Monday 10:00
+const isSurveyOpen = () => {
+  const now  = new Date()
+  const day  = now.getDay()  // 0=Sun,1=Mon,2=Tue,...,6=Sat
+  const hour = now.getHours()
+  const min  = now.getMinutes()
+  const totalMins = hour * 60 + min
+
+  const sat20 = 20 * 60
+  const mon10 = 10 * 60
+
+  if (day === 6 && totalMins >= sat20) return true  // Sat after 20:00
+  if (day === 0) return true                          // All Sunday
+  if (day === 1 && totalMins <= mon10) return true   // Mon before 10:00
+  return false
+}
+
+const getSurveyWindowMessage = () => {
+  const now = new Date()
+  const day = now.getDay()
+  const hour = now.getHours()
+  if (day === 6 && hour < 20) {
+    const hoursLeft = 20 - hour
+    return `Survey opens today at 8:00 PM (in ~${hoursLeft}h)`
+  }
+  if (day === 1 && hour >= 10) {
+    return 'Survey window closed. Opens next Saturday at 8:00 PM.'
+  }
+  if (day >= 2 && day <= 5) {
+    return 'Survey opens Saturday at 8:00 PM.'
+  }
+  return 'Survey opens Saturday at 8:00 PM.'
+}
+
+// ─── Contexts ─────────────────────────────────────────────────
 const ThemeCtx = createContext(THEMES.midnight)
 const useTheme = () => useContext(ThemeCtx)
 const AuthCtx  = createContext(null)
@@ -119,11 +180,15 @@ const GeoBg = ({ t: tProp }) => {
   const ctx = useTheme()
   const t = tProp || ctx
   return (
-    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none' }}>
+    <svg style={{ position:'absolute', inset:0, width:'100%', height:'100%', pointerEvents:'none', opacity:0.7 }}>
       <defs>
-        <pattern id="geo" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M20 0L40 20L20 40L0 20Z" fill="none" stroke={t.geo} strokeWidth="0.7"/>
-          <circle cx="20" cy="20" r="5" fill="none" stroke={t.geo} strokeWidth="0.6"/>
+        <pattern id="geo" x="0" y="0" width="48" height="48" patternUnits="userSpaceOnUse">
+          <path d="M24 2L46 24L24 46L2 24Z" fill="none" stroke={t.geo} strokeWidth="0.7"/>
+          <circle cx="24" cy="24" r="4.5" fill="none" stroke={t.geo} strokeWidth="0.5"/>
+          <circle cx="0"  cy="0"  r="2"   fill={t.geo}/>
+          <circle cx="48" cy="0"  r="2"   fill={t.geo}/>
+          <circle cx="0"  cy="48" r="2"   fill={t.geo}/>
+          <circle cx="48" cy="48" r="2"   fill={t.geo}/>
         </pattern>
       </defs>
       <rect width="100%" height="100%" fill="url(#geo)"/>
@@ -136,8 +201,8 @@ const Spinner = ({ fullPage = true }) => {
   const t = useTheme()
   const inner = (
     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:16 }}>
-      <div className="spin" style={{ width:36, height:36, border:`3px solid ${t.spinnerBorder}`, borderTop:`3px solid ${t.spinnerTop}`, borderRadius:'50%' }}/>
-      {fullPage && <p style={{ margin:0, fontSize:13, color:t.textSub, opacity:0.5, fontFamily:'inherit' }}>Loading…</p>}
+      <div className="spin" style={{ width:34, height:34, border:`2.5px solid ${t.spinnerBorder}`, borderTop:`2.5px solid ${t.spinnerTop}`, borderRadius:'50%' }}/>
+      {fullPage && <p style={{ margin:0, fontSize:12, color:t.textSub, opacity:0.45, fontFamily:"'DM Sans',sans-serif", letterSpacing:'0.08em' }}>Loading…</p>}
     </div>
   )
   return fullPage
@@ -147,37 +212,27 @@ const Spinner = ({ fullPage = true }) => {
 
 /* ─── Error Banner ───────────────────────────────────────────── */
 const ErrorBanner = ({ msg }) => (
-  <div style={{ margin:'8px 0', padding:'12px 14px', borderRadius:12,
-    background:'rgba(239,68,68,0.10)', border:'1px solid rgba(239,68,68,0.3)',
-    color:'#ef4444', fontSize:14, display:'flex', alignItems:'center', gap:8 }}>
+  <div style={{ margin:'8px 0', padding:'11px 14px', borderRadius:10,
+    background:'rgba(220,60,60,0.09)', border:'1px solid rgba(220,60,60,0.28)',
+    color:'#e05555', fontSize:13, display:'flex', alignItems:'center', gap:8,
+    fontFamily:"'DM Sans',sans-serif" }}>
     <AlertCircle size={14} style={{ flexShrink:0 }}/>{msg}
   </div>
 )
 
-/* ─── Circle Icon Wrapper ────────────────────────────────────── */
-const CircleIcon = ({ children, size = 44, bg, style: extraStyle = {} }) => {
-  const t = useTheme()
-  return (
-    <div style={{ width:size, height:size, borderRadius:'50%',
-      background: bg || t.accentGrad, display:'flex', alignItems:'center',
-      justifyContent:'center', flexShrink:0, ...extraStyle }}>
-      {children}
-    </div>
-  )
-}
-
-/* ─── Avatar Component ───────────────────────────────────────── */
+/* ─── Avatar ─────────────────────────────────────────────────── */
 const Avatar = ({ avatarUrl, name, email, size = 56 }) => {
   const t = useTheme()
   const initials = (name || email || 'U').charAt(0).toUpperCase()
   return (
     <div style={{ width:size, height:size, borderRadius:'50%', overflow:'hidden', flexShrink:0,
-      border:`2.5px solid ${t.accent}`, boxShadow:`0 4px 16px ${t.accentBg}` }}>
+      border:`2px solid ${t.accent}`, boxShadow:`0 4px 16px ${t.accentBg}` }}>
       {avatarUrl
         ? <img src={avatarUrl} alt="Avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
         : <div style={{ width:'100%', height:'100%', background:t.accentGrad,
             display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize: size * 0.38, fontWeight:900, color:'#fff' }}>
+            fontSize: size * 0.38, fontWeight:800, color:'#fff',
+            fontFamily:"'Playfair Display',serif" }}>
             {initials}
           </div>
       }
@@ -185,7 +240,36 @@ const Avatar = ({ avatarUrl, name, email, size = 56 }) => {
   )
 }
 
-/* ─── Login Page ─────────────────────────────────────────────── */
+/* ─── Section Label ──────────────────────────────────────────── */
+const SectionLabel = ({ children }) => {
+  const t = useTheme()
+  return (
+    <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', color:t.textSub,
+      textTransform:'uppercase', marginBottom:12, fontFamily:"'DM Sans',sans-serif", opacity:0.7 }}>
+      {children}
+    </div>
+  )
+}
+
+/* ─── Card ───────────────────────────────────────────────────── */
+const Card = ({ children, active, style: extraStyle = {} }) => {
+  const t = useTheme()
+  return (
+    <div style={{
+      padding:'18px 18px', borderRadius:16,
+      background: active ? t.cardActive : t.card,
+      border:`1px solid ${active ? t.borderActive : t.border}`,
+      boxShadow: active ? `0 6px 24px ${t.accentBg}` : '0 2px 8px rgba(0,0,0,0.08)',
+      ...extraStyle
+    }}>
+      {children}
+    </div>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════
+// LOGIN PAGE
+// ══════════════════════════════════════════════════════════════
 function LoginPage() {
   const t = THEMES.midnight
   const [email, setEmail]       = useState('')
@@ -201,7 +285,7 @@ function LoginPage() {
       if (mode === 'signup') {
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
-        setError('Check your email for a verification link!')
+        setError('✅ Check your email for a verification link!')
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
@@ -210,79 +294,82 @@ function LoginPage() {
     finally { setLoading(false) }
   }
 
-  return (
-    <div style={{ minHeight:'100vh', background:t.bgGrad, display:'flex',
-      alignItems:'center', justifyContent:'center', padding:20,
-      position:'relative', overflow:'hidden', fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
-      <GeoBg t={t}/>
-      <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:420,
-        background:t.loginCard, backdropFilter:'blur(20px)', borderRadius:28,
-        padding:'44px 32px', border:`1px solid ${t.borderActive}`, boxShadow:'0 24px 64px rgba(0,0,0,0.4)' }}>
+  const inp = {
+    width:'100%', padding:'13px 13px 13px 44px', borderRadius:12, boxSizing:'border-box',
+    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
+    fontSize:15, outline:'none', fontFamily:"'DM Sans',sans-serif", transition:'border 0.2s'
+  }
 
-        <div style={{ textAlign:'center', marginBottom:32 }}>
-          <div style={{ width:92, height:92, margin:'0 auto 18px', borderRadius:'50%',
+  return (
+    <div style={{ minHeight:'100vh', background:t.bgGrad, display:'flex', alignItems:'center',
+      justifyContent:'center', padding:20, position:'relative', overflow:'hidden',
+      fontFamily:"'DM Sans',sans-serif" }}>
+      <GeoBg t={t}/>
+
+      <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:400,
+        background:t.loginCard, backdropFilter:'blur(24px)', borderRadius:24,
+        padding:'40px 28px', border:`1px solid ${t.borderActive}`,
+        boxShadow:'0 32px 80px rgba(0,0,0,0.5)' }}>
+
+        {/* Logo */}
+        <div style={{ textAlign:'center', marginBottom:28 }}>
+          <div style={{ width:88, height:88, margin:'0 auto 16px', borderRadius:'50%',
             background:t.accentGrad, display:'flex', alignItems:'center', justifyContent:'center',
-            boxShadow:`0 10px 32px ${t.accentBg}` }}>
-            <img src="/al-mawaid.png" alt="Al-Mawaid" style={{ width:64, height:64, objectFit:'contain' }}/>
+            boxShadow:`0 12px 36px rgba(196,156,90,0.25)` }}>
+            <img src="/al-mawaid.png" alt="Al-Mawaid" style={{ width:60, height:60, objectFit:'contain' }}/>
           </div>
-          <h1 style={{ margin:'0 0 8px', fontSize:34, fontWeight:700, color:t.accent,
-            letterSpacing:'0.06em', fontFamily:"'Cormorant Garamond','Georgia',serif" }}>Al-Mawaid</h1>
-          <p style={{ margin:0, fontSize:15, color:t.textSub, opacity:0.75,
-            fontFamily:"'Amiri','Georgia',serif", letterSpacing:'0.12em' }}>
-            بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-          </p>
+          <h1 style={{ margin:'0 0 6px', fontSize:30, fontWeight:700, color:t.accent,
+            letterSpacing:'0.06em', fontFamily:"'Playfair Display',serif" }}>Al-Mawaid</h1>
+          <p style={{ margin:0, fontSize:15, color:t.textSub, fontFamily:"'Noto Nastaliq Urdu','Amiri',serif",
+            letterSpacing:'0.1em', lineHeight:1.8 }}>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
         </div>
 
-        <div style={{ display:'flex', gap:6, marginBottom:24,
-          background:'rgba(255,255,255,0.04)', borderRadius:14, padding:5 }}>
+        {/* Tabs */}
+        <div style={{ display:'flex', gap:6, marginBottom:22,
+          background:'rgba(255,255,255,0.04)', borderRadius:12, padding:5 }}>
           {['login','signup'].map(m => (
             <button key={m} onClick={() => setMode(m)}
-              style={{ flex:1, padding:'10px 20px', borderRadius:10,
-                border:'none',
+              style={{ flex:1, padding:'9px 16px', borderRadius:9, border:'none',
                 background: mode===m ? t.accentGrad : 'transparent',
-                color: mode===m ? '#fff' : t.textSub,
-                fontWeight:700, cursor:'pointer', transition:'all 0.3s', fontSize:14,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                color: mode===m ? '#fff' : t.textSub, fontWeight:600, cursor:'pointer',
+                transition:'all 0.25s', fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
               {m === 'login' ? 'Sign In' : 'Sign Up'}
             </button>
           ))}
         </div>
 
         <form onSubmit={handleAuth}>
-          <div style={{ marginBottom:16 }}>
-            <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub, marginBottom:7, letterSpacing:'0.1em' }}>EMAIL</label>
+          <div style={{ marginBottom:14 }}>
+            <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+              marginBottom:7, letterSpacing:'0.14em', fontFamily:"'DM Sans',sans-serif" }}>EMAIL</label>
             <div style={{ position:'relative' }}>
-              <Mail size={15} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.accent, opacity:0.6 }}/>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                style={{ width:'100%', padding:'13px 13px 13px 44px', borderRadius:12, boxSizing:'border-box',
-                  background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-                  fontSize:15, outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif" }}
-                placeholder="your@email.com"/>
+              <Mail size={14} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.accent, opacity:0.6 }}/>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inp} placeholder="your@email.com"/>
             </div>
           </div>
-          <div style={{ marginBottom:22 }}>
-            <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub, marginBottom:7, letterSpacing:'0.1em' }}>PASSWORD</label>
+          <div style={{ marginBottom:20 }}>
+            <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+              marginBottom:7, letterSpacing:'0.14em', fontFamily:"'DM Sans',sans-serif" }}>PASSWORD</label>
             <div style={{ position:'relative' }}>
-              <Lock size={15} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.accent, opacity:0.6 }}/>
+              <Lock size={14} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.accent, opacity:0.6 }}/>
               <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
-                style={{ width:'100%', padding:'13px 46px 13px 44px', borderRadius:12, boxSizing:'border-box',
-                  background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-                  fontSize:15, outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif" }}
-                placeholder="••••••••"/>
+                style={{ ...inp, paddingRight:44 }} placeholder="••••••••"/>
               <button type="button" onClick={() => setShowPass(!showPass)}
                 style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)',
                   background:'none', border:'none', cursor:'pointer', padding:0, display:'flex' }}>
-                {showPass ? <EyeOff size={15} color={t.accent}/> : <Eye size={15} color={t.accent}/>}
+                {showPass ? <EyeOff size={14} color={t.accent}/> : <Eye size={14} color={t.accent}/>}
               </button>
             </div>
           </div>
+
           {error && <ErrorBanner msg={error}/>}
+
           <button type="submit" disabled={loading}
-            style={{ width:'100%', padding:15, borderRadius:12, border:'none',
-              background:t.accentGrad, color:'#fff', fontSize:16, fontWeight:700,
+            style={{ width:'100%', padding:14, borderRadius:12, border:'none',
+              background: loading ? t.border : t.accentGrad, color:'#fff', fontSize:15, fontWeight:700,
               cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-              boxShadow:`0 6px 20px ${t.accentBg}`, transition:'all 0.3s', marginTop:6,
-              fontFamily:"'Inter','Segoe UI',sans-serif", letterSpacing:'0.03em' }}>
+              boxShadow:`0 6px 20px ${t.accentBg}`, transition:'all 0.25s', marginTop:4,
+              fontFamily:"'DM Sans',sans-serif", letterSpacing:'0.02em' }}>
             {loading ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
         </form>
@@ -292,234 +379,209 @@ function LoginPage() {
   )
 }
 
-/* ─── Home Page ──────────────────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// HOME PAGE
+// ══════════════════════════════════════════════════════════════
 function HomePage({ setActiveTab }) {
   const t = useTheme()
   const { user } = useAuth()
-  const [expandedDay, setExpandedDay] = useState(null)
-  const [showSurvey, setShowSurvey]   = useState(false)
+  const [expandedDay, setExpandedDay]   = useState(null)
+  const [showSurvey, setShowSurvey]     = useState(false)
   const [surveyStartDay, setSurveyStartDay] = useState('monday')
-  const [stats, setStats]             = useState({ total_surveys:0 })
-  const [profileData, setProfileData] = useState({ name:'', thali_number:'', avatar_url:'' })
-  const [statsLoading, setStatsLoading] = useState(true)
-  const [feedbackCounts, setFeedbackCounts] = useState({})
+  const [profileData, setProfileData]   = useState({ name:'', thali_number:'', avatar_url:'' })
   const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
+  const [feedbackCounts, setFeedbackCounts]     = useState({})
+  const [statsLoading, setStatsLoading] = useState(true)
 
-  useEffect(() => { loadStats(); loadFeedbackCounts(); loadSurveyCounts() }, [user])
+  const surveyOpen = isSurveyOpen()
 
-  const loadStats = async () => {
+  useEffect(() => { loadData() }, [user])
+
+  const loadData = async () => {
     try {
       const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      if (data) {
-        setStats(data)
-        setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
-      } else {
-        const { data: ns } = await supabase.from('user_stats')
-          .insert([{ user_id:user.id, total_surveys:0, name:'', thali_number:'' }])
-          .select().single()
-        if (ns) setStats(ns)
-      }
-    } catch (err) { console.error(err) }
-    finally { setStatsLoading(false) }
-  }
+      if (data) setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
+    } catch {}
 
-  const loadFeedbackCounts = async () => {
-    try {
-      const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
-      const counts = {}
-      ;(data || []).forEach(r => {
-        if (!counts[r.day]) counts[r.day] = { lunch: false, dinner: false }
-        if (r.lunch_stars) counts[r.day].lunch = true
-        if (r.dinner_stars) counts[r.day].dinner = true
-      })
-      setFeedbackCounts(counts)
-    } catch(err) { console.error(err) }
-  }
-
-  const loadSurveyCounts = async () => {
     try {
       const { data } = await supabase.from('survey_responses').select('day,meal').eq('user_id', user.id)
       const counts = {}
-      ;(data || []).forEach(r => {
+      ;(data||[]).forEach(r => {
         if (!counts[r.day]) counts[r.day] = new Set()
         counts[r.day].add(r.meal)
       })
       setSurveyDaysCounts(counts)
-    } catch(err) { console.error(err) }
+    } catch {}
+
+    try {
+      const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
+      const counts = {}
+      ;(data||[]).forEach(r => {
+        if (!counts[r.day]) counts[r.day] = { lunch:false, dinner:false }
+        if (r.lunch_stars)  counts[r.day].lunch  = true
+        if (r.dinner_stars) counts[r.day].dinner = true
+      })
+      setFeedbackCounts(counts)
+    } catch {}
+
+    setStatsLoading(false)
   }
 
-  // How many full days surveyed (both lunch+dinner = 1 day)
   const surveyedDaysCount = Object.values(surveyDaysCounts).filter(s => s.size >= 2).length
-  // Total feedback filled = days with both lunch+dinner feedback
   const feedbackDaysCount = Object.values(feedbackCounts).filter(f => f.lunch && f.dinner).length
 
-  const openSurveyFromDay = (day) => { setSurveyStartDay(day); setShowSurvey(true) }
+  const openSurveyFromDay = (day) => {
+    if (!surveyOpen) return
+    setSurveyStartDay(day)
+    setShowSurvey(true)
+  }
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
 
-      {/* ── Profile Preview Card ── */}
-      <div style={{ marginBottom:18, padding:18, borderRadius:20,
-        background:t.cardActive, border:`1px solid ${t.borderActive}`,
-        boxShadow:'0 8px 32px rgba(0,0,0,0.18)', display:'flex', alignItems:'center', gap:16 }}>
-        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={60}/>
+      {/* ── Profile strip ── */}
+      <Card active style={{ display:'flex', alignItems:'center', gap:14, marginBottom:16 }}>
+        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54}/>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:19, fontWeight:700, color:t.accent,
-            fontFamily:"'Cormorant Garamond','Georgia',serif", lineHeight:1.2 }}>
-            {profileData.name || 'Set your name →'}
+          <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", lineHeight:1.2 }}>
+            {profileData.name || 'Welcome 👋'}
           </div>
-          <div style={{ fontSize:12, color:t.textSub, marginTop:3, opacity:0.75 }}>{user.email}</div>
+          <div style={{ fontSize:12, color:t.textSub, marginTop:2, fontFamily:"'DM Sans',sans-serif" }}>{user.email}</div>
           {profileData.thali_number && (
-            <div style={{ fontSize:13, color:t.textSub, marginTop:3 }}>
-              Thali No: <strong style={{ color:t.accent, fontWeight:800 }}>#{profileData.thali_number}</strong>
+            <div style={{ fontSize:12, color:t.textSub, marginTop:2, fontFamily:"'DM Sans',sans-serif" }}>
+              Thali <strong style={{ color:t.accent }}>#{profileData.thali_number}</strong>
             </div>
           )}
         </div>
-        <button onClick={() => setActiveTab('profile')}
-          style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`,
-            borderRadius:10, padding:'7px 13px', cursor:'pointer',
-            color:t.accent, fontSize:12, fontWeight:700, whiteSpace:'nowrap',
-            fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-          Edit
-        </button>
-      </div>
+      </Card>
 
-      {/* ── Stats Row ── */}
+      {/* ── Stats ── */}
       {!statsLoading && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:20 }}>
-          {/* Survey count */}
-          <div style={{ padding:'16px 16px', background:t.card, borderRadius:16,
-            border:`1px solid ${t.borderActive}`, display:'flex', alignItems:'center', gap:12 }}>
-            <CircleIcon size={44} style={{ boxShadow:`0 4px 14px ${t.accentBg}` }}>
-              <ClipboardList size={20} color="#fff"/>
-            </CircleIcon>
-            <div>
-              <div style={{ fontSize:28, fontWeight:900, color:t.accent, lineHeight:1,
-                fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
-                {surveyedDaysCount}<span style={{ fontSize:14, color:t.textSub, fontWeight:600 }}>/6</span>
-              </div>
-              <div style={{ fontSize:11, color:t.textSub, marginTop:3, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                Survey Days
-              </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:18 }}>
+          <Card style={{ textAlign:'center', padding:'14px 12px' }}>
+            <div style={{ fontSize:28, fontWeight:800, color:t.accent, lineHeight:1, fontFamily:"'Playfair Display',serif" }}>
+              {surveyedDaysCount}<span style={{ fontSize:13, fontWeight:500, color:t.textSub }}>/6</span>
             </div>
-          </div>
-          {/* Feedback count */}
-          <div style={{ padding:'16px 16px', background:t.card, borderRadius:16,
-            border:`1px solid ${t.borderActive}`, display:'flex', alignItems:'center', gap:12 }}>
-            <CircleIcon size={44} bg="linear-gradient(135deg,#f43f5e,#e11d48)" style={{ boxShadow:'0 4px 14px rgba(244,63,94,0.2)' }}>
-              <Star size={20} color="#fff"/>
-            </CircleIcon>
-            <div>
-              <div style={{ fontSize:28, fontWeight:900, color:'#f43f5e', lineHeight:1,
-                fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
-                {feedbackDaysCount}<span style={{ fontSize:14, color:t.textSub, fontWeight:600 }}>/6</span>
-              </div>
-              <div style={{ fontSize:11, color:t.textSub, marginTop:3, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                Feedback Days
-              </div>
+            <div style={{ fontSize:11, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif", letterSpacing:'0.04em' }}>Survey Days</div>
+          </Card>
+          <Card style={{ textAlign:'center', padding:'14px 12px' }}>
+            <div style={{ fontSize:28, fontWeight:800, color:'#e06070', lineHeight:1, fontFamily:"'Playfair Display',serif" }}>
+              {feedbackDaysCount}<span style={{ fontSize:13, fontWeight:500, color:t.textSub }}>/6</span>
             </div>
-          </div>
+            <div style={{ fontSize:11, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif", letterSpacing:'0.04em' }}>Feedback Days</div>
+          </Card>
+        </div>
+      )}
+
+      {/* ── Survey window notice ── */}
+      {!surveyOpen && (
+        <div style={{ marginBottom:16, padding:'12px 16px', borderRadius:12,
+          background:t.accentBg, border:`1px solid ${t.accentBorder}`,
+          fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif",
+          display:'flex', alignItems:'center', gap:8 }}>
+          🕐 {getSurveyWindowMessage()}
+        </div>
+      )}
+      {surveyOpen && (
+        <div style={{ marginBottom:16, padding:'12px 16px', borderRadius:12,
+          background:t.successBg, border:`1px solid ${t.successBorder}`,
+          fontSize:13, color:t.successText, fontFamily:"'DM Sans',sans-serif",
+          display:'flex', alignItems:'center', gap:8 }}>
+          ✅ Survey window is open! (Sat 8PM – Mon 10AM)
         </div>
       )}
 
       {/* ── Weekly Menu Header ── */}
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:14 }}>
-        <img src="/al-mawaid.png" alt="Al-Mawaid"
-          style={{ width:38, height:38, objectFit:'contain', flexShrink:0,
-            filter:'drop-shadow(0 2px 8px rgba(201,168,76,0.4))' }}/>
+      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+        <img src="/al-mawaid.png" alt="" style={{ width:32, height:32, objectFit:'contain',
+          filter:'drop-shadow(0 2px 8px rgba(196,156,90,0.4))', flexShrink:0 }}/>
         <div>
-          <h2 style={{ margin:0, fontSize:17, fontWeight:700, color:t.accent, lineHeight:1.2,
-            fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
-            Weekly Menu Schedule
-          </h2>
-          <p style={{ margin:0, fontSize:12, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            Monday – Saturday · tap to expand
-          </p>
+          <div style={{ fontSize:16, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>Weekly Menu</div>
+          <div style={{ fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Monday – Saturday · tap to expand</div>
         </div>
       </div>
 
-      {/* ── Start Survey Button ── */}
+      {/* ── Start Survey CTA ── */}
       <button onClick={() => openSurveyFromDay('monday')}
-        style={{ width:'100%', padding:14, borderRadius:14, border:'none', marginBottom:16,
-          background:t.accentGrad, color:'#fff', fontSize:15, fontWeight:700,
-          cursor:'pointer', boxShadow:`0 6px 20px ${t.accentBg}`,
-          display:'flex', alignItems:'center', justifyContent:'center', gap:10,
-          fontFamily:"'Inter','Segoe UI',sans-serif", letterSpacing:'0.02em' }}>
-        <ClipboardList size={17} color="#fff"/>
-        Start Weekly Survey
+        disabled={!surveyOpen}
+        style={{ width:'100%', padding:13, borderRadius:13, border:'none', marginBottom:14,
+          background: surveyOpen ? t.accentGrad : t.border, color:'#fff', fontSize:14, fontWeight:700,
+          cursor: surveyOpen ? 'pointer' : 'not-allowed', opacity: surveyOpen ? 1 : 0.55,
+          display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+          boxShadow: surveyOpen ? `0 6px 20px ${t.accentBg}` : 'none',
+          fontFamily:"'DM Sans',sans-serif" }}>
+        <ClipboardList size={16}/> Start Weekly Survey
       </button>
 
       {/* ── Days Accordion ── */}
       {DAYS.map(day => {
         const menu = WEEKLY_MENU[day]
         const isExpanded = expandedDay === day
-        const daySurvey = surveyDaysCounts[day]
-        const dayFb = feedbackCounts[day]
+        const daySurvey  = surveyDaysCounts[day]
+        const dayFb      = feedbackCounts[day]
         const surveyDone = daySurvey && daySurvey.size >= 2
-        const lunchFbDone = dayFb?.lunch
-        const dinnerFbDone = dayFb?.dinner
+        const lunchFb    = dayFb?.lunch
+        const dinnerFb   = dayFb?.dinner
 
         return (
-          <div key={day} style={{ marginBottom:10 }}>
+          <div key={day} style={{ marginBottom:8 }}>
             <button onClick={() => setExpandedDay(isExpanded ? null : day)}
-              style={{ width:'100%', padding:'13px 16px', borderRadius:14,
+              style={{ width:'100%', padding:'12px 14px', borderRadius:13,
                 border:`1px solid ${isExpanded ? t.borderActive : t.border}`,
                 background: isExpanded ? t.cardActive : t.card, cursor:'pointer',
                 display:'flex', justifyContent:'space-between', alignItems:'center',
-                transition:'all 0.3s', boxShadow: isExpanded ? `0 4px 16px ${t.accentBg}` : 'none' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12, textAlign:'left' }}>
-                <img src="/al-mawaid.png" alt=""
-                  style={{ width:34, height:34, objectFit:'contain', flexShrink:0,
-                    filter:'drop-shadow(0 2px 6px rgba(201,168,76,0.35))' }}/>
+                transition:'all 0.25s', textAlign:'left' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <img src="/al-mawaid.png" alt="" style={{ width:30, height:30, objectFit:'contain', flexShrink:0,
+                  filter:'drop-shadow(0 2px 6px rgba(196,156,90,0.3))' }}/>
                 <div>
-                  <div style={{ fontSize:15, fontWeight:700, color:t.accent,
-                    fontFamily:"'Cormorant Garamond','Georgia',serif" }}>{menu.en}</div>
-                  <div style={{ fontSize:11, color:t.textSub, fontFamily:"'Amiri','Georgia',serif", marginBottom:3 }}>{menu.ar}</div>
-                  {/* Status badges */}
-                  <div style={{ display:'flex', gap:5, flexWrap:'wrap' }}>
-                    <span style={{ fontSize:10, padding:'2px 7px', borderRadius:10,
-                      background: surveyDone ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.06)',
-                      color: surveyDone ? '#22c55e' : t.textSub, fontWeight:700,
-                      fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                  <div style={{ fontSize:15, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{menu.en}</div>
+                  <div style={{ fontSize:11, color:t.textSub, fontFamily:"'Amiri',serif", marginTop:1 }}>{menu.ar}</div>
+                  <div style={{ display:'flex', gap:5, marginTop:4, flexWrap:'wrap' }}>
+                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20,
+                      background: surveyDone ? `${t.successBg}` : t.accentBg,
+                      color: surveyDone ? t.successText : t.textSub, fontWeight:700,
+                      border:`1px solid ${surveyDone ? t.successBorder : t.border}`,
+                      fontFamily:"'DM Sans',sans-serif" }}>
                       {surveyDone ? '✓ Survey' : '○ Survey'}
                     </span>
-                    <span style={{ fontSize:10, padding:'2px 7px', borderRadius:10,
-                      background: (lunchFbDone||dinnerFbDone) ? 'rgba(244,63,94,0.12)' : 'rgba(255,255,255,0.06)',
-                      color: (lunchFbDone||dinnerFbDone) ? '#f43f5e' : t.textSub, fontWeight:700,
-                      fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                      {lunchFbDone && dinnerFbDone ? '✓ Feedback' : lunchFbDone||dinnerFbDone ? '◑ Feedback' : '○ Feedback'}
+                    <span style={{ fontSize:10, padding:'2px 8px', borderRadius:20,
+                      background: (lunchFb||dinnerFb) ? 'rgba(200,80,100,0.10)' : t.accentBg,
+                      color: (lunchFb||dinnerFb) ? '#e06070' : t.textSub, fontWeight:700,
+                      border:`1px solid ${(lunchFb||dinnerFb) ? 'rgba(200,80,100,0.28)' : t.border}`,
+                      fontFamily:"'DM Sans',sans-serif" }}>
+                      {lunchFb && dinnerFb ? '✓ Feedback' : lunchFb||dinnerFb ? '◑ Feedback' : '○ Feedback'}
                     </span>
                   </div>
                 </div>
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <button onClick={e => { e.stopPropagation(); openSurveyFromDay(day) }}
-                  style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`,
-                    borderRadius:8, padding:'5px 10px', cursor:'pointer',
-                    color:t.accent, fontSize:10, fontWeight:700, whiteSpace:'nowrap',
-                    fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                  Survey
-                </button>
-                <div style={{ width:26, height:26, borderRadius:'50%', background:t.accentBg,
+                {surveyOpen && (
+                  <button onClick={e => { e.stopPropagation(); openSurveyFromDay(day) }}
+                    style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`,
+                      borderRadius:8, padding:'4px 10px', cursor:'pointer',
+                      color:t.accent, fontSize:10, fontWeight:700,
+                      fontFamily:"'DM Sans',sans-serif" }}>
+                    Survey
+                  </button>
+                )}
+                <div style={{ width:24, height:24, borderRadius:'50%', background:t.accentBg,
                   display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                  {isExpanded ? <ChevronUp size={13} color={t.accent}/> : <ChevronDown size={13} color={t.accent}/>}
+                  {isExpanded ? <ChevronUp size={12} color={t.accent}/> : <ChevronDown size={12} color={t.accent}/>}
                 </div>
               </div>
             </button>
 
             {isExpanded && (
-              <div style={{ marginTop:6, padding:16, background:t.inputBg,
-                borderRadius:14, border:`1px solid ${t.border}` }}>
+              <div style={{ marginTop:4, padding:'14px 16px', background:t.inputBg,
+                borderRadius:12, border:`1px solid ${t.border}` }}>
                 {[['☀️ Lunch', menu.lunch], ['🌙 Dinner', menu.dinner]].map(([label, dishes], li) => (
-                  <div key={label} style={{ marginBottom: li === 0 ? 14 : 0 }}>
-                    <h4 style={{ margin:'0 0 8px', fontSize:13, fontWeight:700, color:t.accent,
-                      fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                      {label}
-                    </h4>
-                    <ul style={{ margin:0, paddingLeft:18, lineHeight:2 }}>
+                  <div key={label} style={{ marginBottom: li===0 ? 14 : 0 }}>
+                    <div style={{ fontSize:13, fontWeight:700, color:t.accent,
+                      fontFamily:"'DM Sans',sans-serif", marginBottom:8 }}>{label}</div>
+                    <ul style={{ margin:0, paddingLeft:16, lineHeight:2.0 }}>
                       {dishes.map(d => (
-                        <li key={d} style={{ fontSize:14, color:t.textBody,
-                          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{d}</li>
+                        <li key={d} style={{ fontSize:14, color:t.textBody, fontFamily:"'DM Sans',sans-serif" }}>{d}</li>
                       ))}
                     </ul>
                   </div>
@@ -533,13 +595,15 @@ function HomePage({ setActiveTab }) {
       {showSurvey && (
         <SurveyModal
           startDay={surveyStartDay}
-          onClose={() => { setShowSurvey(false); loadStats(); loadSurveyCounts() }}/>
+          onClose={() => { setShowSurvey(false); loadData() }}/>
       )}
     </main>
   )
 }
 
-/* ─── Survey Modal ───────────────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// SURVEY MODAL
+// ══════════════════════════════════════════════════════════════
 function SurveyModal({ startDay = 'monday', onClose }) {
   const t = useTheme()
   const { user } = useAuth()
@@ -566,199 +630,187 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         setExistingResponse(data)
         setWantsFood(data.wants_food)
         setResponses(data.dish_responses || {})
-        if ((data.edit_count || 0) >= 1) setEditBlocked(true)
-      }
-      else { setExistingResponse(null); setWantsFood(null); setResponses({}); setEditBlocked(false) }
+        if ((data.edit_count||0) >= 1) setEditBlocked(true)
+      } else { setExistingResponse(null); setWantsFood(null); setResponses({}); setEditBlocked(false) }
     } catch { setExistingResponse(null); setWantsFood(null); setResponses({}); setEditBlocked(false) }
   }
 
   const goToDay = (day) => { setCurrentDay(day); setCurrentMeal('lunch'); setWantsFood(null); setResponses({}) }
 
   const handleNext = async () => {
-    if (wantsFood !== null) {
-      if (existingResponse && (existingResponse.edit_count || 0) >= 1) {
-        // Already edited once — skip save, just navigate
-      } else {
-        setLoading(true)
-        try {
-          const { error } = await supabase.from('survey_responses').upsert([{
-            user_id:user.id, day:currentDay, meal:currentMeal, wants_food:wantsFood,
-            dish_responses: wantsFood ? responses : {},
-            edit_count: existingResponse ? (existingResponse.edit_count||0)+1 : 0
-          }], { onConflict:'user_id,day,meal' })
-          if (error) throw error
-          if (!existingResponse) {
-            await supabase.rpc('increment_user_surveys', { p_user_id:user.id })
-          }
-        } catch (err) { alert('Error saving: ' + err.message) }
-        finally { setLoading(false) }
-      }
+    if (wantsFood !== null && !(existingResponse && (existingResponse.edit_count||0) >= 1)) {
+      setLoading(true)
+      try {
+        const { error } = await supabase.from('survey_responses').upsert([{
+          user_id:user.id, day:currentDay, meal:currentMeal, wants_food:wantsFood,
+          dish_responses: wantsFood ? responses : {},
+          edit_count: existingResponse ? (existingResponse.edit_count||0)+1 : 0
+        }], { onConflict:'user_id,day,meal' })
+        if (error) throw error
+        if (!existingResponse) await supabase.rpc('increment_user_surveys', { p_user_id:user.id })
+      } catch (err) { alert('Error saving: ' + err.message) }
+      finally { setLoading(false) }
     }
+
     if (currentMeal === 'lunch') {
       setCurrentMeal('dinner'); setWantsFood(null); setResponses({})
     } else if (currentDayIndex < DAYS.length - 1) {
       setCurrentDay(DAYS[currentDayIndex+1]); setCurrentMeal('lunch'); setWantsFood(null); setResponses({})
     } else {
-      alert('🎉 Survey completed! Thank you.'); onClose()
+      alert('🎉 Survey complete! JazakAllah Khair.'); onClose()
     }
   }
 
   const handlePrev = () => {
-    if (currentMeal === 'dinner') {
-      setCurrentMeal('lunch'); setWantsFood(null); setResponses({})
-    } else if (currentDayIndex > 0) {
-      setCurrentDay(DAYS[currentDayIndex-1]); setCurrentMeal('dinner'); setWantsFood(null); setResponses({})
-    }
+    if (currentMeal === 'dinner') { setCurrentMeal('lunch'); setWantsFood(null); setResponses({}) }
+    else if (currentDayIndex > 0) { setCurrentDay(DAYS[currentDayIndex-1]); setCurrentMeal('dinner'); setWantsFood(null); setResponses({}) }
   }
 
   const dishes = currentMeal === 'lunch' ? menu.lunch : menu.dinner
   const isFirst = currentDayIndex === 0 && currentMeal === 'lunch'
   const isLast  = currentDayIndex === DAYS.length-1 && currentMeal === 'dinner'
+  const totalSteps = DAYS.length * 2
+  const currentStep = currentDayIndex * 2 + (currentMeal === 'lunch' ? 1 : 2)
+  const progress = (currentStep / totalSteps) * 100
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:50, display:'flex', alignItems:'center', justifyContent:'center',
-      background:'rgba(0,0,0,0.78)', padding:20, backdropFilter:'blur(10px)', overflowY:'auto' }}
+      background:'rgba(0,0,0,0.82)', padding:16, backdropFilter:'blur(12px)', overflowY:'auto' }}
       onClick={onClose}>
       <div onClick={e => e.stopPropagation()}
-        style={{ background:t.card, borderRadius:22, padding:24, maxWidth:520, width:'100%',
-          border:`1px solid ${t.borderActive}`, boxShadow:'0 24px 64px rgba(0,0,0,0.5)',
+        style={{ background:t.card, borderRadius:20, padding:22, maxWidth:500, width:'100%',
+          border:`1px solid ${t.borderActive}`, boxShadow:'0 28px 70px rgba(0,0,0,0.55)',
           maxHeight:'92vh', overflowY:'auto' }}>
 
-        {/* Day navigation pills */}
-        <div style={{ display:'flex', gap:5, overflowX:'auto', marginBottom:16, paddingBottom:4, scrollbarWidth:'none' }}>
-          {DAYS.map((day) => (
+        {/* Progress */}
+        <div style={{ height:3, background:t.inputBg, borderRadius:2, marginBottom:16, overflow:'hidden' }}>
+          <div style={{ height:'100%', width:`${progress}%`, background:t.accentGrad,
+            borderRadius:2, transition:'width 0.4s ease' }}/>
+        </div>
+
+        {/* Day pills */}
+        <div style={{ display:'flex', gap:4, overflowX:'auto', marginBottom:14, paddingBottom:2, scrollbarWidth:'none' }}>
+          {DAYS.map(day => (
             <button key={day} onClick={() => goToDay(day)}
-              style={{ flexShrink:0, padding:'5px 11px', borderRadius:20,
+              style={{ flexShrink:0, padding:'4px 10px', borderRadius:20,
                 border:`1.5px solid ${currentDay===day ? t.accent : t.border}`,
                 background: currentDay===day ? t.accentBg : 'transparent',
                 color: currentDay===day ? t.accent : t.textSub,
-                fontWeight:700, fontSize:11, cursor:'pointer',
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                fontWeight:700, fontSize:10, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
               {WEEKLY_MENU[day].en.slice(0,3)}
             </button>
           ))}
         </div>
 
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14 }}>
+        {/* Header */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-              <img src="/al-mawaid.png" alt="" style={{ width:26, height:26, objectFit:'contain' }}/>
-              <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent,
-                fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <img src="/al-mawaid.png" alt="" style={{ width:24, height:24, objectFit:'contain' }}/>
+              <h2 style={{ margin:0, fontSize:19, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
                 {menu.en}
               </h2>
             </div>
-            <div style={{ fontSize:13, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+            <div style={{ fontSize:13, color:t.textSub, fontFamily:"'DM Sans',sans-serif", marginTop:3 }}>
               {currentMeal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
-              <span style={{ margin:'0 6px', opacity:0.4 }}>·</span>
-              <span style={{ fontFamily:"'Amiri','Georgia',serif", fontSize:14 }}>{menu.ar}</span>
+              <span style={{ margin:'0 6px', opacity:0.3 }}>·</span>
+              <span style={{ fontFamily:"'Amiri',serif", fontSize:14 }}>{menu.ar}</span>
             </div>
           </div>
           <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-            <X size={20} color={t.text}/>
+            <X size={18} color={t.textSub}/>
           </button>
         </div>
 
-        {/* Edit blocked notice */}
         {editBlocked && (
-          <div style={{ marginBottom:14, padding:12, borderRadius:10,
-            background:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.3)',
-            color:'#fb923c', fontSize:13, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            ⚠️ You've used your 1 edit for this meal. View-only mode.
+          <div style={{ marginBottom:12, padding:11, borderRadius:10,
+            background:'rgba(220,140,40,0.10)', border:'1px solid rgba(220,140,40,0.28)',
+            color:'#d4882a', fontSize:12, fontFamily:"'DM Sans',sans-serif" }}>
+            ⚠️ 1 edit already used for this meal — view only.
           </div>
         )}
 
-        {/* Prev / Next nav */}
-        <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+        {/* Prev/Next */}
+        <div style={{ display:'flex', gap:8, marginBottom:14 }}>
           <button onClick={handlePrev} disabled={isFirst}
-            style={{ flex:1, padding:'9px 12px', borderRadius:11, border:`1px solid ${t.border}`,
+            style={{ flex:1, padding:'8px 12px', borderRadius:10, border:`1px solid ${t.border}`,
               background:'transparent', color: isFirst ? t.border : t.textSub, fontSize:13,
               fontWeight:600, cursor: isFirst ? 'not-allowed' : 'pointer',
               display:'flex', alignItems:'center', justifyContent:'center', gap:4,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            <ChevronLeft size={14}/> Prev
+              fontFamily:"'DM Sans',sans-serif" }}>
+            <ChevronLeft size={13}/> Prev
           </button>
           <button onClick={handleNext} disabled={loading}
-            style={{ flex:1, padding:'9px 12px', borderRadius:11, border:`1px solid ${t.accent}`,
-              background:t.accentBg, color:t.accent, fontSize:13,
-              fontWeight:700, cursor:'pointer',
+            style={{ flex:1, padding:'8px 12px', borderRadius:10, border:`1px solid ${t.accent}`,
+              background:t.accentBg, color:t.accent, fontSize:13, fontWeight:700, cursor:'pointer',
               display:'flex', alignItems:'center', justifyContent:'center', gap:4,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            {isLast ? 'Finish ✓' : 'Next'} {!isLast && <ChevronRight size={14}/>}
+              fontFamily:"'DM Sans',sans-serif" }}>
+            {isLast ? 'Finish ✓' : 'Next'} {!isLast && <ChevronRight size={13}/>}
           </button>
         </div>
 
+        {/* Content */}
         {editBlocked ? (
-          /* View only */
-          <div style={{ padding:16, background:t.inputBg, borderRadius:14, border:`1px solid ${t.border}` }}>
-            <p style={{ margin:'0 0 12px', fontSize:14, fontWeight:600, color:t.textSub,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+          <div style={{ padding:14, background:t.inputBg, borderRadius:12, border:`1px solid ${t.border}` }}>
+            <p style={{ margin:'0 0 10px', fontSize:13, fontWeight:600, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
               {wantsFood ? 'Responded: Yes' : 'Responded: No (skipped)'}
             </p>
             {wantsFood && Object.entries(responses).map(([dish, val]) => (
-              <div key={dish} style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
-                padding:'8px 0', borderBottom:`1px solid ${t.border}` }}>
-                <span style={{ fontSize:14, color:t.text, fontFamily:"'Inter','Segoe UI',sans-serif" }}>{dish}</span>
-                <span style={{ fontSize:13, fontWeight:700, color:t.accent,
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>{val === 'yes' ? '✅' : val === 'no' ? '❌' : `${val}%`}</span>
+              <div key={dish} style={{ display:'flex', justifyContent:'space-between',
+                padding:'7px 0', borderBottom:`1px solid ${t.border}` }}>
+                <span style={{ fontSize:13, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{dish}</span>
+                <span style={{ fontSize:13, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
+                  {val === 'yes' ? '✅' : val === 'no' ? '❌' : `${val}%`}
+                </span>
               </div>
             ))}
           </div>
         ) : wantsFood === null ? (
           <div>
-            <p style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:16,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+            <p style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:14,
+              fontFamily:"'DM Sans',sans-serif" }}>
               Do you want {currentMeal} for {menu.en}?
             </p>
-            <div style={{ display:'flex', gap:12 }}>
+            <div style={{ display:'flex', gap:10 }}>
               <button onClick={() => setWantsFood(true)}
-                style={{ flex:1, padding:15, borderRadius:14, border:`1px solid ${t.accent}`,
+                style={{ flex:1, padding:14, borderRadius:12, border:`1px solid ${t.accent}`,
                   background:t.accentBg, color:t.accent, fontSize:16, fontWeight:700, cursor:'pointer',
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                ✅ Yes
-              </button>
+                  fontFamily:"'DM Sans',sans-serif" }}>✅ Yes</button>
               <button onClick={() => { setWantsFood(false); setTimeout(handleNext, 200) }}
-                style={{ flex:1, padding:15, borderRadius:14, border:`1px solid ${t.border}`,
+                style={{ flex:1, padding:14, borderRadius:12, border:`1px solid ${t.border}`,
                   background:'transparent', color:t.text, fontSize:16, fontWeight:700, cursor:'pointer',
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                ❌ No
-              </button>
+                  fontFamily:"'DM Sans',sans-serif" }}>❌ No</button>
             </div>
           </div>
         ) : wantsFood ? (
           <div>
-            <p style={{ fontSize:13, fontWeight:600, color:t.textSub, marginBottom:12,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              Select portion for each dish:
-            </p>
+            <p style={{ fontSize:12, fontWeight:600, color:t.textSub, marginBottom:10,
+              fontFamily:"'DM Sans',sans-serif" }}>Select portion for each dish:</p>
             {dishes.map(dish => (
-              <div key={dish} style={{ marginBottom:12, padding:13, background:t.inputBg, borderRadius:12 }}>
-                <p style={{ margin:'0 0 10px', fontSize:14, fontWeight:600, color:t.text,
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>{dish}</p>
+              <div key={dish} style={{ marginBottom:10, padding:12, background:t.inputBg, borderRadius:11 }}>
+                <p style={{ margin:'0 0 8px', fontSize:14, fontWeight:600, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{dish}</p>
                 {isRotiItem(dish) ? (
                   <div style={{ display:'flex', gap:8 }}>
                     {['yes','no'].map(opt => (
                       <button key={opt} onClick={() => setResponses(prev => ({ ...prev, [dish]:opt }))}
-                        style={{ flex:1, padding:'9px 4px', borderRadius:10,
-                          border:`1.5px solid ${responses[dish]===opt ? (opt==='yes'?t.accent:'#ef4444') : t.border}`,
-                          background: responses[dish]===opt ? (opt==='yes'?t.accentBg:'rgba(239,68,68,0.1)') : 'transparent',
-                          color: responses[dish]===opt ? (opt==='yes'?t.accent:'#ef4444') : t.text,
-                          fontSize:14, fontWeight:700, cursor:'pointer',
-                          fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                        style={{ flex:1, padding:'8px 4px', borderRadius:9,
+                          border:`1.5px solid ${responses[dish]===opt ? (opt==='yes'?t.accent:'#e05555') : t.border}`,
+                          background: responses[dish]===opt ? (opt==='yes'?t.accentBg:'rgba(220,80,80,0.09)') : 'transparent',
+                          color: responses[dish]===opt ? (opt==='yes'?t.accent:'#e05555') : t.text,
+                          fontSize:14, fontWeight:700, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
                         {opt === 'yes' ? '✅ Yes' : '❌ No'}
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ display:'flex', gap:6 }}>
+                  <div style={{ display:'flex', gap:5 }}>
                     {[0,25,50,100].map(pct => (
                       <button key={pct} onClick={() => setResponses(prev => ({ ...prev, [dish]:pct }))}
-                        style={{ flex:1, padding:'8px 2px', borderRadius:10,
+                        style={{ flex:1, padding:'7px 2px', borderRadius:9,
                           border:`1.5px solid ${responses[dish]===pct ? t.accent : t.border}`,
                           background: responses[dish]===pct ? t.accentBg : 'transparent',
                           color: responses[dish]===pct ? t.accent : t.text,
-                          fontSize:13, fontWeight:700, cursor:'pointer',
-                          fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                          fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
                         {pct}%
                       </button>
                     ))}
@@ -768,32 +820,35 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             ))}
             <button onClick={handleNext}
               disabled={loading || Object.keys(responses).length < dishes.length}
-              style={{ width:'100%', padding:14, borderRadius:12, border:'none', marginTop:8,
+              style={{ width:'100%', padding:13, borderRadius:11, border:'none', marginTop:6,
                 background: Object.keys(responses).length < dishes.length ? t.border : t.accentGrad,
                 color:'#fff', fontSize:14, fontWeight:700,
                 cursor: Object.keys(responses).length < dishes.length ? 'not-allowed' : 'pointer',
                 opacity: Object.keys(responses).length < dishes.length ? 0.5 : 1,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                fontFamily:"'DM Sans',sans-serif" }}>
               {loading ? 'Saving…' : isLast ? 'Complete Survey ✓' : 'Save & Next →'}
             </button>
           </div>
         ) : (
-          <div style={{ textAlign:'center', padding:20, color:t.textSub,
-            fontFamily:"'Inter','Segoe UI',sans-serif" }}>Skipping this meal…</div>
+          <div style={{ textAlign:'center', padding:20, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
+            Skipping this meal…
+          </div>
         )}
       </div>
     </div>
   )
 }
 
-/* ─── Feedback Page — Auto Today's Menu ──────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// FEEDBACK PAGE — Full menu shown, single comment+submit each
+// ══════════════════════════════════════════════════════════════
 function FeedbackPage() {
   const t = useTheme()
   const { user } = useAuth()
   const [loading, setLoading]         = useState(true)
   const [submitting, setSubmitting]   = useState(false)
   const [error, setError]             = useState('')
-  const [submitted, setSubmitted]     = useState({ lunch: false, dinner: false })
+  const [submitted, setSubmitted]     = useState({ lunch:false, dinner:false })
   const [lunchStars,    setLunchStars]    = useState(0)
   const [dinnerStars,   setDinnerStars]   = useState(0)
   const [lunchComment,  setLunchComment]  = useState('')
@@ -816,13 +871,13 @@ function FeedbackPage() {
         .gte('created_at', new Date(Date.now() - 24*60*60*1000).toISOString())
         .order('created_at', { ascending:false }).limit(1).single()
       if (data) {
-        setSubmitted({ lunch: !!data.lunch_stars, dinner: !!data.dinner_stars })
-        if (data.lunch_stars) setLunchStars(data.lunch_stars)
-        if (data.dinner_stars) setDinnerStars(data.dinner_stars)
-        if (data.lunch_comment) setLunchComment(data.lunch_comment)
+        setSubmitted({ lunch:!!data.lunch_stars, dinner:!!data.dinner_stars })
+        if (data.lunch_stars)   setLunchStars(data.lunch_stars)
+        if (data.dinner_stars)  setDinnerStars(data.dinner_stars)
+        if (data.lunch_comment)  setLunchComment(data.lunch_comment)
         if (data.dinner_comment) setDinnerComment(data.dinner_comment)
       }
-    } catch { /* no existing */ }
+    } catch {}
     finally { setLoading(false) }
   }
 
@@ -831,7 +886,6 @@ function FeedbackPage() {
     if (!stars) return setError(`Please rate ${meal} first`)
     setError(''); setSubmitting(true)
     try {
-      const comment = meal === 'lunch' ? lunchComment : dinnerComment
       const { error: dbErr } = await supabase.from('daily_feedback').upsert([{
         user_id:user.id, day:todayKey,
         ...(meal === 'lunch' ? {
@@ -842,7 +896,6 @@ function FeedbackPage() {
       }], { onConflict:'user_id,day' })
       if (dbErr) throw dbErr
       setSubmitted(prev => ({ ...prev, [meal]:true }))
-      setError('')
     } catch (err) { setError(err.message) }
     finally { setSubmitting(false) }
   }
@@ -850,16 +903,15 @@ function FeedbackPage() {
   const StarRating = ({ value, hovered, onHover, onChange, disabled }) => {
     const display = hovered || value
     return (
-      <div>
-        <div style={{ display:'flex', gap:8, marginBottom: display ? 10 : 0 }}>
+      <div style={{ marginBottom:10 }}>
+        <div style={{ display:'flex', gap:6, marginBottom: display ? 10 : 0 }}>
           {[1,2,3,4,5].map(n => (
-            <button key={n}
-              onClick={() => !disabled && onChange(n)}
+            <button key={n} onClick={() => !disabled && onChange(n)}
               onMouseEnter={() => !disabled && onHover(n)}
               onMouseLeave={() => !disabled && onHover(0)}
               disabled={disabled}
-              style={{ background:'none', border:'none', cursor: disabled ? 'default' : 'pointer', padding:2, lineHeight:0 }}>
-              <Star size={30}
+              style={{ background:'none', border:'none', cursor: disabled ? 'default' : 'pointer', padding:2, lineHeight:0, transition:'transform 0.15s' }}>
+              <Star size={28}
                 fill={n <= (hovered || value) ? t.accent : 'none'}
                 color={n <= (hovered || value) ? t.accent : t.border}
                 strokeWidth={1.5}/>
@@ -867,11 +919,10 @@ function FeedbackPage() {
           ))}
         </div>
         {display > 0 && (
-          <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
-            background:t.accentBg, borderRadius:12, border:`1px solid ${t.accentBorder}` }}>
-            <span style={{ fontSize:28 }}>{STAR_EMOJIS[display]}</span>
-            <span style={{ fontSize:15, color:t.accent, fontWeight:700,
-              fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
+          <div style={{ display:'flex', alignItems:'center', gap:10, padding:'9px 13px',
+            background:t.accentBg, borderRadius:10, border:`1px solid ${t.accentBorder}` }}>
+            <span style={{ fontSize:24 }}>{STAR_EMOJIS[display]}</span>
+            <span style={{ fontSize:14, color:t.accent, fontWeight:700, fontFamily:"'Playfair Display',serif" }}>
               {STAR_LABELS[display]}
             </span>
           </div>
@@ -882,115 +933,120 @@ function FeedbackPage() {
 
   if (loading) return <Spinner/>
 
+  const MealCard = ({ meal, icon, gradient, stars, setStars, hoveredStars, setHoveredStars, comment, setComment }) => {
+    const isLunch  = meal === 'lunch'
+    const dishes   = isLunch ? menu.lunch : menu.dinner
+    const isDone   = submitted[meal]
+
+    return (
+      <Card active={isDone} style={{ marginBottom:14 }}>
+        {/* Meal header */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+          <div style={{ width:42, height:42, borderRadius:12, background:gradient,
+            display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
+            {icon}
+          </div>
+          <div style={{ flex:1 }}>
+            <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+              {isLunch ? 'Lunch' : 'Dinner'}
+            </div>
+            {isDone && (
+              <div style={{ fontSize:11, color:t.successText, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+                ✓ Submitted
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Full menu list */}
+        <div style={{ marginBottom:16, padding:'12px 14px', background:t.inputBg,
+          borderRadius:11, border:`1px solid ${t.border}` }}>
+          <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.14em', color:t.textSub,
+            marginBottom:8, fontFamily:"'DM Sans',sans-serif" }}>TODAY'S MENU</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
+            {dishes.map((d, i) => (
+              <div key={d} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ width:5, height:5, borderRadius:'50%', background:t.accent, flexShrink:0, opacity:0.6 }}/>
+                <span style={{ fontSize:14, color:t.textBody, fontFamily:"'DM Sans',sans-serif" }}>{d}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Star rating */}
+        <StarRating
+          value={stars} hovered={hoveredStars}
+          onHover={setHoveredStars} onChange={setStars}
+          disabled={isDone}/>
+
+        {/* Comment + Submit */}
+        {!isDone && (
+          <>
+            <textarea
+              value={comment}
+              onChange={e => setComment(e.target.value)}
+              style={{ width:'100%', padding:'11px 13px', borderRadius:11, boxSizing:'border-box',
+                background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
+                fontSize:14, resize:'none', outline:'none', fontFamily:"'DM Sans',sans-serif",
+                minHeight:62, marginTop:10, marginBottom:10 }}
+              placeholder={`Any comment on ${meal}? (optional)`}/>
+            <button onClick={() => handleSubmitMeal(meal)} disabled={submitting || !stars}
+              style={{ width:'100%', padding:12, borderRadius:11, border:'none',
+                background: !stars ? t.border : t.accentGrad, color:'#fff', fontSize:14,
+                fontWeight:700, cursor: !stars ? 'not-allowed' : 'pointer',
+                opacity: !stars ? 0.5 : 1, fontFamily:"'DM Sans',sans-serif",
+                transition:'all 0.2s' }}>
+              {submitting ? 'Saving…' : `Submit ${isLunch ? 'Lunch' : 'Dinner'} Feedback`}
+            </button>
+          </>
+        )}
+      </Card>
+    )
+  }
+
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
 
-      {/* Today Header */}
-      <div style={{ marginBottom:20, padding:'18px 20px', borderRadius:20,
-        background:t.cardActive, border:`1px solid ${t.borderActive}`,
-        textAlign:'center' }}>
-        <div style={{ fontSize:12, color:t.textSub, letterSpacing:'0.12em', marginBottom:4,
-          fontFamily:"'Inter','Segoe UI',sans-serif", fontWeight:700 }}>TODAY'S FEEDBACK</div>
-        <div style={{ fontSize:26, fontWeight:700, color:t.accent,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>{menu.en}</div>
-        <div style={{ fontSize:16, color:t.textSub, fontFamily:"'Amiri','Georgia',serif",
-          marginTop:4 }}>{menu.ar}</div>
-        <div style={{ fontSize:12, color:t.textSub, marginTop:6, opacity:0.6,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-          Feedback expires after 24 hours
+      {/* Today header */}
+      <div style={{ marginBottom:18, padding:'16px 18px', borderRadius:16,
+        background:t.cardActive, border:`1px solid ${t.borderActive}`, textAlign:'center' }}>
+        <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', color:t.textSub,
+          marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>TODAY'S FEEDBACK</div>
+        <div style={{ fontSize:24, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{menu.en}</div>
+        <div style={{ fontSize:16, color:t.textSub, fontFamily:"'Amiri',serif", marginTop:3 }}>{menu.ar}</div>
+        <div style={{ fontSize:11, color:t.textSub, marginTop:6, opacity:0.55, fontFamily:"'DM Sans',sans-serif" }}>
+          Feedback resets every 24 hours
         </div>
       </div>
 
-      {/* Lunch Card */}
-      <div style={{ marginBottom:14, padding:20, background:t.card, borderRadius:18,
-        border:`1px solid ${submitted.lunch ? 'rgba(34,197,94,0.4)' : t.borderActive}` }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-          <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg,#f59e0b,#d97706)',
-            display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>☀️</div>
-          <div>
-            <div style={{ fontSize:17, fontWeight:700, color:t.accent,
-              fontFamily:"'Cormorant Garamond','Georgia',serif" }}>Lunch</div>
-            <div style={{ fontSize:12, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {menu.lunch.slice(0,3).join(' · ')}{menu.lunch.length > 3 ? ' …' : ''}
-            </div>
-          </div>
-          {submitted.lunch && (
-            <div style={{ marginLeft:'auto', fontSize:12, color:'#22c55e', fontWeight:700,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>✓ Submitted</div>
-          )}
-        </div>
-        <div style={{ marginBottom:14 }}>
-          <StarRating value={lunchStars} hovered={hoveredLunch} onHover={setHoveredLunch}
-            onChange={setLunchStars} disabled={submitted.lunch}/>
-        </div>
-        {!submitted.lunch && (
-          <>
-            <textarea value={lunchComment} onChange={e => setLunchComment(e.target.value)}
-              style={{ width:'100%', padding:'11px 13px', borderRadius:12, boxSizing:'border-box',
-                background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-                fontSize:14, resize:'none', outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif", minHeight:60 }}
-              placeholder="Comment on lunch (optional)…"/>
-            <button onClick={() => handleSubmitMeal('lunch')} disabled={submitting || !lunchStars}
-              style={{ width:'100%', padding:12, borderRadius:12, border:'none', marginTop:10,
-                background: !lunchStars ? t.border : t.accentGrad, color:'#fff',
-                fontSize:14, fontWeight:700, cursor: !lunchStars ? 'not-allowed' : 'pointer',
-                opacity: !lunchStars ? 0.5 : 1, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              Submit Lunch Feedback
-            </button>
-          </>
-        )}
-      </div>
+      <MealCard
+        meal="lunch"
+        icon="☀️"
+        gradient="linear-gradient(135deg,#f59e0b,#d97706)"
+        stars={lunchStars} setStars={setLunchStars}
+        hoveredStars={hoveredLunch} setHoveredStars={setHoveredLunch}
+        comment={lunchComment} setComment={setLunchComment}
+      />
 
-      {/* Dinner Card */}
-      <div style={{ marginBottom:14, padding:20, background:t.card, borderRadius:18,
-        border:`1px solid ${submitted.dinner ? 'rgba(34,197,94,0.4)' : t.borderActive}` }}>
-        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-          <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg,#6366f1,#4338ca)',
-            display:'flex', alignItems:'center', justifyContent:'center', fontSize:20 }}>🌙</div>
-          <div>
-            <div style={{ fontSize:17, fontWeight:700, color:t.accent,
-              fontFamily:"'Cormorant Garamond','Georgia',serif" }}>Dinner</div>
-            <div style={{ fontSize:12, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {menu.dinner.slice(0,3).join(' · ')}{menu.dinner.length > 3 ? ' …' : ''}
-            </div>
-          </div>
-          {submitted.dinner && (
-            <div style={{ marginLeft:'auto', fontSize:12, color:'#22c55e', fontWeight:700,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>✓ Submitted</div>
-          )}
-        </div>
-        <div style={{ marginBottom:14 }}>
-          <StarRating value={dinnerStars} hovered={hoveredDinner} onHover={setHoveredDinner}
-            onChange={setDinnerStars} disabled={submitted.dinner}/>
-        </div>
-        {!submitted.dinner && (
-          <>
-            <textarea value={dinnerComment} onChange={e => setDinnerComment(e.target.value)}
-              style={{ width:'100%', padding:'11px 13px', borderRadius:12, boxSizing:'border-box',
-                background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-                fontSize:14, resize:'none', outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif", minHeight:60 }}
-              placeholder="Comment on dinner (optional)…"/>
-            <button onClick={() => handleSubmitMeal('dinner')} disabled={submitting || !dinnerStars}
-              style={{ width:'100%', padding:12, borderRadius:12, border:'none', marginTop:10,
-                background: !dinnerStars ? t.border : t.accentGrad, color:'#fff',
-                fontSize:14, fontWeight:700, cursor: !dinnerStars ? 'not-allowed' : 'pointer',
-                opacity: !dinnerStars ? 0.5 : 1, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              Submit Dinner Feedback
-            </button>
-          </>
-        )}
-      </div>
+      <MealCard
+        meal="dinner"
+        icon="🌙"
+        gradient="linear-gradient(135deg,#6366f1,#4338ca)"
+        stars={dinnerStars} setStars={setDinnerStars}
+        hoveredStars={hoveredDinner} setHoveredStars={setHoveredDinner}
+        comment={dinnerComment} setComment={setDinnerComment}
+      />
 
       {error && <ErrorBanner msg={error}/>}
 
       {submitted.lunch && submitted.dinner && (
-        <div style={{ textAlign:'center', padding:'24px 20px', background:t.card,
-          borderRadius:18, border:'1px solid rgba(34,197,94,0.35)' }}>
-          <div style={{ fontSize:44, marginBottom:10 }}>✅</div>
-          <div style={{ fontSize:18, fontWeight:700, color:'#22c55e', marginBottom:5,
-            fontFamily:"'Cormorant Garamond','Georgia',serif" }}>All Done for Today!</div>
-          <div style={{ fontSize:14, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            Your feedback has been recorded. See you tomorrow!
+        <div style={{ textAlign:'center', padding:'22px 18px', background:t.card,
+          borderRadius:16, border:`1px solid ${t.successBorder}` }}>
+          <div style={{ fontSize:40, marginBottom:10 }}>✅</div>
+          <div style={{ fontSize:18, fontWeight:700, color:t.successText, marginBottom:5,
+            fontFamily:"'Playfair Display',serif" }}>All Done for Today!</div>
+          <div style={{ fontSize:13, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
+            JazakAllah Khair for your feedback!
           </div>
         </div>
       )}
@@ -998,246 +1054,147 @@ function FeedbackPage() {
   )
 }
 
-/* ─── Profile Page ───────────────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// PROFILE PAGE — No edit UI, view only + theme switcher
+// ══════════════════════════════════════════════════════════════
 function ProfilePage({ theme, setTheme }) {
   const t = useTheme()
   const { user, signOut } = useAuth()
   const [activeSubPage, setActiveSubPage] = useState('main')
 
-  if (activeSubPage === 'surveys') return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'surveys')  return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
   if (activeSubPage === 'requests') return <MyRequestsPage onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'khidmat') return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'khidmat')  return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
 
   return <ProfileMainPage theme={theme} setTheme={setTheme} onNav={setActiveSubPage}/>
 }
 
-/* ─── Profile Main ───────────────────────────────────────────── */
 function ProfileMainPage({ theme, setTheme, onNav }) {
   const t = useTheme()
   const { user, signOut } = useAuth()
-  const [stats, setStats]       = useState(null)
-  const [loading, setLoading]   = useState(true)
-  const [name, setName]         = useState('')
-  const [thaliNum, setThaliNum] = useState('')
-  const [phone, setPhone]       = useState('')
-  const [address, setAddress]   = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const [saving, setSaving]     = useState(false)
-  const [saved, setSaved]       = useState(false)
-  const [editMode, setEditMode] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef(null)
+  const [profileData, setProfileData] = useState(null)
+  const [loading, setLoading]         = useState(true)
 
   useEffect(() => {
     supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      .then(({ data }) => {
-        if (data) {
-          setStats(data); setName(data.name || ''); setThaliNum(data.thali_number || '')
-          setPhone(data.phone || ''); setAddress(data.address || ''); setAvatarUrl(data.avatar_url || '')
-        }
-      }).finally(() => setLoading(false))
+      .then(({ data }) => { if (data) setProfileData(data) })
+      .finally(() => setLoading(false))
   }, [])
-
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    try {
-      const ext = file.name.split('.').pop()
-      const path = `avatars/${user.id}.${ext}`
-      const { error: upErr } = await supabase.storage.from('avatars').upload(path, file, { upsert:true })
-      if (upErr) throw upErr
-      const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
-      const url = urlData.publicUrl + '?t=' + Date.now()
-      setAvatarUrl(url)
-      await supabase.from('user_stats').upsert([{ user_id:user.id, avatar_url:url }], { onConflict:'user_id' })
-    } catch (err) { alert('Upload failed: ' + err.message) }
-    finally { setUploading(false) }
-  }
-
-  const handleSave = async () => {
-    setSaving(true)
-    await supabase.from('user_stats').upsert([{
-      user_id:user.id, name:name.trim(), thali_number:thaliNum.trim(),
-      phone:phone.trim(), address:address.trim(), avatar_url:avatarUrl
-    }], { onConflict:'user_id' })
-    setSaving(false); setSaved(true); setEditMode(false)
-    setTimeout(() => setSaved(false), 2500)
-  }
-
-  if (loading) return <Spinner/>
-
-  const inp = {
-    width:'100%', padding:'12px 14px', borderRadius:12, boxSizing:'border-box',
-    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-    fontSize:15, outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif"
-  }
 
   const NavCard = ({ label, icon, desc, onClick }) => (
     <button onClick={onClick}
-      style={{ width:'100%', padding:'14px 18px', borderRadius:16, border:`1px solid ${t.border}`,
+      style={{ width:'100%', padding:'13px 16px', borderRadius:14, border:`1px solid ${t.border}`,
         background:t.card, cursor:'pointer', display:'flex', alignItems:'center', gap:14,
         marginBottom:10, textAlign:'left', transition:'all 0.2s' }}>
-      <div style={{ width:44, height:44, borderRadius:12, background:t.accentGrad,
+      <div style={{ width:42, height:42, borderRadius:12, background:t.accentGrad,
         display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
         {icon}
       </div>
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:15, fontWeight:700, color:t.text,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{label}</div>
-        <div style={{ fontSize:12, color:t.textSub, marginTop:2,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{desc}</div>
+        <div style={{ fontSize:15, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{label}</div>
+        <div style={{ fontSize:12, color:t.textSub, marginTop:1, fontFamily:"'DM Sans',sans-serif" }}>{desc}</div>
       </div>
-      <ChevronRight size={16} color={t.textSub}/>
+      <ChevronRight size={15} color={t.textSub}/>
     </button>
   )
+
+  if (loading) return <Spinner/>
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
 
-      {/* Profile avatar + info */}
-      <div style={{ textAlign:'center', marginBottom:24 }}>
-        <div style={{ position:'relative', width:96, height:96, margin:'0 auto 14px' }}>
-          <Avatar avatarUrl={avatarUrl} name={name} email={user.email} size={96}/>
-          <button onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            style={{ position:'absolute', bottom:0, right:0, width:30, height:30, borderRadius:'50%',
-              background:t.accentGrad, border:`2px solid ${t.card}`,
-              cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-            {uploading ? <div className="spin" style={{ width:14,height:14,border:`2px solid rgba(255,255,255,0.3)`,borderTop:'2px solid #fff',borderRadius:'50%' }}/> : <Upload size={13} color="#fff"/>}
-          </button>
-          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} style={{ display:'none' }}/>
+      {/* Profile View — read only */}
+      <Card active style={{ textAlign:'center', marginBottom:20 }}>
+        <div style={{ width:84, height:84, margin:'0 auto 14px' }}>
+          <Avatar
+            avatarUrl={profileData?.avatar_url}
+            name={profileData?.name}
+            email={user.email}
+            size={84}/>
         </div>
-        <h2 style={{ margin:'0 0 4px', fontSize:22, fontWeight:700, color:t.text,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
-          {name || 'Your Name'}
+        <h2 style={{ margin:'0 0 4px', fontSize:22, fontWeight:700, color:t.text, fontFamily:"'Playfair Display',serif" }}>
+          {profileData?.name || 'Member'}
         </h2>
-        <div style={{ fontSize:14, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>{user.email}</div>
-        {thaliNum && (
-          <div style={{ display:'inline-block', marginTop:8, padding:'4px 16px', borderRadius:20,
-            background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-            <span style={{ fontSize:13, color:t.accent, fontWeight:800,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>Thali #{thaliNum}</span>
+        <div style={{ fontSize:13, color:t.textSub, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>{user.email}</div>
+        {profileData?.thali_number && (
+          <div style={{ display:'inline-block', padding:'4px 16px', borderRadius:20,
+            background:t.accentBg, border:`1px solid ${t.accentBorder}`, marginBottom:6 }}>
+            <span style={{ fontSize:13, color:t.accent, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+              Thali #{profileData.thali_number}
+            </span>
           </div>
         )}
-        <p style={{ margin:'8px 0 0', fontSize:12, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+        {profileData?.phone && (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:6 }}>
+            <Phone size={12} color={t.textSub}/>
+            <span style={{ fontSize:13, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{profileData.phone}</span>
+          </div>
+        )}
+        {profileData?.address && (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:6, marginTop:4 }}>
+            <MapPin size={12} color={t.textSub}/>
+            <span style={{ fontSize:13, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{profileData.address}</span>
+          </div>
+        )}
+        <div style={{ fontSize:11, color:t.textSub, marginTop:10, opacity:0.5, fontFamily:"'DM Sans',sans-serif" }}>
           Member since {new Date(user.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
-        </p>
-      </div>
-
-      {/* Navigation Cards */}
-      <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:t.textSub, letterSpacing:'0.12em', marginBottom:12,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>MY ACTIVITY</div>
-        <NavCard label="My Surveys" icon={<ClipboardList size={20} color="#fff"/>}
-          desc="View all your submitted surveys"
-          onClick={() => onNav('surveys')}/>
-        <NavCard label="My Requests" icon={<FileText size={20} color="#fff"/>}
-          desc="View resume, stop & extra food requests"
-          onClick={() => onNav('requests')}/>
-        <NavCard label="Khidmat Guzaar" icon={<Users size={20} color="#fff"/>}
-          desc="Meet our service team"
-          onClick={() => onNav('khidmat')}/>
-      </div>
-
-      {/* Profile edit form */}
-      <div style={{ marginBottom:20, padding:20, background:t.card, borderRadius:18, border:`1px solid ${t.border}` }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:18 }}>
-          <h3 style={{ margin:0, fontSize:17, fontWeight:700, color:t.accent,
-            fontFamily:"'Cormorant Garamond','Georgia',serif" }}>Profile Details</h3>
-          {!editMode && (
-            <button onClick={() => setEditMode(true)}
-              style={{ background:t.accentBg, border:`1px solid ${t.accentBorder}`,
-                borderRadius:10, padding:'7px 14px', cursor:'pointer', color:t.accent,
-                fontSize:13, fontWeight:700, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              Edit
-            </button>
-          )}
         </div>
-        {[
-          { label:'Full Name', value:name, setter:setName, placeholder:'Your full name' },
-          { label:'Thali Number', value:thaliNum, setter:setThaliNum, placeholder:'e.g. 42' },
-          { label:'Phone', value:phone, setter:setPhone, placeholder:'Your contact number' },
-          { label:'Address / Room', value:address, setter:setAddress, placeholder:'Your address or room number' },
-        ].map(({ label, value, setter, placeholder }) => (
-          <div key={label} style={{ marginBottom:14 }}>
-            <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub,
-              marginBottom:7, letterSpacing:'0.1em', fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {label.toUpperCase()}
-            </label>
-            {editMode ? (
-              <input value={value} onChange={e => setter(e.target.value)} placeholder={placeholder} style={inp}/>
-            ) : (
-              <div style={{ padding:'12px 14px', borderRadius:12, background:t.inputBg,
-                border:`1px solid ${t.border}`, fontSize:15, color: value ? t.text : t.textSub,
-                opacity: value ? 1 : 0.5, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                {value || placeholder}
-              </div>
-            )}
-          </div>
-        ))}
-        {editMode && (
-          <div style={{ display:'flex', gap:10, marginTop:6 }}>
-            <button onClick={handleSave} disabled={saving}
-              style={{ flex:1, padding:13, borderRadius:12, border:'none',
-                background: saving ? t.border : t.accentGrad, color:'#fff',
-                fontWeight:700, cursor:'pointer', fontSize:15,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {saving ? 'Saving…' : saved ? '✅ Saved!' : 'Save Profile'}
-            </button>
-            <button onClick={() => setEditMode(false)}
-              style={{ padding:'13px 18px', borderRadius:12, border:`1px solid ${t.border}`,
-                background:'transparent', color:t.textSub, fontWeight:600, cursor:'pointer',
-                fontSize:15, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              Cancel
-            </button>
-          </div>
-        )}
-      </div>
+        <div style={{ marginTop:12, padding:'10px 14px', borderRadius:10, background:t.accentBg,
+          border:`1px solid ${t.accentBorder}`, fontSize:12, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
+          ℹ️ To update your profile details, contact an admin.
+        </div>
+      </Card>
+
+      {/* Navigation */}
+      <SectionLabel>My Activity</SectionLabel>
+      <NavCard label="My Surveys"   icon={<ClipboardList size={19} color="#fff"/>}
+        desc="View your weekly survey responses" onClick={() => onNav('surveys')}/>
+      <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
+        desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
+      <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
+        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
 
       {/* Theme Switcher */}
-      <div style={{ marginBottom:20, padding:20, background:t.card, borderRadius:18, border:`1px solid ${t.border}` }}>
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
-          <Palette size={17} color={t.accent}/>
-          <h3 style={{ margin:0, fontSize:17, fontWeight:700, color:t.accent,
-            fontFamily:"'Cormorant Garamond','Georgia',serif" }}>App Theme</h3>
-        </div>
-        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+      <div style={{ marginTop:20, marginBottom:20 }}>
+        <SectionLabel>App Theme</SectionLabel>
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
           {Object.values(THEMES).map(th => (
             <button key={th.id} onClick={() => setTheme(th.id)}
-              style={{ padding:'13px 16px', borderRadius:14,
-                border:`2px solid ${theme===th.id ? th.accent : t.border}`,
-                background: theme===th.id ? th.accentBg : t.inputBg,
-                cursor:'pointer', display:'flex', alignItems:'center', gap:14, transition:'all 0.3s' }}>
+              style={{ padding:'12px 14px', borderRadius:13,
+                border:`1.5px solid ${theme===th.id ? th.accent : t.border}`,
+                background: theme===th.id ? th.accentBg : t.card,
+                cursor:'pointer', display:'flex', alignItems:'center', gap:12, transition:'all 0.25s' }}>
               <div style={{ display:'flex', gap:5, flexShrink:0 }}>
                 {[th.bg, th.accent, th.card].map((c,i) => (
-                  <div key={i} style={{ width:22, height:22, borderRadius:'50%', background:c,
-                    border:'2px solid rgba(255,255,255,0.15)' }}/>
+                  <div key={i} style={{ width:20, height:20, borderRadius:'50%', background:c,
+                    border:'1.5px solid rgba(255,255,255,0.12)' }}/>
                 ))}
               </div>
               <div style={{ flex:1, textAlign:'left', fontSize:14, fontWeight:700,
-                color: theme===th.id ? th.accent : t.text, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                color: theme===th.id ? th.accent : t.text, fontFamily:"'DM Sans',sans-serif" }}>
                 {th.icon} {th.name}
               </div>
-              {theme===th.id && <Check size={16} color={th.accent}/>}
+              {theme===th.id && <Check size={15} color={th.accent}/>}
             </button>
           ))}
         </div>
       </div>
 
       <button onClick={signOut}
-        style={{ width:'100%', padding:15, borderRadius:14,
-          border:'1px solid rgba(239,68,68,0.3)', background:'rgba(239,68,68,0.07)',
-          color:'#ef4444', fontSize:15, fontWeight:700, cursor:'pointer',
+        style={{ width:'100%', padding:14, borderRadius:13,
+          border:'1px solid rgba(220,60,60,0.28)', background:'rgba(220,60,60,0.07)',
+          color:'#e05555', fontSize:14, fontWeight:700, cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', gap:10,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-        <LogOut size={16}/> Sign Out
+          fontFamily:"'DM Sans',sans-serif" }}>
+        <LogOut size={15}/> Sign Out
       </button>
     </main>
   )
 }
 
-/* ─── My Surveys Sub-Page ────────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// MY SURVEYS
+// ══════════════════════════════════════════════════════════════
 function MySurveysPage({ onBack }) {
   const t = useTheme()
   const { user } = useAuth()
@@ -1249,7 +1206,7 @@ function MySurveysPage({ onBack }) {
       .order('created_at', { ascending:false })
       .then(({ data }) => {
         const grouped = {}
-        ;(data || []).forEach(r => {
+        ;(data||[]).forEach(r => {
           if (!grouped[r.day]) grouped[r.day] = {}
           grouped[r.day][r.meal] = r
         })
@@ -1261,50 +1218,48 @@ function MySurveysPage({ onBack }) {
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
         <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={22} color={t.accent}/>
+          <ChevronLeft size={20} color={t.accent}/>
         </button>
-        <h2 style={{ margin:0, fontSize:22, fontWeight:700, color:t.accent,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>My Surveys</h2>
+        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+          My Surveys
+        </h2>
       </div>
+
       {loading ? <Spinner/> : DAYS.map(day => {
         const dayData = surveys[day]
         if (!dayData) return null
         return (
-          <div key={day} style={{ marginBottom:14, padding:18, background:t.card,
-            borderRadius:16, border:`1px solid ${t.borderActive}` }}>
-            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
-              <img src="/al-mawaid.png" alt="" style={{ width:30, height:30, objectFit:'contain' }}/>
-              <div style={{ fontSize:17, fontWeight:700, color:t.accent,
-                fontFamily:"'Cormorant Garamond','Georgia',serif" }}>{WEEKLY_MENU[day].en}</div>
+          <Card key={day} active style={{ marginBottom:12 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
+              <img src="/al-mawaid.png" alt="" style={{ width:28, height:28, objectFit:'contain' }}/>
+              <div style={{ fontSize:16, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+                {WEEKLY_MENU[day].en}
+              </div>
             </div>
             {['lunch','dinner'].map(meal => {
               const r = dayData[meal]
               if (!r) return null
               return (
-                <div key={meal} style={{ marginBottom:10, padding:12, background:t.inputBg,
-                  borderRadius:12, border:`1px solid ${t.border}` }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                    <span style={{ fontSize:13, fontWeight:700, color:t.accent,
-                      fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                <div key={meal} style={{ marginBottom:8, padding:11, background:t.inputBg,
+                  borderRadius:10, border:`1px solid ${t.border}` }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:6 }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
                       {meal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
                     </span>
-                    <span style={{ fontSize:11, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                      {r.edit_count >= 1 ? '(edited)' : ''}
-                      {(r.edit_count||0) < 1
-                        ? <span style={{ color:t.accent }}> 1 edit left</span>
-                        : <span style={{ color:'#ef4444' }}> no edits left</span>}
+                    <span style={{ fontSize:10, color: (r.edit_count||0) < 1 ? t.accent : '#e05555',
+                      fontFamily:"'DM Sans',sans-serif", fontWeight:600 }}>
+                      {(r.edit_count||0) < 1 ? '1 edit left' : 'no edits left'}
                     </span>
                   </div>
-                  <div style={{ fontSize:14, color: r.wants_food ? '#22c55e' : '#ef4444', fontWeight:700,
-                    fontFamily:"'Inter','Segoe UI',sans-serif", marginBottom: r.wants_food ? 8 : 0 }}>
-                    {r.wants_food ? 'Requested Food' : 'Skipped'}
+                  <div style={{ fontSize:13, color: r.wants_food ? t.successText : '#e05555',
+                    fontWeight:700, fontFamily:"'DM Sans',sans-serif", marginBottom: r.wants_food ? 6 : 0 }}>
+                    {r.wants_food ? '✅ Requested Food' : '❌ Skipped'}
                   </div>
                   {r.wants_food && r.dish_responses && Object.entries(r.dish_responses).map(([dish, val]) => (
                     <div key={dish} style={{ display:'flex', justifyContent:'space-between',
-                      padding:'5px 0', borderBottom:`1px solid ${t.border}` }}>
-                      <span style={{ fontSize:13, color:t.textBody, fontFamily:"'Inter','Segoe UI',sans-serif" }}>{dish}</span>
-                      <span style={{ fontSize:13, fontWeight:700, color:t.accent,
-                        fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                      padding:'4px 0', borderBottom:`1px solid ${t.border}` }}>
+                      <span style={{ fontSize:12, color:t.textBody, fontFamily:"'DM Sans',sans-serif" }}>{dish}</span>
+                      <span style={{ fontSize:12, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
                         {val === 'yes' ? '✅' : val === 'no' ? '❌' : `${val}%`}
                       </span>
                     </div>
@@ -1312,87 +1267,84 @@ function MySurveysPage({ onBack }) {
                 </div>
               )
             })}
-          </div>
+          </Card>
         )
       })}
+
       {Object.keys(surveys).length === 0 && !loading && (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>No surveys submitted yet.</div>
+          fontFamily:"'DM Sans',sans-serif" }}>No surveys submitted yet.</div>
       )}
     </main>
   )
 }
 
-/* ─── My Requests Sub-Page ───────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// MY REQUESTS
+// ══════════════════════════════════════════════════════════════
 function MyRequestsPage({ onBack }) {
   const t = useTheme()
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]   = useState(true)
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
       .order('created_at', { ascending:false })
-      .then(({ data }) => setRequests(data || []))
+      .then(({ data }) => setRequests(data||[]))
       .finally(() => setLoading(false))
   }, [])
 
-  const statusColor = s => s==='pending' ? '#f59e0b' : s==='approved' ? '#22c55e' : '#ef4444'
-  const typeLabel = t => t === 'resume' ? '▶️ Resume' : t === 'stop' ? '⏹️ Stop' : '➕ Extra Food'
+  const statusColor = s => s==='pending' ? '#d4882a' : s==='approved' ? '#5eba82' : '#e05555'
+  const typeLabel   = t => t === 'resume' ? '▶️ Resume' : t === 'stop' ? '⏹️ Stop' : '➕ Extra Food'
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
         <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={22} color={t.accent}/>
+          <ChevronLeft size={20} color={t.accent}/>
         </button>
-        <h2 style={{ margin:0, fontSize:22, fontWeight:700, color:t.accent,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>My Requests</h2>
+        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+          My Requests
+        </h2>
       </div>
       {loading ? <Spinner/> : requests.length === 0 ? (
-        <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>No requests submitted yet.</div>
+        <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
+          No requests yet.
+        </div>
       ) : requests.map(r => (
-        <div key={r.id} style={{ marginBottom:12, padding:16, background:t.card,
-          borderRadius:14, border:`1px solid ${t.border}` }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-            <span style={{ fontSize:15, fontWeight:700, color:t.text,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>{typeLabel(r.request_type)}</span>
-            <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20,
-              background:`${statusColor(r.status)}22`, color:statusColor(r.status),
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+        <Card key={r.id} style={{ marginBottom:10 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
+            <span style={{ fontSize:15, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{typeLabel(r.request_type)}</span>
+            <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20,
+              background:`${statusColor(r.status)}20`, color:statusColor(r.status),
+              border:`1px solid ${statusColor(r.status)}40`, fontFamily:"'DM Sans',sans-serif" }}>
               {r.status?.toUpperCase()}
             </span>
           </div>
-          {r.from_date && (
-            <div style={{ fontSize:13, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {r.from_date} → {r.to_date}
-            </div>
-          )}
-          {r.extra_items && (
-            <div style={{ fontSize:13, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-              {r.extra_items.map(i => `${i.name} ×${i.qty}`).join(', ')}
-            </div>
-          )}
-          <div style={{ fontSize:11, color:t.textSub, marginTop:6, opacity:0.6,
-            fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+          {r.from_date && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.from_date} → {r.to_date}</div>}
+          {r.extra_items && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.extra_items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>}
+          {r.admin_note && <div style={{ marginTop:8, fontSize:12, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>📝 {r.admin_note}</div>}
+          <div style={{ fontSize:10, color:t.textSub, marginTop:6, opacity:0.5, fontFamily:"'DM Sans',sans-serif" }}>
             {new Date(r.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
           </div>
-        </div>
+        </Card>
       ))}
     </main>
   )
 }
 
-/* ─── Khidmat Guzaar Sub-Page ────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// KHIDMAT GUZAAR
+// ══════════════════════════════════════════════════════════════
 function KhidmatPage({ onBack }) {
   const t = useTheme()
-  const [staff, setStaff] = useState([])
+  const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('khidmat_guzaar').select('*').order('name', { ascending:true })
-      .then(({ data }) => setStaff(data || []))
+    supabase.from('khidmat_guzaar').select('*').order('sort_order', { ascending:true })
+      .then(({ data }) => setStaff(data||[]))
       .finally(() => setLoading(false))
   }, [])
 
@@ -1400,72 +1352,67 @@ function KhidmatPage({ onBack }) {
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
         <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={22} color={t.accent}/>
+          <ChevronLeft size={20} color={t.accent}/>
         </button>
-        <h2 style={{ margin:0, fontSize:22, fontWeight:700, color:t.accent,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>Khidmat Guzaar</h2>
+        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+          Khidmat Guzaar
+        </h2>
       </div>
-      <div style={{ marginBottom:20, padding:14, borderRadius:14, background:t.accentBg,
-        border:`1px solid ${t.accentBorder}`, fontSize:14, color:t.accent,
-        fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+      <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
+        border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
         🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
-        <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>No staff profiles available.</div>
+        <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
+          No staff profiles available.
+        </div>
       ) : staff.map(member => (
-        <div key={member.id} style={{ marginBottom:14, padding:18, background:t.card,
-          borderRadius:18, border:`1px solid ${t.borderActive}`,
-          display:'flex', alignItems:'center', gap:16 }}>
-          <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={64}/>
+        <Card key={member.id} active style={{ marginBottom:12, display:'flex', alignItems:'center', gap:16 }}>
+          <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={60}/>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:t.accent,
-              fontFamily:"'Cormorant Garamond','Georgia',serif" }}>{member.name}</div>
+            <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{member.name}</div>
             {member.role && (
-              <div style={{ display:'inline-block', marginTop:5, padding:'3px 12px',
+              <div style={{ display:'inline-block', marginTop:4, padding:'2px 10px',
                 borderRadius:20, background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-                <span style={{ fontSize:12, fontWeight:700, color:t.accent,
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>{member.role}</span>
+                <span style={{ fontSize:11, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>{member.role}</span>
               </div>
             )}
             {member.phone && (
-              <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:7 }}>
-                <Phone size={13} color={t.textSub}/>
-                <span style={{ fontSize:13, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                  {member.phone}
-                </span>
+              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:6 }}>
+                <Phone size={12} color={t.textSub}/>
+                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.phone}</span>
               </div>
             )}
             {member.area && (
-              <div style={{ display:'flex', alignItems:'center', gap:6, marginTop:4 }}>
-                <MapPin size={13} color={t.textSub}/>
-                <span style={{ fontSize:13, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-                  {member.area}
-                </span>
+              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                <MapPin size={12} color={t.textSub}/>
+                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.area}</span>
               </div>
             )}
           </div>
-        </div>
+        </Card>
       ))}
     </main>
   )
 }
 
-/* ─── Post / Requests Page ───────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// REQUESTS PAGE (Post tab)
+// ══════════════════════════════════════════════════════════════
 function PostPage() {
   const t = useTheme()
   const [subTab, setSubTab] = useState('requests')
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      <div style={{ display:'flex', gap:6, marginBottom:20, background:t.card,
-        borderRadius:14, padding:6, border:`1px solid ${t.border}` }}>
+      <div style={{ display:'flex', gap:6, marginBottom:18, background:t.card,
+        borderRadius:13, padding:5, border:`1px solid ${t.border}` }}>
         {[{ id:'requests', label:'📋 Requests' }, { id:'queries', label:'❓ Queries' }].map(({ id, label }) => (
           <button key={id} onClick={() => setSubTab(id)}
-            style={{ flex:1, padding:'11px 12px', borderRadius:10, border:'none',
+            style={{ flex:1, padding:'10px 12px', borderRadius:9, border:'none',
               background: subTab===id ? t.accentGrad : 'transparent',
               color: subTab===id ? '#fff' : t.textSub,
-              fontWeight:700, fontSize:14, cursor:'pointer',
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+              fontWeight:700, fontSize:14, cursor:'pointer', fontFamily:"'DM Sans',sans-serif",
+              transition:'all 0.25s' }}>
             {label}
           </button>
         ))}
@@ -1476,7 +1423,7 @@ function PostPage() {
   )
 }
 
-/* ─── Thali Requests Section ─────────────────────────────────── */
+// ── Thali Requests ────────────────────────────────────────────
 function ThaliRequestsSection() {
   const t = useTheme()
   const { user } = useAuth()
@@ -1505,14 +1452,14 @@ function ThaliRequestsSection() {
     try {
       let payload = { user_id:user.id, request_type:type, status:'pending' }
       if (type === 'resume') {
-        if (!resumeFrom || !resumeTo) throw new Error('Please select both From and To dates')
+        if (!resumeFrom || !resumeTo) throw new Error('Please select both dates')
         payload = { ...payload, from_date:resumeFrom, to_date:resumeTo }
       } else if (type === 'stop') {
-        if (!stopFrom || !stopTo) throw new Error('Please select both From and To dates')
+        if (!stopFrom || !stopTo) throw new Error('Please select both dates')
         payload = { ...payload, from_date:stopFrom, to_date:stopTo }
       } else if (type === 'extra') {
         const valid = extraItems.filter(i => i.name.trim())
-        if (!valid.length) throw new Error('Please add at least one food item')
+        if (!valid.length) throw new Error('Please add at least one item')
         payload = { ...payload, extra_items:valid }
       }
       const { error:dbErr } = await supabase.from('thali_requests').insert([payload])
@@ -1524,12 +1471,14 @@ function ThaliRequestsSection() {
   }
 
   const today = new Date().toISOString().split('T')[0]
-  const inp = { width:'100%', padding:'11px 13px', borderRadius:12, boxSizing:'border-box',
-    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text, fontSize:14,
-    outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif" }
+  const inp = {
+    width:'100%', padding:'11px 13px', borderRadius:11, boxSizing:'border-box',
+    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
+    fontSize:14, outline:'none', fontFamily:"'DM Sans',sans-serif"
+  }
 
-  const Card = ({ type, children }) => (
-    <div style={{ marginBottom:12, borderRadius:16,
+  const RCard = ({ type, children }) => (
+    <div style={{ marginBottom:10, borderRadius:14,
       border:`1px solid ${activeRequest===type ? t.borderActive : t.border}`,
       background: activeRequest===type ? t.cardActive : t.card, overflow:'hidden' }}>
       {children}
@@ -1537,103 +1486,99 @@ function ThaliRequestsSection() {
   )
   const HdrBtn = ({ type, emoji, label, desc }) => (
     <button onClick={() => openRequest(type)}
-      style={{ width:'100%', padding:17, background:'transparent', border:'none',
+      style={{ width:'100%', padding:15, background:'transparent', border:'none',
         cursor:'pointer', display:'flex', alignItems:'center', gap:14, textAlign:'left' }}>
-      <CircleIcon size={46}><span style={{ fontSize:20 }}>{emoji}</span></CircleIcon>
+      <div style={{ width:44, height:44, borderRadius:12, background:t.accentGrad,
+        display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
+        {emoji}
+      </div>
       <div style={{ flex:1 }}>
-        <div style={{ fontSize:16, fontWeight:700, color: activeRequest===type ? t.accent : t.text,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{label}</div>
-        <div style={{ fontSize:13, color:t.textSub, marginTop:2,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{desc}</div>
+        <div style={{ fontSize:15, fontWeight:700, color: activeRequest===type ? t.accent : t.text,
+          fontFamily:"'DM Sans',sans-serif" }}>{label}</div>
+        <div style={{ fontSize:12, color:t.textSub, marginTop:1, fontFamily:"'DM Sans',sans-serif" }}>{desc}</div>
       </div>
-      <div style={{ width:28, height:28, borderRadius:'50%', background:t.accentBg,
-        display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-        {activeRequest===type ? <ChevronUp size={14} color={t.accent}/> : <ChevronDown size={14} color={t.accent}/>}
-      </div>
+      {activeRequest===type ? <ChevronUp size={14} color={t.accent}/> : <ChevronDown size={14} color={t.accent}/>}
     </button>
   )
 
   return (
     <div>
       {success && (
-        <div style={{ marginBottom:14, padding:14, borderRadius:12,
-          background:'rgba(34,197,94,0.12)', border:'1px solid rgba(34,197,94,0.3)',
-          color:'#22c55e', fontSize:14, fontWeight:600,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>{success}</div>
+        <div style={{ marginBottom:12, padding:13, borderRadius:12,
+          background:t.successBg, border:`1px solid ${t.successBorder}`,
+          color:t.successText, fontSize:14, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>{success}</div>
       )}
 
-      <Card type="resume">
+      <RCard type="resume">
         <HdrBtn type="resume" emoji="▶️" label="Resume Thali" desc="Restart your thali service"/>
         {activeRequest === 'resume' && (
-          <div style={{ padding:'0 18px 18px' }}>
+          <div style={{ padding:'0 16px 16px' }}>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <div>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub,
-                  marginBottom:7, letterSpacing:'0.1em', fontFamily:"'Inter','Segoe UI',sans-serif" }}>FROM</label>
+                <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+                  marginBottom:6, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>FROM</label>
                 <input type="date" value={resumeFrom} min={today} onChange={e => setResumeFrom(e.target.value)} style={inp}/>
               </div>
               <div>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub,
-                  marginBottom:7, letterSpacing:'0.1em', fontFamily:"'Inter','Segoe UI',sans-serif" }}>TO</label>
+                <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+                  marginBottom:6, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>TO</label>
                 <input type="date" value={resumeTo} min={resumeFrom||today} onChange={e => setResumeTo(e.target.value)} style={inp}/>
               </div>
             </div>
             {error && <ErrorBanner msg={error}/>}
             <button onClick={() => handleSubmit('resume')} disabled={submitting}
-              style={{ width:'100%', padding:13, borderRadius:12, border:'none',
+              style={{ width:'100%', padding:12, borderRadius:11, border:'none',
                 background: submitting ? t.border : t.accentGrad, color:'#fff',
-                fontWeight:700, cursor:'pointer', fontSize:15, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                fontWeight:700, cursor:'pointer', fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
               {submitting ? 'Submitting…' : '✅ Submit Resume Request'}
             </button>
           </div>
         )}
-      </Card>
+      </RCard>
 
-      <Card type="stop">
+      <RCard type="stop">
         <HdrBtn type="stop" emoji="⏹️" label="Stop Thali" desc="Pause your thali service"/>
         {activeRequest === 'stop' && (
-          <div style={{ padding:'0 18px 18px' }}>
+          <div style={{ padding:'0 16px 16px' }}>
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:12 }}>
               <div>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub,
-                  marginBottom:7, letterSpacing:'0.1em', fontFamily:"'Inter','Segoe UI',sans-serif" }}>FROM</label>
+                <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+                  marginBottom:6, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>FROM</label>
                 <input type="date" value={stopFrom} min={today} onChange={e => setStopFrom(e.target.value)} style={inp}/>
               </div>
               <div>
-                <label style={{ display:'block', fontSize:11, fontWeight:700, color:t.textSub,
-                  marginBottom:7, letterSpacing:'0.1em', fontFamily:"'Inter','Segoe UI',sans-serif" }}>TO</label>
+                <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
+                  marginBottom:6, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>TO</label>
                 <input type="date" value={stopTo} min={stopFrom||today} onChange={e => setStopTo(e.target.value)} style={inp}/>
               </div>
             </div>
             {error && <ErrorBanner msg={error}/>}
             <button onClick={() => handleSubmit('stop')} disabled={submitting}
-              style={{ width:'100%', padding:13, borderRadius:12, border:'none',
-                background: submitting ? t.border : 'linear-gradient(135deg,#ef4444,#dc2626)',
-                color:'#fff', fontWeight:700, cursor:'pointer', fontSize:15,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+              style={{ width:'100%', padding:12, borderRadius:11, border:'none',
+                background: submitting ? t.border : 'linear-gradient(135deg,#e05555,#c03030)',
+                color:'#fff', fontWeight:700, cursor:'pointer', fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
               {submitting ? 'Submitting…' : '⏹️ Submit Stop Request'}
             </button>
           </div>
         )}
-      </Card>
+      </RCard>
 
-      <Card type="extra">
+      <RCard type="extra">
         <HdrBtn type="extra" emoji="➕" label="Add Extra Food" desc="Request additional items"/>
         {activeRequest === 'extra' && (
-          <div style={{ padding:'0 18px 18px' }}>
+          <div style={{ padding:'0 16px 16px' }}>
             {extraItems.map((item, i) => (
-              <div key={i} style={{ display:'flex', gap:8, alignItems:'center', marginBottom:10 }}>
+              <div key={i} style={{ display:'flex', gap:8, alignItems:'center', marginBottom:8 }}>
                 <input type="text" value={item.name} placeholder={`Item ${i+1}`}
                   onChange={e => updateExtraItem(i,'name',e.target.value)} style={{ ...inp, flex:1 }}/>
                 <div style={{ display:'flex', gap:4, flexShrink:0 }}>
                   {[1,2,3,4].map(n => (
                     <button key={n} onClick={() => updateExtraItem(i,'qty',n)}
-                      style={{ width:34, height:38, borderRadius:10,
+                      style={{ width:32, height:36, borderRadius:9,
                         border:`1.5px solid ${item.qty===n ? t.accent : t.border}`,
                         background: item.qty===n ? t.accentBg : 'transparent',
                         color: item.qty===n ? t.accent : t.textSub,
-                        fontWeight:700, fontSize:14, cursor:'pointer',
-                        fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                        fontWeight:700, fontSize:13, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
                       {n}
                     </button>
                   ))}
@@ -1641,42 +1586,41 @@ function ThaliRequestsSection() {
                 {extraItems.length > 1 && (
                   <button onClick={() => removeExtraItem(i)}
                     style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-                    <X size={16} color="#ef4444"/>
+                    <X size={15} color="#e05555"/>
                   </button>
                 )}
               </div>
             ))}
             {extraItems.length < 6 && (
               <button onClick={addExtraItem}
-                style={{ width:'100%', padding:11, borderRadius:12,
+                style={{ width:'100%', padding:10, borderRadius:11,
                   border:`1px dashed ${t.accent}`, background:'transparent',
-                  color:t.accent, fontWeight:600, fontSize:14, cursor:'pointer', marginBottom:12,
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                  color:t.accent, fontWeight:600, fontSize:13, cursor:'pointer', marginBottom:10,
+                  fontFamily:"'DM Sans',sans-serif" }}>
                 + Add Another Item
               </button>
             )}
             {error && <ErrorBanner msg={error}/>}
             <button onClick={() => handleSubmit('extra')} disabled={submitting}
-              style={{ width:'100%', padding:13, borderRadius:12, border:'none',
+              style={{ width:'100%', padding:12, borderRadius:11, border:'none',
                 background: submitting ? t.border : t.accentGrad, color:'#fff',
-                fontWeight:700, cursor:'pointer', fontSize:15,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                fontWeight:700, cursor:'pointer', fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
               {submitting ? 'Submitting…' : '➕ Submit Extra Food Request'}
             </button>
           </div>
         )}
-      </Card>
+      </RCard>
     </div>
   )
 }
 
-/* ─── Queries Section — Queries Only ────────────────────────── */
+// ── Queries ───────────────────────────────────────────────────
 function QueriesSection() {
   const t = useTheme()
   const { user } = useAuth()
-  const [queries, setQueries]       = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [comment, setComment]       = useState('')
+  const [queries, setQueries]   = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [comment, setComment]   = useState('')
   const [mediaFiles, setMediaFiles] = useState([])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError]           = useState('')
@@ -1689,20 +1633,21 @@ function QueriesSection() {
     try {
       const { data } = await supabase.from('queries').select('*')
         .eq('user_id', user.id).order('created_at', { ascending:false }).limit(20)
-      setQueries(data || [])
-    } catch (err) { console.error(err) }
+      setQueries(data||[])
+    } catch {}
     finally { setLoading(false) }
   }
 
   const handleFileSelect = (e) => {
     const files = Array.from(e.target.files).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'))
-    if (mediaFiles.length + files.length > 4) { setError('Maximum 4 files allowed'); return }
+    if (mediaFiles.length + files.length > 4) { setError('Max 4 files'); return }
     setMediaFiles(prev => [...prev, ...files.map(file => ({
       file, url:URL.createObjectURL(file),
       type: file.type.startsWith('image/') ? 'image' : 'video', name:file.name
     }))])
     e.target.value = ''
   }
+
   const removeMedia = i => {
     setMediaFiles(prev => { URL.revokeObjectURL(prev[i].url); return prev.filter((_,idx) => idx!==i) })
   }
@@ -1713,14 +1658,12 @@ function QueriesSection() {
     try {
       const uploadedUrls = []
       for (const item of mediaFiles) {
-        const ext = item.file.name.split('.').pop()
+        const ext  = item.file.name.split('.').pop()
         const path = `queries/${user.id}/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`
         const { error:upErr } = await supabase.storage.from('query-media').upload(path, item.file)
         if (!upErr) {
           const { data:urlData } = supabase.storage.from('query-media').getPublicUrl(path)
           uploadedUrls.push({ type:item.type, name:item.file.name, path:urlData.publicUrl })
-        } else {
-          uploadedUrls.push({ type:item.type, name:item.file.name, path:null })
         }
       }
       const { error:dbErr } = await supabase.from('queries').insert([{
@@ -1733,108 +1676,110 @@ function QueriesSection() {
     finally { setSubmitting(false) }
   }
 
-  const statusColor = s => s==='open' ? '#f59e0b' : s==='resolved' ? '#22c55e' : '#93c5fd'
+  const statusColor = s => s==='open' ? '#d4882a' : s==='resolved' ? '#5eba82' : '#7aabb8'
 
   return (
     <div>
-      {/* Compose Query */}
-      <div style={{ marginBottom:20, padding:18, background:t.card, borderRadius:16, border:`1px solid ${t.border}` }}>
-        <h3 style={{ margin:'0 0 14px', fontSize:16, fontWeight:700, color:t.accent,
-          fontFamily:"'Cormorant Garamond','Georgia',serif" }}>✉️ New Query</h3>
+      <Card style={{ marginBottom:18 }}>
+        <div style={{ fontSize:15, fontWeight:700, color:t.accent, marginBottom:12,
+          fontFamily:"'Playfair Display',serif" }}>✉️ New Query</div>
         <textarea value={comment} onChange={e => setComment(e.target.value)}
-          style={{ width:'100%', minHeight:84, padding:13, borderRadius:12, boxSizing:'border-box',
+          style={{ width:'100%', minHeight:78, padding:12, borderRadius:11, boxSizing:'border-box',
             background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-            fontSize:15, resize:'vertical', outline:'none', fontFamily:"'Inter','Segoe UI',sans-serif", marginBottom:10 }}
+            fontSize:14, resize:'vertical', outline:'none', fontFamily:"'DM Sans',sans-serif", marginBottom:10 }}
           placeholder="Describe your query or issue…"/>
+
         {mediaFiles.length > 0 && (
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
             {mediaFiles.map((item, i) => (
-              <div key={i} style={{ position:'relative', width:74, height:74, borderRadius:12, overflow:'hidden',
-                border:`1px solid ${t.border}`, flexShrink:0 }}>
+              <div key={i} style={{ position:'relative', width:68, height:68, borderRadius:10,
+                overflow:'hidden', border:`1px solid ${t.border}`, flexShrink:0 }}>
                 {item.type === 'image'
                   ? <img src={item.url} alt="" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
                   : <div style={{ width:'100%', height:'100%', background:t.inputBg,
-                      display:'flex', alignItems:'center', justifyContent:'center', fontSize:26 }}>🎬</div>}
+                      display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>🎬</div>}
                 <button onClick={() => removeMedia(i)}
-                  style={{ position:'absolute', top:3, right:3, width:20, height:20, borderRadius:'50%',
-                    background:'rgba(0,0,0,0.7)', border:'none', cursor:'pointer',
+                  style={{ position:'absolute', top:3, right:3, width:18, height:18, borderRadius:'50%',
+                    background:'rgba(0,0,0,0.72)', border:'none', cursor:'pointer',
                     display:'flex', alignItems:'center', justifyContent:'center', padding:0 }}>
-                  <X size={11} color="#fff"/>
+                  <X size={10} color="#fff"/>
                 </button>
               </div>
             ))}
           </div>
         )}
+
         <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple onChange={handleFileSelect} style={{ display:'none' }}/>
         {mediaFiles.length < 4 && (
           <button onClick={() => fileInputRef.current?.click()}
-            style={{ width:'100%', padding:11, borderRadius:12,
+            style={{ width:'100%', padding:10, borderRadius:11,
               border:`1px dashed ${t.accentBorder}`, background:t.accentBg,
-              color:t.accent, fontWeight:600, fontSize:14, cursor:'pointer', marginBottom:10,
-              display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
-            <Camera size={15}/> Attach Photo / Video ({mediaFiles.length}/4)
+              color:t.accent, fontWeight:600, fontSize:13, cursor:'pointer', marginBottom:10,
+              display:'flex', alignItems:'center', justifyContent:'center', gap:7,
+              fontFamily:"'DM Sans',sans-serif" }}>
+            <Camera size={14}/> Attach Photo / Video ({mediaFiles.length}/4)
           </button>
         )}
+
         {error   && <ErrorBanner msg={error}/>}
         {success && (
           <div style={{ marginBottom:10, padding:11, borderRadius:10,
-            background:'rgba(34,197,94,0.12)', border:'1px solid rgba(34,197,94,0.3)',
-            color:'#22c55e', fontSize:14, fontWeight:600, fontFamily:"'Inter','Segoe UI',sans-serif" }}>{success}</div>
+            background:t.successBg, border:`1px solid ${t.successBorder}`,
+            color:t.successText, fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>{success}</div>
         )}
+
         <button onClick={handleSubmit} disabled={submitting}
-          style={{ width:'100%', padding:13, borderRadius:12, border:'none',
+          style={{ width:'100%', padding:12, borderRadius:11, border:'none',
             background: submitting ? t.border : t.accentGrad, color:'#fff',
-            fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize:15,
-            fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+            fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize:14,
+            fontFamily:"'DM Sans',sans-serif" }}>
           {submitting ? 'Submitting…' : '📨 Submit Query'}
         </button>
-      </div>
+      </Card>
 
-      {/* Queries List Only */}
-      <div style={{ fontSize:11, fontWeight:700, color:t.textSub, letterSpacing:'0.12em', marginBottom:12,
-        fontFamily:"'Inter','Segoe UI',sans-serif" }}>MY QUERIES</div>
+      <SectionLabel>My Queries</SectionLabel>
       {loading ? <Spinner/> : queries.length === 0 ? (
-        <div style={{ textAlign:'center', padding:40, color:t.textSub, fontSize:15,
-          fontFamily:"'Inter','Segoe UI',sans-serif" }}>No queries yet.</div>
+        <div style={{ textAlign:'center', padding:40, color:t.textSub, fontSize:14,
+          fontFamily:"'DM Sans',sans-serif" }}>No queries yet.</div>
       ) : queries.map(q => (
-        <div key={q.id} style={{ marginBottom:10, padding:16, background:t.card,
-          borderRadius:14, border:`1px solid ${t.border}` }}>
-          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:10 }}>
-            <span style={{ fontSize:12, color:t.textSub, fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+        <Card key={q.id} style={{ marginBottom:10 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+            <span style={{ fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
               {new Date(q.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
             </span>
-            <span style={{ fontSize:11, fontWeight:700, padding:'3px 10px', borderRadius:20,
-              background:`${statusColor(q.status)}22`, color:statusColor(q.status),
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+            <span style={{ fontSize:10, fontWeight:700, padding:'2px 9px', borderRadius:20,
+              background:`${statusColor(q.status)}20`, color:statusColor(q.status),
+              border:`1px solid ${statusColor(q.status)}38`, fontFamily:"'DM Sans',sans-serif" }}>
               {q.status?.toUpperCase()}
             </span>
           </div>
           {q.comment && (
-            <p style={{ margin:'0 0 8px', fontSize:15, color:t.textBody, lineHeight:1.65,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>{q.comment}</p>
+            <p style={{ margin:'0 0 8px', fontSize:14, color:t.textBody, lineHeight:1.6,
+              fontFamily:"'DM Sans',sans-serif" }}>{q.comment}</p>
           )}
           {q.media && q.media.length > 0 && (
-            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:8 }}>
+            <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:6 }}>
               {q.media.map((m,i) => m.path && m.type === 'image' && (
-                <img key={i} src={m.path} alt="" style={{ width:60, height:60, borderRadius:8, objectFit:'cover' }}/>
+                <img key={i} src={m.path} alt="" style={{ width:56, height:56, borderRadius:8, objectFit:'cover' }}/>
               ))}
             </div>
           )}
           {q.admin_reply && (
-            <div style={{ marginTop:10, padding:12, borderRadius:10, background:t.accentBg,
-              border:`1px solid ${t.accentBorder}`, fontSize:14, color:t.accent,
-              fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+            <div style={{ marginTop:8, padding:10, borderRadius:9, background:t.accentBg,
+              border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent,
+              fontFamily:"'DM Sans',sans-serif" }}>
               💬 <strong>Reply:</strong> {q.admin_reply}
             </div>
           )}
-        </div>
+        </Card>
       ))}
     </div>
   )
 }
 
-/* ─── Main App ───────────────────────────────────────────────── */
+// ══════════════════════════════════════════════════════════════
+// ROOT APP
+// ══════════════════════════════════════════════════════════════
 export default function App() {
   const [session, setSession]     = useState(undefined)
   const [activeTab, setActiveTab] = useState('home')
@@ -1867,8 +1812,7 @@ export default function App() {
   if (session === undefined) {
     return (
       <div style={{ minHeight:'100vh', background:THEMES.midnight.bgGrad,
-        display:'flex', alignItems:'center', justifyContent:'center',
-        fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+        display:'flex', alignItems:'center', justifyContent:'center' }}>
         <Spinner/>
         <style>{`@keyframes spin{to{transform:rotate(360deg)}}.spin{animation:spin .8s linear infinite}body{margin:0}`}</style>
       </div>
@@ -1883,46 +1827,50 @@ export default function App() {
     <ThemeCtx.Provider value={t}>
       <AuthCtx.Provider value={{ user:session.user, signOut }}>
         <div style={{
-          fontFamily:"'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif",
-          minHeight:'100vh', background:t.bg, color:t.text, display:'flex', flexDirection:'column' }}>
+          fontFamily:"'DM Sans','Segoe UI',-apple-system,sans-serif",
+          minHeight:'100vh', background:t.bgGrad, color:t.text,
+          display:'flex', flexDirection:'column' }}>
 
           {/* Header */}
           <header style={{ position:'relative', overflow:'hidden',
-            background:t.bgGrad, padding:'16px 18px 0', flexShrink:0 }}>
+            background:t.bgGrad, padding:'14px 18px 0', flexShrink:0 }}>
             <GeoBg t={t}/>
-            <div style={{ position:'relative', zIndex:1, display:'flex',
-              justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
+            <div style={{ position:'relative', zIndex:1,
+              display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                <img src="/al-mawaid.png" alt="Al-Mawaid"
-                  style={{ width:26, height:26, objectFit:'contain',
-                    filter:'drop-shadow(0 2px 6px rgba(201,168,76,0.5))' }}/>
-                <span style={{ fontSize:10, letterSpacing:'0.22em', textTransform:'uppercase',
-                  color:t.textSub, opacity:0.65, fontWeight:700,
-                  fontFamily:"'Inter','Segoe UI',sans-serif" }}>Al-Mawaid</span>
+                <img src="/al-mawaid.png" alt=""
+                  style={{ width:24, height:24, objectFit:'contain',
+                    filter:'drop-shadow(0 2px 6px rgba(196,156,90,0.5))' }}/>
+                <span style={{ fontSize:9, letterSpacing:'0.24em', textTransform:'uppercase',
+                  color:t.textSub, opacity:0.55, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+                  Al-Mawaid
+                </span>
               </div>
-              <span style={{ fontSize:12, color:t.textSub, opacity:0.45,
-                fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+              <span style={{ fontSize:11, color:t.textSub, opacity:0.4, fontFamily:"'DM Sans',sans-serif" }}>
                 {new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
               </span>
             </div>
+
             {activeTab === 'home' && (
-              <div style={{ position:'relative', zIndex:1, textAlign:'center', marginBottom:4 }}>
-                <p style={{ fontFamily:"'Amiri','Georgia',serif", fontSize:17, letterSpacing:'0.1em', color:t.accent, margin:0 }}>
+              <div style={{ position:'relative', zIndex:1, textAlign:'center', marginBottom:2 }}>
+                <p style={{ fontFamily:"'Noto Nastaliq Urdu','Amiri',serif", fontSize:16, color:t.accent, margin:0, lineHeight:1.8 }}>
                   بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
                 </p>
               </div>
             )}
-            <div style={{ position:'relative', zIndex:1, textAlign:'center', marginBottom:8 }}>
-              <h1 style={{ margin:0, fontSize: activeTab==='home' ? 30 : 22,
+
+            <div style={{ position:'relative', zIndex:1, textAlign:'center', marginBottom:6 }}>
+              <h1 style={{ margin:0, fontSize: activeTab==='home' ? 28 : 20,
                 fontWeight:700, letterSpacing:'0.06em', lineHeight:1.1, color:t.accent,
-                fontFamily:"'Cormorant Garamond','Georgia',serif" }}>
+                fontFamily:"'Playfair Display',serif" }}>
                 {tabLabels[activeTab]}
               </h1>
             </div>
+
             <svg style={{ display:'block', position:'relative', zIndex:1 }}
-              width="100%" viewBox="0 0 1440 36" preserveAspectRatio="none">
-              <path d="M0,12 C200,36 400,0 600,18 C800,36 1000,4 1200,22 C1320,32 1400,12 1440,16 L1440,36 L0,36 Z"
-                fill={t.headerWave}/>
+              width="100%" viewBox="0 0 1440 28" preserveAspectRatio="none">
+              <path d="M0,10 C200,28 400,0 600,14 C800,28 1000,4 1200,18 C1320,26 1400,10 1440,14 L1440,28 L0,28 Z"
+                fill={t.headerWave} opacity="0.9"/>
             </svg>
           </header>
 
@@ -1935,8 +1883,9 @@ export default function App() {
           {/* Bottom Nav */}
           <nav style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:30,
             display:'flex', justifyContent:'space-around', alignItems:'center',
-            padding:'10px 4px 18px', background:t.navBg,
-            borderTop:`1px solid ${t.navBorder}`, boxShadow:'0 -6px 30px rgba(0,0,0,0.18)' }}>
+            padding:'8px 4px 18px', background:t.navBg,
+            borderTop:`1px solid ${t.navBorder}`,
+            boxShadow:`0 -8px 30px rgba(0,0,0,0.20)` }}>
             {tabs.map(({ id, label, Icon }) => {
               const active = activeTab === id
               return (
@@ -1945,18 +1894,19 @@ export default function App() {
                     display:'flex', flexDirection:'column', alignItems:'center', gap:3,
                     padding:'2px 14px', position:'relative', WebkitTapHighlightColor:'transparent' }}>
                   {active && (
-                    <div style={{ position:'absolute', top:-10, left:'50%', transform:'translateX(-50%)',
-                      width:30, height:3, borderRadius:6, background:t.accent }}/>
+                    <div style={{ position:'absolute', top:-8, left:'50%', transform:'translateX(-50%)',
+                      width:28, height:2.5, borderRadius:6, background:t.accent }}/>
                   )}
-                  <div style={{ width:38, height:38, borderRadius:'50%', transition:'all 0.3s',
+                  <div style={{ width:36, height:36, borderRadius:'50%', transition:'all 0.25s',
                     background: active ? t.accentBg : 'transparent',
                     border: active ? `1px solid ${t.accentBorder}` : '1px solid transparent',
                     display:'flex', alignItems:'center', justifyContent:'center' }}>
-                    <Icon size={17} color={active ? t.accent : t.border} strokeWidth={active ? 2.2 : 1.5}/>
+                    <Icon size={16} color={active ? t.accent : t.textSub}
+                      strokeWidth={active ? 2.2 : 1.5} style={{ opacity: active ? 1 : 0.5 }}/>
                   </div>
-                  <span style={{ fontSize:9, fontWeight:700, letterSpacing:'0.05em',
-                    color: active ? t.accent : t.textSub, opacity: active ? 1 : 0.5,
-                    fontFamily:"'Inter','Segoe UI',sans-serif" }}>
+                  <span style={{ fontSize:8, fontWeight:700, letterSpacing:'0.06em',
+                    color: active ? t.accent : t.textSub, opacity: active ? 1 : 0.45,
+                    fontFamily:"'DM Sans',sans-serif" }}>
                     {label}
                   </span>
                 </button>
@@ -1965,13 +1915,14 @@ export default function App() {
           </nav>
 
           <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
+            @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
             @keyframes spin { to { transform: rotate(360deg); } }
             .spin { animation: spin 0.8s linear infinite; }
             * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
             body { margin: 0; }
             ::-webkit-scrollbar { display: none; }
-            input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); }
+            input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+            textarea::placeholder, input::placeholder { opacity: 0.45; }
           `}</style>
         </div>
       </AuthCtx.Provider>
