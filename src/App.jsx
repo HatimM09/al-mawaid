@@ -117,7 +117,7 @@ const THEMES = {
 
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
-  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chicken Biryani','Dal Makhani','Roti','Raita','Salad'],              dinner:['Grilled Fish','Vegetable Curry','Rice','Chapati','Pickle'] },
+  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','Dal Makhani','Roti','Raita','Salad'],              dinner:['Grilled Fish','Vegetable Curry','Rice','Chapati','Pickle'] },
   tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['Mutton Rogan Josh','Paneer Butter Masala','Roti','Raita','Papadam'], dinner:['Chicken Tikka','Mixed Vegetables','Jeera Rice','Naan','Chutney'] },
   wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Fish Curry','Aloo Gobi','Roti','Yogurt','Pickle'],                  dinner:['Beef Kebab','Palak Paneer','Pulao','Roti','Salad'] },
   thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken Korma','Chana Masala','Rice','Naan','Raita'],               dinner:['Prawn Masala','Egg Curry','Jeera Rice','Chapati','Pickle'] },
