@@ -118,11 +118,11 @@ const THEMES = {
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
   monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','kulcha','Sreekhand','Dal','Chawal'],              dinner:['FMB MENU'] },
-  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'], dinner:['Roti','Veg Jaipuri','Chicken Pulao','Soup'] },
-  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Fish Curry','Aloo Gobi','Roti','Yogurt','Pickle'],                  dinner:['Beef Kebab','Palak Paneer','Pulao','Roti','Salad'] },
-  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken Korma','Chana Masala','Rice','Naan','Raita'],               dinner:['Prawn Masala','Egg Curry','Jeera Rice','Chapati','Pickle'] },
-  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['Lamb Biryani','Vegetable Jalfrezi','Roti','Raita','Salad'],          dinner:['Tandoori Chicken','Dal Tadka','Rice','Roti','Chutney'] },
-  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Fish Tikka','Mixed Dal','Roti','Yogurt','Pickle'],                  dinner:['Mutton Curry','Aloo Matar','Pulao','Naan','Salad'] },
+  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'],              dinner:['Roti','Veg Jaipuri','Chicken Pulao','Soup'] },
+  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Vegetable Sandwich','Bhel Salad','Corn Pulao'],                  dinner:['Roti','White Chicken','Manchurian Rice ','Gravy'] },
+  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken 65','Corn Munch Salad',Dal makhni ','Chawal'],               dinner:['Roti','mango Custard','Matar Paneer','Tuwar Pulao','Palidu'] },
+  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['FMB MENU'],                                                   dinner:['Roti','Gobi Matar','Chicken Kashmiri Pulao','Soup'] },
+  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Chana Bateta','Dal Makhni ','Chawal'],                  dinner:['Roti','Chicken Tarkari,','Veg Coconut Rice','Kung pao Gravy '] },
 }
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday']
 const ROTI_ITEMS = ['roti','chapati','naan','paratha']
@@ -444,7 +444,7 @@ function HomePage({ setActiveTab }) {
         <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54}/>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", lineHeight:1.2 }}>
-            {profileData.name || 'Welcome 👋'}
+            {profileData.name || 'السَّلَامُ عَلَيْكُمْ'}
           </div>
           <div style={{ fontSize:12, color:t.textSub, marginTop:2, fontFamily:"'DM Sans',sans-serif" }}>{user.email}</div>
           {profileData.thali_number && (
