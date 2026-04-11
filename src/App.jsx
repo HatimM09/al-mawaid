@@ -120,9 +120,9 @@ const WEEKLY_MENU = {
   monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','kulcha','Sreekhand','Dal','Chawal'],              dinner:['FMB MENU'] },
   tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'],              dinner:['Roti','Veg Jaipuri','Chicken Pulao','Soup'] },
   wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Vegetable Sandwich','Bhel Salad','Corn Pulao'],                  dinner:['Roti','White Chicken','Manchurian Rice ','Gravy'] },
-  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken 65','Corn Munch Salad',Dal makhni ','Chawal'],               dinner:['Roti','mango Custard','Matar Paneer','Tuwar Pulao','Palidu'] },
+  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken 65','Corn Munch Salad','Dal makhni','Chawal'],               dinner:['Roti','mango Custard','Matar Paneer','Tuwar Pulao','Palidu'] },
   friday:    { en:'Friday',    ar:'الجمعة',  lunch:['FMB MENU'],                                                   dinner:['Roti','Gobi Matar','Chicken Kashmiri Pulao','Soup'] },
-  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Chana Bateta','Dal Makhni ','Chawal'],                  dinner:['Roti','Chicken Tarkari,','Veg Coconut Rice','Kung pao Gravy '] },
+  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Chana Bateta','Dal Makhni ','Chawal'],                  dinner:['Roti','Chicken Tarkari,','Veg Coconut Rice','Kung pao Gravy'] },
 }
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday']
 const ROTI_ITEMS = ['roti','chapati','naan','paratha']
