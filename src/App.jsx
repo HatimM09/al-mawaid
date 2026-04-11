@@ -443,8 +443,8 @@ function HomePage({ setActiveTab }) {
       <Card active style={{ display:'flex', alignItems:'center', gap:14, marginBottom:16 }}>
         <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54}/>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", lineHeight:1.2 }}>
-            {profileData.name || 'السَّلَامُ عَلَيْكُمْ'}
+          <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',amiri", lineHeight:1.2 }}>
+            {profileData.name || 'السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُه'}
           </div>
           <div style={{ fontSize:12, color:t.textSub, marginTop:2, fontFamily:"'DM Sans',sans-serif" }}>{user.email}</div>
           {profileData.thali_number && (
@@ -657,7 +657,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
     } else if (currentDayIndex < DAYS.length - 1) {
       setCurrentDay(DAYS[currentDayIndex+1]); setCurrentMeal('lunch'); setWantsFood(null); setResponses({})
     } else {
-      alert('🎉 Survey complete! JazakAllah Khair.'); onClose()
+      alert('🎉 Survey complete!'); onClose()
     }
   }
 
@@ -1360,7 +1360,7 @@ function KhidmatPage({ onBack }) {
       </div>
       <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
         border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-        🤝 Our dedicated service team — the ones who make every meal possible.
+        🤝 Our dedicated Al-mawaid team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
