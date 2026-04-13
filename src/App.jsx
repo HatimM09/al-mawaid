@@ -362,6 +362,44 @@ function LoginPage() {
 // ══════════════════════════════════════════════════════════════
 // HOME PAGE
 // ══════════════════════════════════════════════════════════════
+
+import React from 'react';
+import { View, Button, Linking, Alert, Platform } from 'react-native';
+
+const PaymentButton = () => {
+  // CHANGE THIS: Put UPI ID or number@ybl, number@okaxis etc
+  const UPI_ID = "yourmerchant@upi"; // or "9829xxxxxx@paytm"
+  const PAYEE_NAME = "Your Business Name";
+  const AMOUNT = "400.00";
+  const NOTE = "App Payment";
+
+  const handlePay = async () => {
+    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${AMOUNT}&cu=INR&tn=${encodeURIComponent(NOTE)}`;
+    
+    try {
+      const supported = await Linking.canOpenURL(upiUrl);
+      
+      if (supported) {
+        await Linking.openURL(upiUrl); // Opens GPay/PhonePe/Paytm chooser with ₹400
+      } else {
+        Alert.alert("Error", "No UPI app found. Please install GPay or PhonePe.");
+      }
+    } catch (err) {
+      Alert.alert("Error", "Could not open payment app");
+    }
+  };
+
+  return (
+    <View style={{ margin: 20 }}>
+      <Button 
+        title="Pay" 
+        onPress={handlePay} 
+      />
+    </View>
+  );
+};
+
+export default PaymentButton;
 function HomePage({ setActiveTab }) {
   const t = useTheme()
   const { user } = useAuth()
