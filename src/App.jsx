@@ -1257,23 +1257,22 @@ function AboutPage({ onBack }) {
         <div style={{ fontSize:26, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", marginBottom:4 }}>
           Al-Mawaid
         </div>
-        <div style={{ fontSize:15, color:t.textSub, fontFamily:"'Amiri',serif", marginBottom:10 }}>
-          بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-        </div>
+      
         <div style={{ display:'inline-block', padding:'4px 16px', borderRadius:20,
           background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
           <span style={{ fontSize:12, color:t.accent, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
-            Version 5.0.0
+            Version 1.0
           </span>
         </div>
       </div>
 
       {/* Info Cards */}
       {[
-        { title:'What is Al-Mawaid?', body:'Al-Mawaid is a community food service management app that helps members manage their weekly thali subscriptions, submit food preferences, give feedback, and communicate with the service team.' },
+        { title:'What is Al-Mawaid?', body:'' },
         { title:'Survey System', body:'Every week, from Saturday 8:00 PM to Monday 10:00 AM, members can submit their food preferences for the upcoming week. This helps us prepare the right quantity for each member.' },
         { title:'Feedback', body:'After each meal, members can rate their experience from 1–5 stars and leave comments. This helps the team continuously improve food quality.' },
-        { title:'Acknowledgements', body:'Built with care for the Al-Mawaid community. Powered by Supabase, React, and Vite. May Allah accept this service. آمین' },
+        { title:'Acknowledgements', body:'Our Mission
+                                          To ensure operational stability and minimize food waste through optimized distribution.' },
       ].map(({ title, body }) => (
         <Card key={title} style={{ marginBottom:12 }}>
           <div style={{ fontSize:14, fontWeight:700, color:t.accent, marginBottom:8,
@@ -1286,7 +1285,7 @@ function AboutPage({ onBack }) {
 
       <div style={{ textAlign:'center', marginTop:20, fontSize:12, color:t.textSub, opacity:0.5,
         fontFamily:"'DM Sans',sans-serif" }}>
-        Made with ❤️ for the community · © 2025 Al-Mawaid
+        Product of Al-Mawaid Development | © 2026
       </div>
     </main>
   )
@@ -1311,7 +1310,6 @@ function SupportTicketPage({ onBack }) {
     { id:'general',  label:'General' },
     { id:'food',     label:'Food Quality' },
     { id:'delivery', label:'Delivery' },
-    { id:'billing',  label:'Billing' },
     { id:'account',  label:'Account' },
     { id:'other',    label:'Other' },
   ]
