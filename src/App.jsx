@@ -362,8 +362,18 @@ function LoginPage() {
 // ══════════════════════════════════════════════════════════════
 // HOME PAGE
 // ══════════════════════════════════════════════════════════════
+function HomePage({ setActiveTab }) {
+  const t = useTheme()
+  const { user } = useAuth()
+  const [expandedDay, setExpandedDay]   = useState(null)
+  const [showSurvey, setShowSurvey]     = useState(false)
+  const [surveyStartDay, setSurveyStartDay] = useState('monday')
+  const [profileData, setProfileData]   = useState({ name:'', thali_number:'', avatar_url:'' })
+  const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
+  const [feedbackCounts, setFeedbackCounts]     = useState({})
+  const [statsLoading, setStatsLoading] = useState(true)
 
-import React from 'react';
+  import React from 'react';
 import { View, Button, Linking, Alert, Platform } from 'react-native';
 
 const PaymentButton = () => {
@@ -400,16 +410,6 @@ const PaymentButton = () => {
 };
 
 export default PaymentButton;
-function HomePage({ setActiveTab }) {
-  const t = useTheme()
-  const { user } = useAuth()
-  const [expandedDay, setExpandedDay]   = useState(null)
-  const [showSurvey, setShowSurvey]     = useState(false)
-  const [surveyStartDay, setSurveyStartDay] = useState('monday')
-  const [profileData, setProfileData]   = useState({ name:'', thali_number:'', avatar_url:'' })
-  const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
-  const [feedbackCounts, setFeedbackCounts]     = useState({})
-  const [statsLoading, setStatsLoading] = useState(true)
 
   const surveyOpen = isSurveyOpen()
 
