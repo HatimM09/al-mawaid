@@ -1,4 +1,15 @@
 // src/App.jsx — Al-Mawaid Food Survey System v5
+import React from 'react';
+import { View, SafeAreaView } from 'react-native';
+import PaymentButton from './components/PaymentButton'; // import it
+
+export default function App() {
+  return (
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center' }}>
+      <PaymentButton /> 
+    </SafeAreaView>
+  );
+}
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, User, X,
