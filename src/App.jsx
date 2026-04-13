@@ -1152,7 +1152,8 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
+        <Phone size={12} color={t.textSub}/>
+        desc="Meet our Al Mawaid team" onClick={() => onNav('khidmat')}/>
 
       {/* Theme Switcher */}
       <div style={{ marginTop:20, marginBottom:20 }}>
