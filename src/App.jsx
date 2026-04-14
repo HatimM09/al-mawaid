@@ -117,12 +117,12 @@ const THEMES = {
 
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
-  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chicken Biryani','Dal Makhani','Roti','Raita','Salad'],              dinner:['Grilled Fish','Vegetable Curry','Rice','Chapati','Pickle'] },
-  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['Mutton Rogan Josh','Paneer Butter Masala','Roti','Raita','Papadam'], dinner:['Chicken Tikka','Mixed Vegetables','Jeera Rice','Naan','Chutney'] },
-  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Fish Curry','Aloo Gobi','Roti','Yogurt','Pickle'],                  dinner:['Beef Kebab','Palak Paneer','Pulao','Roti','Salad'] },
-  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken Korma','Chana Masala','Rice','Naan','Raita'],               dinner:['Prawn Masala','Egg Curry','Jeera Rice','Chapati','Pickle'] },
-  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['Lamb Biryani','Vegetable Jalfrezi','Roti','Raita','Salad'],          dinner:['Tandoori Chicken','Dal Tadka','Rice','Roti','Chutney'] },
-  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Fish Tikka','Mixed Dal','Roti','Yogurt','Pickle'],                  dinner:['Mutton Curry','Aloo Matar','Pulao','Naan','Salad'] },
+  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','kulcha','Sreekhand','Dal ','Chawal'],              dinner:['FMB MENU'] },
+  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'], dinner:['Roti','Veg Jaipuri','Chicken pulao','Soup'] },
+  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Vegetable Sandwich','Bhel Salad','Corn Pulao'],                  dinner:['Roti','White Chicken','Manchurian Rice','Gravy'] },
+  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken 65','Corn Munch Salad','Dal makhni','Chawal'],               dinner:['Roti','mango Custard','Matar Paneer','Tuwar Pulao','Palidu'] },
+  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['FMB MENU'],          dinner:['Roti','Gobi Matar','Chicken Kashmiri Pulao','Soup'] },
+  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Chana Bateta','Dal Makhni','Chawal'],                  dinner:['Roti','Chicken Tarkari,','Veg Coconut Rice','Kung pao Gravy'] },
 }
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday']
 const ROTI_ITEMS = ['roti','chapati','naan','paratha']
