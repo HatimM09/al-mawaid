@@ -170,19 +170,6 @@ const getSurveyWindowMessage = () => {
 }
 
 
-const isPaymentWindowOpen = () => {
-  const today = new Date().getDate()
-  return today >= 28 || today <= 2
-}
-
-const getPaymentWindowMessage = () => {
-  const today = new Date().getDate()
-  if (today >= 28 || today <= 2) {
-    return 'Payment window is open from the 28th to the 2nd.'
-  }
-  return 'Payment is available only from the 28th of the month till the 2nd.'
-}
-
 // ─── Contexts ─────────────────────────────────────────────────
 const ThemeCtx = createContext(THEMES.midnight)
 const useTheme = () => useContext(ThemeCtx)
@@ -421,7 +408,6 @@ function HomePage({ setActiveTab }) {
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
-  const paymentWindowOpen = isPaymentWindowOpen()
 
   useEffect(() => { loadData() }, [user])
 
@@ -465,7 +451,6 @@ function HomePage({ setActiveTab }) {
   }
 
   const handleGPayPayment = () => {
-    if (!paymentWindowOpen) return
     setPaymentError('')
 
     const paymentUrl =
@@ -513,13 +498,12 @@ function HomePage({ setActiveTab }) {
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
             <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
             <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
-              {getPaymentWindowMessage()}
+              Fixed amount. Change only the receiver UPI ID in code.
             </div>
           </div>
 
           <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-            {paymentWindowOpen && (
-              <button
+            <button
                 onClick={handleGPayPayment}
                 style={{
                   minWidth:170,
@@ -542,7 +526,6 @@ function HomePage({ setActiveTab }) {
                 <Wallet size={16} />
                 Pay with GPay
               </button>
-            )}
           </div>
         </div>
 
