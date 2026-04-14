@@ -1,12 +1,11 @@
-// src/App.jsx — Al-Mawaid Food Survey System v5
+// src/App.jsx — Al-Mawaid Food Survey System v4
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, User, X,
   Star, Camera, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, ChevronLeft, ChevronRight,
-  Phone, MapPin, Users, Upload, Bell, Info, Headphones, KeyRound,
-  MessageSquare
+  Phone, MapPin, Users, Upload, Wallet
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -19,6 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseKey)
 // THEMES — 3 Classic, Soothing Themes
 // ══════════════════════════════════════════════════════════════
 const THEMES = {
+  // 1. Midnight Oud — deep navy + warm amber (dark, luxurious)
   midnight: {
     id: 'midnight',
     name: 'Midnight Oud',
@@ -49,6 +49,8 @@ const THEMES = {
     successBorder: 'rgba(74,163,110,0.3)',
     successText: '#5eba82',
   },
+
+  // 2. Ivory Dune — warm cream + terracotta (light, earthy)
   ivory: {
     id: 'ivory',
     name: 'Ivory Dune',
@@ -79,6 +81,8 @@ const THEMES = {
     successBorder: 'rgba(60,140,80,0.28)',
     successText: '#3a7a50',
   },
+
+  // 3. Forest Qalam — deep forest green + gold (dark, serene)
   forest: {
     id: 'forest',
     name: 'Forest Qalam',
@@ -113,12 +117,12 @@ const THEMES = {
 
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
-  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','kulcha','Sreekhand','Dal','Chawal'],              dinner:['FMB MENU'] },
-  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'],              dinner:['Roti','Veg Jaipuri','Chicken Pulao','Soup'] },
-  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Vegetable Sandwich','Bhel Salad','Corn Pulao'],                  dinner:['Roti','White Chicken','Manchurian Rice ','Gravy'] },
-  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken 65','Corn Munch Salad','Dal makhni','Chawal'],               dinner:['Roti','mango Custard','Matar Paneer','Tuwar Pulao','Palidu'] },
-  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['FMB MENU'],                                                   dinner:['Roti','Gobi Matar','Chicken Kashmiri Pulao','Soup'] },
-  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Chana Bateta','Dal Makhni ','Chawal'],                  dinner:['Roti','Chicken Tarkari,','Veg Coconut Rice','Kung pao Gravy'] },
+  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chicken Biryani','Dal Makhani','Roti','Raita','Salad'],              dinner:['Grilled Fish','Vegetable Curry','Rice','Chapati','Pickle'] },
+  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['Mutton Rogan Josh','Paneer Butter Masala','Roti','Raita','Papadam'], dinner:['Chicken Tikka','Mixed Vegetables','Jeera Rice','Naan','Chutney'] },
+  wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Fish Curry','Aloo Gobi','Roti','Yogurt','Pickle'],                  dinner:['Beef Kebab','Palak Paneer','Pulao','Roti','Salad'] },
+  thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken Korma','Chana Masala','Rice','Naan','Raita'],               dinner:['Prawn Masala','Egg Curry','Jeera Rice','Chapati','Pickle'] },
+  friday:    { en:'Friday',    ar:'الجمعة',  lunch:['Lamb Biryani','Vegetable Jalfrezi','Roti','Raita','Salad'],          dinner:['Tandoori Chicken','Dal Tadka','Rice','Roti','Chutney'] },
+  saturday:  { en:'Saturday',  ar:'السبت',   lunch:['Fish Tikka','Mixed Dal','Roti','Yogurt','Pickle'],                  dinner:['Mutton Curry','Aloo Matar','Pulao','Naan','Salad'] },
 }
 const DAYS = ['monday','tuesday','wednesday','thursday','friday','saturday']
 const ROTI_ITEMS = ['roti','chapati','naan','paratha']
@@ -130,17 +134,21 @@ const getTodayKey = () => {
   return map[d] || 'monday'
 }
 
+// ─── Survey Window Check ──────────────────────────────────────
+// Open: Saturday 20:00 → Monday 10:00
 const isSurveyOpen = () => {
   const now  = new Date()
-  const day  = now.getDay()
+  const day  = now.getDay()  // 0=Sun,1=Mon,2=Tue,...,6=Sat
   const hour = now.getHours()
   const min  = now.getMinutes()
   const totalMins = hour * 60 + min
+
   const sat20 = 20 * 60
   const mon10 = 10 * 60
-  if (day === 6 && totalMins >= sat20) return true
-  if (day === 0) return true
-  if (day === 1 && totalMins <= mon10) return true
+
+  if (day === 6 && totalMins >= sat20) return true  // Sat after 20:00
+  if (day === 0) return true                          // All Sunday
+  if (day === 1 && totalMins <= mon10) return true   // Mon before 10:00
   return false
 }
 
@@ -152,8 +160,12 @@ const getSurveyWindowMessage = () => {
     const hoursLeft = 20 - hour
     return `Survey opens today at 8:00 PM (in ~${hoursLeft}h)`
   }
-  if (day === 1 && hour >= 10) return 'Survey window closed. Opens next Saturday at 8:00 PM.'
-  if (day >= 2 && day <= 5) return 'Survey opens Saturday at 8:00 PM.'
+  if (day === 1 && hour >= 10) {
+    return 'Survey window closed. Opens next Saturday at 8:00 PM.'
+  }
+  if (day >= 2 && day <= 5) {
+    return 'Survey opens Saturday at 8:00 PM.'
+  }
   return 'Survey opens Saturday at 8:00 PM.'
 }
 
@@ -293,10 +305,13 @@ function LoginPage() {
       justifyContent:'center', padding:20, position:'relative', overflow:'hidden',
       fontFamily:"'DM Sans',sans-serif" }}>
       <GeoBg t={t}/>
+
       <div style={{ position:'relative', zIndex:1, width:'100%', maxWidth:400,
         background:t.loginCard, backdropFilter:'blur(24px)', borderRadius:24,
         padding:'40px 28px', border:`1px solid ${t.borderActive}`,
         boxShadow:'0 32px 80px rgba(0,0,0,0.5)' }}>
+
+        {/* Logo */}
         <div style={{ textAlign:'center', marginBottom:28 }}>
           <div style={{ width:88, height:88, margin:'0 auto 16px', borderRadius:'50%',
             background:t.accentGrad, display:'flex', alignItems:'center', justifyContent:'center',
@@ -308,6 +323,8 @@ function LoginPage() {
           <p style={{ margin:0, fontSize:15, color:t.textSub, fontFamily:"'Noto Nastaliq Urdu','Amiri',serif",
             letterSpacing:'0.1em', lineHeight:1.8 }}>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
         </div>
+
+        {/* Tabs */}
         <div style={{ display:'flex', gap:6, marginBottom:22,
           background:'rgba(255,255,255,0.04)', borderRadius:12, padding:5 }}>
           {['login','signup'].map(m => (
@@ -320,6 +337,7 @@ function LoginPage() {
             </button>
           ))}
         </div>
+
         <form onSubmit={handleAuth}>
           <div style={{ marginBottom:14 }}>
             <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
@@ -343,7 +361,9 @@ function LoginPage() {
               </button>
             </div>
           </div>
+
           {error && <ErrorBanner msg={error}/>}
+
           <button type="submit" disabled={loading}
             style={{ width:'100%', padding:14, borderRadius:12, border:'none',
               background: loading ? t.border : t.accentGrad, color:'#fff', fontSize:15, fontWeight:700,
@@ -373,6 +393,9 @@ function HomePage({ setActiveTab }) {
   const [feedbackCounts, setFeedbackCounts]     = useState({})
   const [statsLoading, setStatsLoading] = useState(true)
 
+  const gpayReceiverUpiId = '9876543210@upi'
+  const fixedPaymentAmount = '400.00'
+
   const surveyOpen = isSurveyOpen()
 
   useEffect(() => { loadData() }, [user])
@@ -382,6 +405,7 @@ function HomePage({ setActiveTab }) {
       const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
       if (data) setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
     } catch {}
+
     try {
       const { data } = await supabase.from('survey_responses').select('day,meal').eq('user_id', user.id)
       const counts = {}
@@ -391,6 +415,7 @@ function HomePage({ setActiveTab }) {
       })
       setSurveyDaysCounts(counts)
     } catch {}
+
     try {
       const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
       const counts = {}
@@ -401,6 +426,7 @@ function HomePage({ setActiveTab }) {
       })
       setFeedbackCounts(counts)
     } catch {}
+
     setStatsLoading(false)
   }
 
@@ -413,13 +439,26 @@ function HomePage({ setActiveTab }) {
     setShowSurvey(true)
   }
 
+  const handleGPayPayment = () => {
+    const paymentUrl =
+      `tez://upi/pay?pa=${encodeURIComponent(gpayReceiverUpiId)}` +
+      `&pn=${encodeURIComponent(profileData.name || 'Al-Mawaid')}` +
+      `&am=${encodeURIComponent(fixedPaymentAmount)}` +
+      '&cu=INR' +
+      `&tn=${encodeURIComponent('Al-Mawaid payment')}`
+
+    window.location.href = paymentUrl
+  }
+
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+
+      {/* ── Profile strip ── */}
       <Card active style={{ display:'flex', alignItems:'center', gap:14, marginBottom:16 }}>
         <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54}/>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',amiri", lineHeight:1.2 }}>
-            {profileData.name || 'السَّلاَمُ عَلَيْكُمْ وَرَحْمَةُ اللهِ وَبَرَكَاتُه'}
+          <div style={{ fontSize:18, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", lineHeight:1.2 }}>
+            {profileData.name || 'Welcome 👋'}
           </div>
           <div style={{ fontSize:12, color:t.textSub, marginTop:2, fontFamily:"'DM Sans',sans-serif" }}>{user.email}</div>
           {profileData.thali_number && (
@@ -430,6 +469,42 @@ function HomePage({ setActiveTab }) {
         </div>
       </Card>
 
+
+      <Card style={{ marginBottom:18 }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+          <div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
+            <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
+            <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>Fixed amount. Change only the receiver UPI ID in code.</div>
+          </div>
+
+          <button
+            onClick={handleGPayPayment}
+            style={{
+              minWidth:170,
+              padding:'13px 18px',
+              border:'none',
+              borderRadius:14,
+              background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
+              color:'#fff',
+              fontSize:14,
+              fontWeight:700,
+              cursor:'pointer',
+              display:'flex',
+              alignItems:'center',
+              justifyContent:'center',
+              gap:8,
+              boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
+              fontFamily:"'DM Sans',sans-serif"
+            }}
+          >
+            <Wallet size={16} />
+            Pay with GPay
+          </button>
+        </div>
+      </Card>
+
+      {/* ── Stats ── */}
       {!statsLoading && (
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:18 }}>
           <Card style={{ textAlign:'center', padding:'14px 12px' }}>
@@ -447,6 +522,7 @@ function HomePage({ setActiveTab }) {
         </div>
       )}
 
+      {/* ── Survey window notice ── */}
       {!surveyOpen && (
         <div style={{ marginBottom:16, padding:'12px 16px', borderRadius:12,
           background:t.accentBg, border:`1px solid ${t.accentBorder}`,
@@ -464,6 +540,7 @@ function HomePage({ setActiveTab }) {
         </div>
       )}
 
+      {/* ── Weekly Menu Header ── */}
       <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:12 }}>
         <img src="/al-mawaid.png" alt="" style={{ width:32, height:32, objectFit:'contain',
           filter:'drop-shadow(0 2px 8px rgba(196,156,90,0.4))', flexShrink:0 }}/>
@@ -473,6 +550,7 @@ function HomePage({ setActiveTab }) {
         </div>
       </div>
 
+      {/* ── Start Survey CTA ── */}
       <button onClick={() => openSurveyFromDay('monday')}
         disabled={!surveyOpen}
         style={{ width:'100%', padding:13, borderRadius:13, border:'none', marginBottom:14,
@@ -484,6 +562,7 @@ function HomePage({ setActiveTab }) {
         <ClipboardList size={16}/> Start Weekly Survey
       </button>
 
+      {/* ── Days Accordion ── */}
       {DAYS.map(day => {
         const menu = WEEKLY_MENU[day]
         const isExpanded = expandedDay === day
@@ -627,7 +706,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
     } else if (currentDayIndex < DAYS.length - 1) {
       setCurrentDay(DAYS[currentDayIndex+1]); setCurrentMeal('lunch'); setWantsFood(null); setResponses({})
     } else {
-      alert('🎉 Survey complete!'); onClose()
+      alert('🎉 Survey complete! JazakAllah Khair.'); onClose()
     }
   }
 
@@ -651,10 +730,14 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         style={{ background:t.card, borderRadius:20, padding:22, maxWidth:500, width:'100%',
           border:`1px solid ${t.borderActive}`, boxShadow:'0 28px 70px rgba(0,0,0,0.55)',
           maxHeight:'92vh', overflowY:'auto' }}>
+
+        {/* Progress */}
         <div style={{ height:3, background:t.inputBg, borderRadius:2, marginBottom:16, overflow:'hidden' }}>
           <div style={{ height:'100%', width:`${progress}%`, background:t.accentGrad,
             borderRadius:2, transition:'width 0.4s ease' }}/>
         </div>
+
+        {/* Day pills */}
         <div style={{ display:'flex', gap:4, overflowX:'auto', marginBottom:14, paddingBottom:2, scrollbarWidth:'none' }}>
           {DAYS.map(day => (
             <button key={day} onClick={() => goToDay(day)}
@@ -667,6 +750,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             </button>
           ))}
         </div>
+
+        {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14 }}>
           <div>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
@@ -685,6 +770,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             <X size={18} color={t.textSub}/>
           </button>
         </div>
+
         {editBlocked && (
           <div style={{ marginBottom:12, padding:11, borderRadius:10,
             background:'rgba(220,140,40,0.10)', border:'1px solid rgba(220,140,40,0.28)',
@@ -692,6 +778,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             ⚠️ 1 edit already used for this meal — view only.
           </div>
         )}
+
+        {/* Prev/Next */}
         <div style={{ display:'flex', gap:8, marginBottom:14 }}>
           <button onClick={handlePrev} disabled={isFirst}
             style={{ flex:1, padding:'8px 12px', borderRadius:10, border:`1px solid ${t.border}`,
@@ -709,6 +797,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             {isLast ? 'Finish ✓' : 'Next'} {!isLast && <ChevronRight size={13}/>}
           </button>
         </div>
+
+        {/* Content */}
         {editBlocked ? (
           <div style={{ padding:14, background:t.inputBg, borderRadius:12, border:`1px solid ${t.border}` }}>
             <p style={{ margin:'0 0 10px', fontSize:13, fontWeight:600, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
@@ -726,7 +816,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
           </div>
         ) : wantsFood === null ? (
           <div>
-            <p style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>
+            <p style={{ fontSize:15, fontWeight:600, color:t.text, marginBottom:14,
+              fontFamily:"'DM Sans',sans-serif" }}>
               Do you want {currentMeal} for {menu.en}?
             </p>
             <div style={{ display:'flex', gap:10 }}>
@@ -742,9 +833,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
           </div>
         ) : wantsFood ? (
           <div>
-            <p style={{ fontSize:12, fontWeight:600, color:t.textSub, marginBottom:10, fontFamily:"'DM Sans',sans-serif" }}>
-              Select portion for each dish:
-            </p>
+            <p style={{ fontSize:12, fontWeight:600, color:t.textSub, marginBottom:10,
+              fontFamily:"'DM Sans',sans-serif" }}>Select portion for each dish:</p>
             {dishes.map(dish => (
               <div key={dish} style={{ marginBottom:10, padding:12, background:t.inputBg, borderRadius:11 }}>
                 <p style={{ margin:'0 0 8px', fontSize:14, fontWeight:600, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{dish}</p>
@@ -799,7 +889,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// FEEDBACK PAGE
+// FEEDBACK PAGE — Full menu shown, single comment+submit each
 // ══════════════════════════════════════════════════════════════
 function FeedbackPage() {
   const t = useTheme()
@@ -899,6 +989,7 @@ function FeedbackPage() {
 
     return (
       <Card active={isDone} style={{ marginBottom:14 }}>
+        {/* Meal header */}
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
           <div style={{ width:42, height:42, borderRadius:12, background:gradient,
             display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
@@ -915,6 +1006,8 @@ function FeedbackPage() {
             )}
           </div>
         </div>
+
+        {/* Full menu list */}
         <div style={{ marginBottom:16, padding:'12px 14px', background:t.inputBg,
           borderRadius:11, border:`1px solid ${t.border}` }}>
           <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.14em', color:t.textSub,
@@ -928,10 +1021,14 @@ function FeedbackPage() {
             ))}
           </div>
         </div>
+
+        {/* Star rating */}
         <StarRating
           value={stars} hovered={hoveredStars}
           onHover={setHoveredStars} onChange={setStars}
           disabled={isDone}/>
+
+        {/* Comment + Submit */}
         {!isDone && (
           <>
             <textarea
@@ -958,6 +1055,8 @@ function FeedbackPage() {
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+
+      {/* Today header */}
       <div style={{ marginBottom:18, padding:'16px 18px', borderRadius:16,
         background:t.cardActive, border:`1px solid ${t.borderActive}`, textAlign:'center' }}>
         <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.18em', color:t.textSub,
@@ -968,17 +1067,27 @@ function FeedbackPage() {
           Feedback resets every 24 hours
         </div>
       </div>
+
       <MealCard
-        meal="lunch" icon="☀️" gradient="linear-gradient(135deg,#f59e0b,#d97706)"
+        meal="lunch"
+        icon="☀️"
+        gradient="linear-gradient(135deg,#f59e0b,#d97706)"
         stars={lunchStars} setStars={setLunchStars}
         hoveredStars={hoveredLunch} setHoveredStars={setHoveredLunch}
-        comment={lunchComment} setComment={setLunchComment}/>
+        comment={lunchComment} setComment={setLunchComment}
+      />
+
       <MealCard
-        meal="dinner" icon="🌙" gradient="linear-gradient(135deg,#6366f1,#4338ca)"
+        meal="dinner"
+        icon="🌙"
+        gradient="linear-gradient(135deg,#6366f1,#4338ca)"
         stars={dinnerStars} setStars={setDinnerStars}
         hoveredStars={hoveredDinner} setHoveredStars={setHoveredDinner}
-        comment={dinnerComment} setComment={setDinnerComment}/>
+        comment={dinnerComment} setComment={setDinnerComment}
+      />
+
       {error && <ErrorBanner msg={error}/>}
+
       {submitted.lunch && submitted.dinner && (
         <div style={{ textAlign:'center', padding:'22px 18px', background:t.card,
           borderRadius:16, border:`1px solid ${t.successBorder}` }}>
@@ -995,18 +1104,16 @@ function FeedbackPage() {
 }
 
 // ══════════════════════════════════════════════════════════════
-// PROFILE PAGE
+// PROFILE PAGE — No edit UI, view only + theme switcher
 // ══════════════════════════════════════════════════════════════
 function ProfilePage({ theme, setTheme }) {
+  const t = useTheme()
+  const { user, signOut } = useAuth()
   const [activeSubPage, setActiveSubPage] = useState('main')
 
-  if (activeSubPage === 'surveys')       return <MySurveysPage      onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'requests')      return <MyRequestsPage     onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'khidmat')       return <KhidmatPage        onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'notifications') return <NotificationHistoryPage onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'about')         return <AboutPage          onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'support')       return <SupportTicketPage  onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'password')      return <ChangePasswordPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'surveys')  return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'requests') return <MyRequestsPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'khidmat')  return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
 
   return <ProfileMainPage theme={theme} setTheme={setTheme} onNav={setActiveSubPage}/>
 }
@@ -1023,12 +1130,12 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const NavCard = ({ label, icon, desc, onClick, iconBg }) => (
+  const NavCard = ({ label, icon, desc, onClick }) => (
     <button onClick={onClick}
       style={{ width:'100%', padding:'13px 16px', borderRadius:14, border:`1px solid ${t.border}`,
         background:t.card, cursor:'pointer', display:'flex', alignItems:'center', gap:14,
         marginBottom:10, textAlign:'left', transition:'all 0.2s' }}>
-      <div style={{ width:42, height:42, borderRadius:12, background: iconBg || t.accentGrad,
+      <div style={{ width:42, height:42, borderRadius:12, background:t.accentGrad,
         display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
         {icon}
       </div>
@@ -1044,10 +1151,15 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      {/* Profile View */}
+
+      {/* Profile View — read only */}
       <Card active style={{ textAlign:'center', marginBottom:20 }}>
         <div style={{ width:84, height:84, margin:'0 auto 14px' }}>
-          <Avatar avatarUrl={profileData?.avatar_url} name={profileData?.name} email={user.email} size={84}/>
+          <Avatar
+            avatarUrl={profileData?.avatar_url}
+            name={profileData?.name}
+            email={user.email}
+            size={84}/>
         </div>
         <h2 style={{ margin:'0 0 4px', fontSize:22, fontWeight:700, color:t.text, fontFamily:"'Playfair Display',serif" }}>
           {profileData?.name || 'Member'}
@@ -1082,36 +1194,14 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
         </div>
       </Card>
 
-      {/* My Activity */}
+      {/* Navigation */}
       <SectionLabel>My Activity</SectionLabel>
       <NavCard label="My Surveys"   icon={<ClipboardList size={19} color="#fff"/>}
         desc="View your weekly survey responses" onClick={() => onNav('surveys')}/>
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
-
-      {/* Account */}
-      <SectionLabel>Account</SectionLabel>
-      <NavCard label="Notification History" icon={<Bell size={19} color="#fff"/>}
-        desc="View past notifications & alerts"
-        iconBg="linear-gradient(135deg,#6366f1,#4338ca)"
-        onClick={() => onNav('notifications')}/>
-      <NavCard label="Change Password" icon={<KeyRound size={19} color="#fff"/>}
-        desc="Update your login password"
-        iconBg="linear-gradient(135deg,#10b981,#059669)"
-        onClick={() => onNav('password')}/>
-
-      {/* Support */}
-      <SectionLabel>Help & Info</SectionLabel>
-      <NavCard label="Support Ticket" icon={<Headphones size={19} color="#fff"/>}
-        desc="Raise an issue with the admin team"
-        iconBg="linear-gradient(135deg,#f59e0b,#d97706)"
-        onClick={() => onNav('support')}/>
-      <NavCard label="About Al-Mawaid" icon={<Info size={19} color="#fff"/>}
-        desc="App info, version & acknowledgements"
-        iconBg="linear-gradient(135deg,#8b5cf6,#6d28d9)"
-        onClick={() => onNav('about')}/>
+        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
 
       {/* Theme Switcher */}
       <div style={{ marginTop:20, marginBottom:20 }}>
@@ -1147,423 +1237,6 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
           fontFamily:"'DM Sans',sans-serif" }}>
         <LogOut size={15}/> Sign Out
       </button>
-    </main>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════
-// NOTIFICATION HISTORY PAGE
-// ══════════════════════════════════════════════════════════════
-function NotificationHistoryPage({ onBack }) {
-  const t = useTheme()
-  const { user } = useAuth()
-  const [notifications, setNotifications] = useState([])
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    supabase.from('notifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending:false })
-      .limit(50)
-      .then(({ data }) => setNotifications(data||[]))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const typeIcon = (type) => {
-    const icons = { info:'ℹ️', alert:'⚠️', success:'✅', announcement:'📢', reminder:'🔔' }
-    return icons[type] || '🔔'
-  }
-
-  const typeColor = (type) => {
-    const colors = { info:'#6366f1', alert:'#f59e0b', success:'#10b981', announcement:'#ec4899', reminder:'#8b5cf6' }
-    return colors[type] || t.accent
-  }
-
-  return (
-    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={20} color={t.accent}/>
-        </button>
-        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
-          Notification History
-        </h2>
-      </div>
-
-      {loading ? <Spinner/> : notifications.length === 0 ? (
-        <div style={{ textAlign:'center', padding:60 }}>
-          <div style={{ fontSize:48, marginBottom:12 }}>🔔</div>
-          <div style={{ fontSize:16, fontWeight:600, color:t.textSub, fontFamily:"'DM Sans',sans-serif", marginBottom:6 }}>
-            No notifications yet
-          </div>
-          <div style={{ fontSize:13, color:t.textSub, opacity:0.6, fontFamily:"'DM Sans',sans-serif" }}>
-            You'll see updates and announcements here.
-          </div>
-        </div>
-      ) : notifications.map(n => (
-        <div key={n.id} style={{ marginBottom:10, padding:'14px 16px', borderRadius:14,
-          background: n.read ? t.card : t.cardActive,
-          border:`1px solid ${n.read ? t.border : t.borderActive}`,
-          display:'flex', gap:12, alignItems:'flex-start' }}>
-          <div style={{ fontSize:22, flexShrink:0, marginTop:2 }}>{typeIcon(n.type)}</div>
-          <div style={{ flex:1, minWidth:0 }}>
-            {n.title && (
-              <div style={{ fontSize:14, fontWeight:700, color:typeColor(n.type),
-                fontFamily:"'DM Sans',sans-serif", marginBottom:3 }}>{n.title}</div>
-            )}
-            <div style={{ fontSize:13, color:t.textBody, lineHeight:1.6,
-              fontFamily:"'DM Sans',sans-serif" }}>{n.message}</div>
-            <div style={{ fontSize:10, color:t.textSub, marginTop:6, opacity:0.55,
-              fontFamily:"'DM Sans',sans-serif" }}>
-              {new Date(n.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })}
-            </div>
-          </div>
-          {!n.read && (
-            <div style={{ width:8, height:8, borderRadius:'50%', background:t.accent,
-              flexShrink:0, marginTop:6 }}/>
-          )}
-        </div>
-      ))}
-    </main>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════
-// ABOUT PAGE
-// ══════════════════════════════════════════════════════════════
-function AboutPage({ onBack }) {
-  const t = useTheme()
-
-  return (
-    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={20} color={t.accent}/>
-        </button>
-        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
-          About Al-Mawaid
-        </h2>
-      </div>
-
-      {/* Logo & Name */}
-      <div style={{ textAlign:'center', marginBottom:24, padding:'28px 20px',
-        background:t.cardActive, borderRadius:20, border:`1px solid ${t.borderActive}` }}>
-        <div style={{ width:80, height:80, margin:'0 auto 14px', borderRadius:'50%',
-          background:t.accentGrad, display:'flex', alignItems:'center', justifyContent:'center',
-          boxShadow:`0 8px 28px ${t.accentBg}` }}>
-          <img src="/al-mawaid.png" alt="" style={{ width:56, height:56, objectFit:'contain' }}/>
-        </div>
-        <div style={{ fontSize:26, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", marginBottom:4 }}>
-          Al-Mawaid
-        </div>
-      
-        <div style={{ display:'inline-block', padding:'4px 16px', borderRadius:20,
-          background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-          <span style={{ fontSize:12, color:t.accent, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
-            Version 1.0
-          </span>
-        </div>
-      </div>
-
-      {/* Info Cards */}
-      {[
-        { title:'What is Al-Mawaid?', body:'' },
-        { title:'Survey System', body:'Every week, from Saturday 8:00 PM to Monday 10:00 AM, members can submit their food preferences for the upcoming week. This helps us prepare the right quantity for each member.' },
-        { title:'Feedback', body:'After each meal, members can rate their experience from 1–5 stars and leave comments. This helps the team continuously improve food quality.' },
-        { title:'Acknowledgements', body:'Our Mission
-                                          To ensure operational stability and minimize food waste through optimized distribution.' },
-      ].map(({ title, body }) => (
-        <Card key={title} style={{ marginBottom:12 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:t.accent, marginBottom:8,
-            fontFamily:"'Playfair Display',serif" }}>{title}</div>
-          <div style={{ fontSize:13, color:t.textBody, lineHeight:1.7, fontFamily:"'DM Sans',sans-serif" }}>
-            {body}
-          </div>
-        </Card>
-      ))}
-
-      <div style={{ textAlign:'center', marginTop:20, fontSize:12, color:t.textSub, opacity:0.5,
-        fontFamily:"'DM Sans',sans-serif" }}>
-        Product of Al-Mawaid Development | © 2026
-      </div>
-    </main>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════
-// SUPPORT TICKET PAGE
-// ══════════════════════════════════════════════════════════════
-function SupportTicketPage({ onBack }) {
-  const t = useTheme()
-  const { user } = useAuth()
-  const [tickets, setTickets]     = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [subject, setSubject]     = useState('')
-  const [message, setMessage]     = useState('')
-  const [category, setCategory]   = useState('general')
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError]         = useState('')
-  const [success, setSuccess]     = useState('')
-
-  const CATEGORIES = [
-    { id:'general',  label:'General' },
-    { id:'food',     label:'Food Quality' },
-    { id:'delivery', label:'Delivery' },
-    { id:'account',  label:'Account' },
-    { id:'other',    label:'Other' },
-  ]
-
-  useEffect(() => { loadTickets() }, [])
-
-  const loadTickets = async () => {
-    try {
-      const { data } = await supabase.from('support_tickets')
-        .select('*').eq('user_id', user.id)
-        .order('created_at', { ascending:false }).limit(20)
-      setTickets(data||[])
-    } catch {}
-    finally { setLoading(false) }
-  }
-
-  const handleSubmit = async () => {
-    if (!subject.trim()) return setError('Please enter a subject')
-    if (!message.trim()) return setError('Please describe your issue')
-    setError(''); setSuccess(''); setSubmitting(true)
-    try {
-      const { error:dbErr } = await supabase.from('support_tickets').insert([{
-        user_id:user.id, subject:subject.trim(), message:message.trim(),
-        category, status:'open'
-      }])
-      if (dbErr) throw dbErr
-      setSuccess('✅ Ticket submitted! Our team will respond within 24 hours.')
-      setSubject(''); setMessage(''); setCategory('general')
-      loadTickets()
-    } catch (err) { setError(err.message) }
-    finally { setSubmitting(false) }
-  }
-
-  const statusColor = s => s==='open' ? '#f59e0b' : s==='in_progress' ? '#6366f1' : s==='resolved' ? '#10b981' : '#9aabb8'
-  const statusLabel = s => s==='open' ? 'Open' : s==='in_progress' ? 'In Progress' : s==='resolved' ? 'Resolved' : s
-
-  const inp = {
-    width:'100%', padding:'11px 13px', borderRadius:11, boxSizing:'border-box',
-    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-    fontSize:14, outline:'none', fontFamily:"'DM Sans',sans-serif"
-  }
-
-  return (
-    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={20} color={t.accent}/>
-        </button>
-        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
-          Support Ticket
-        </h2>
-      </div>
-
-      {/* New Ticket Form */}
-      <Card style={{ marginBottom:20 }}>
-        <div style={{ fontSize:15, fontWeight:700, color:t.accent, marginBottom:14,
-          fontFamily:"'Playfair Display',serif", display:'flex', alignItems:'center', gap:8 }}>
-          <Headphones size={16}/> New Support Request
-        </div>
-
-        {/* Category */}
-        <div style={{ marginBottom:12 }}>
-          <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
-            marginBottom:7, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>CATEGORY</label>
-          <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-            {CATEGORIES.map(c => (
-              <button key={c.id} onClick={() => setCategory(c.id)}
-                style={{ padding:'5px 12px', borderRadius:20,
-                  border:`1.5px solid ${category===c.id ? t.accent : t.border}`,
-                  background: category===c.id ? t.accentBg : 'transparent',
-                  color: category===c.id ? t.accent : t.textSub,
-                  fontSize:12, fontWeight:700, cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
-                {c.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Subject */}
-        <div style={{ marginBottom:10 }}>
-          <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
-            marginBottom:7, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>SUBJECT</label>
-          <input type="text" value={subject} onChange={e => setSubject(e.target.value)}
-            placeholder="Brief summary of your issue" style={inp}/>
-        </div>
-
-        {/* Message */}
-        <div style={{ marginBottom:14 }}>
-          <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
-            marginBottom:7, letterSpacing:'0.12em', fontFamily:"'DM Sans',sans-serif" }}>MESSAGE</label>
-          <textarea value={message} onChange={e => setMessage(e.target.value)}
-            style={{ ...inp, minHeight:100, resize:'vertical' }}
-            placeholder="Describe your issue in detail…"/>
-        </div>
-
-        {error   && <ErrorBanner msg={error}/>}
-        {success && (
-          <div style={{ marginBottom:10, padding:11, borderRadius:10,
-            background:t.successBg, border:`1px solid ${t.successBorder}`,
-            color:t.successText, fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>{success}</div>
-        )}
-
-        <button onClick={handleSubmit} disabled={submitting}
-          style={{ width:'100%', padding:12, borderRadius:11, border:'none',
-            background: submitting ? t.border : t.accentGrad, color:'#fff',
-            fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize:14,
-            fontFamily:"'DM Sans',sans-serif" }}>
-          {submitting ? 'Submitting…' : '📨 Submit Ticket'}
-        </button>
-      </Card>
-
-      {/* Past Tickets */}
-      <SectionLabel>My Tickets</SectionLabel>
-      {loading ? <Spinner/> : tickets.length === 0 ? (
-        <div style={{ textAlign:'center', padding:36, color:t.textSub, fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
-          No tickets yet.
-        </div>
-      ) : tickets.map(ticket => (
-        <Card key={ticket.id} style={{ marginBottom:10 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:6 }}>
-            <div style={{ fontSize:14, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif", flex:1, paddingRight:8 }}>
-              {ticket.subject}
-            </div>
-            <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20, flexShrink:0,
-              background:`${statusColor(ticket.status)}20`, color:statusColor(ticket.status),
-              border:`1px solid ${statusColor(ticket.status)}40`, fontFamily:"'DM Sans',sans-serif" }}>
-              {statusLabel(ticket.status)}
-            </span>
-          </div>
-          <div style={{ fontSize:11, color:t.textSub, marginBottom:6, fontFamily:"'DM Sans',sans-serif" }}>
-            {ticket.category?.charAt(0).toUpperCase() + ticket.category?.slice(1)} ·{' '}
-            {new Date(ticket.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
-          </div>
-          <div style={{ fontSize:13, color:t.textBody, lineHeight:1.6, fontFamily:"'DM Sans',sans-serif" }}>
-            {ticket.message}
-          </div>
-          {ticket.admin_reply && (
-            <div style={{ marginTop:10, padding:'10px 12px', borderRadius:10, background:t.accentBg,
-              border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-              💬 <strong>Admin Reply:</strong> {ticket.admin_reply}
-            </div>
-          )}
-        </Card>
-      ))}
-    </main>
-  )
-}
-
-// ══════════════════════════════════════════════════════════════
-// CHANGE PASSWORD PAGE
-// ══════════════════════════════════════════════════════════════
-function ChangePasswordPage({ onBack }) {
-  const t = useTheme()
-  const [current, setCurrent]   = useState('')
-  const [newPass, setNewPass]   = useState('')
-  const [confirm, setConfirm]   = useState('')
-  const [showCurrent, setShowCurrent] = useState(false)
-  const [showNew,     setShowNew]     = useState(false)
-  const [showConfirm, setShowConfirm] = useState(false)
-  const [loading, setLoading]   = useState(false)
-  const [error, setError]       = useState('')
-  const [success, setSuccess]   = useState('')
-
-  const handleChange = async () => {
-    setError(''); setSuccess('')
-    if (!newPass) return setError('Please enter a new password')
-    if (newPass.length < 6) return setError('Password must be at least 6 characters')
-    if (newPass !== confirm) return setError('Passwords do not match')
-    setLoading(true)
-    try {
-      const { error: authErr } = await supabase.auth.updateUser({ password: newPass })
-      if (authErr) throw authErr
-      setSuccess('✅ Password updated successfully!')
-      setCurrent(''); setNewPass(''); setConfirm('')
-    } catch (err) { setError(err.message) }
-    finally { setLoading(false) }
-  }
-
-  const inp = {
-    width:'100%', padding:'13px 13px 13px 44px', borderRadius:12, boxSizing:'border-box',
-    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
-    fontSize:15, outline:'none', fontFamily:"'DM Sans',sans-serif"
-  }
-
-  const PasswordField = ({ label, value, onChange, show, setShow, placeholder }) => (
-    <div style={{ marginBottom:14 }}>
-      <label style={{ display:'block', fontSize:10, fontWeight:700, color:t.textSub,
-        marginBottom:7, letterSpacing:'0.14em', fontFamily:"'DM Sans',sans-serif" }}>{label}</label>
-      <div style={{ position:'relative' }}>
-        <Lock size={14} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:t.accent, opacity:0.6 }}/>
-        <input type={show ? 'text' : 'password'} value={value} onChange={e => onChange(e.target.value)}
-          style={{ ...inp, paddingRight:44 }} placeholder={placeholder}/>
-        <button type="button" onClick={() => setShow(!show)}
-          style={{ position:'absolute', right:14, top:'50%', transform:'translateY(-50%)',
-            background:'none', border:'none', cursor:'pointer', padding:0, display:'flex' }}>
-          {show ? <EyeOff size={14} color={t.accent}/> : <Eye size={14} color={t.accent}/>}
-        </button>
-      </div>
-    </div>
-  )
-
-  return (
-    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
-        <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
-          <ChevronLeft size={20} color={t.accent}/>
-        </button>
-        <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
-          Change Password
-        </h2>
-      </div>
-
-      <Card>
-        <div style={{ fontSize:15, fontWeight:700, color:t.accent, marginBottom:18,
-          fontFamily:"'Playfair Display',serif", display:'flex', alignItems:'center', gap:8 }}>
-          <KeyRound size={16}/> Update Your Password
-        </div>
-
-        <PasswordField label="NEW PASSWORD" value={newPass} onChange={setNewPass}
-          show={showNew} setShow={setShowNew} placeholder="Min. 6 characters"/>
-        <PasswordField label="CONFIRM PASSWORD" value={confirm} onChange={setConfirm}
-          show={showConfirm} setShow={setShowConfirm} placeholder="Repeat new password"/>
-
-        {/* Strength indicator */}
-        {newPass && (
-          <div style={{ marginBottom:14 }}>
-            <div style={{ fontSize:11, color:t.textSub, marginBottom:5, fontFamily:"'DM Sans',sans-serif" }}>
-              Password strength
-            </div>
-            <div style={{ height:4, background:t.border, borderRadius:4, overflow:'hidden' }}>
-              <div style={{
-                height:'100%', borderRadius:4, transition:'width 0.3s',
-                width: newPass.length < 6 ? '25%' : newPass.length < 10 ? '55%' : '100%',
-                background: newPass.length < 6 ? '#e05555' : newPass.length < 10 ? '#f59e0b' : '#10b981'
-              }}/>
-            </div>
-          </div>
-        )}
-
-        {error   && <ErrorBanner msg={error}/>}
-        {success && (
-          <div style={{ marginBottom:14, padding:11, borderRadius:10,
-            background:t.successBg, border:`1px solid ${t.successBorder}`,
-            color:t.successText, fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>{success}</div>
-        )}
-
-        <button onClick={handleChange} disabled={loading}
-          style={{ width:'100%', padding:14, borderRadius:12, border:'none',
-            background: loading ? t.border : t.accentGrad, color:'#fff', fontSize:15,
-            fontWeight:700, cursor: loading ? 'not-allowed' : 'pointer',
-            fontFamily:"'DM Sans',sans-serif", opacity: loading ? 0.7 : 1 }}>
-          {loading ? 'Updating…' : '🔐 Update Password'}
-        </button>
-      </Card>
     </main>
   )
 }
@@ -1711,11 +1384,11 @@ function MyRequestsPage({ onBack }) {
 }
 
 // ══════════════════════════════════════════════════════════════
-// KHIDMAT GUZAAR — with phone & WhatsApp links
+// KHIDMAT GUZAAR
 // ══════════════════════════════════════════════════════════════
 function KhidmatPage({ onBack }) {
   const t = useTheme()
-  const [staff, setStaff]     = useState([])
+  const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -1723,19 +1396,6 @@ function KhidmatPage({ onBack }) {
       .then(({ data }) => setStaff(data||[]))
       .finally(() => setLoading(false))
   }, [])
-
-  // Strips non-digits and formats for tel: and wa.me links
-  const cleanPhone = (phone) => phone ? phone.replace(/\D/g, '') : ''
-
-  const handleCall = (phone) => {
-    const num = cleanPhone(phone)
-    if (num) window.open(`tel:${num}`, '_self')
-  }
-
-  const handleWhatsApp = (phone) => {
-    const num = cleanPhone(phone)
-    if (num) window.open(`https://wa.me/${num}`, '_blank')
-  }
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
@@ -1747,162 +1407,41 @@ function KhidmatPage({ onBack }) {
           Khidmat Guzaar
         </h2>
       </div>
-
-      {/* Banner */}
-      <div style={{ marginBottom:16, padding:'14px 16px', borderRadius:14,
-        background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-        <div style={{ fontSize:14, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", marginBottom:4 }}>
-          🤝 Our Mawaid Team
-        </div>
-        <div style={{ fontSize:13, color:t.textBody, fontFamily:"'DM Sans',sans-serif", lineHeight:1.6 }}>
-          Meet the dedicated team who make every meal possible. Tap the phone or WhatsApp icon to reach them directly.
-        </div>
+      <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
+        border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
+        🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
-
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
           No staff profiles available.
         </div>
       ) : staff.map(member => (
-        <Card key={member.id} active style={{ marginBottom:12 }}>
-          <div style={{ display:'flex', alignItems:'flex-start', gap:14 }}>
-            <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={58}/>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
-                {member.name}
+        <Card key={member.id} active style={{ marginBottom:12, display:'flex', alignItems:'center', gap:16 }}>
+          <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={60}/>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{member.name}</div>
+            {member.role && (
+              <div style={{ display:'inline-block', marginTop:4, padding:'2px 10px',
+                borderRadius:20, background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
+                <span style={{ fontSize:11, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>{member.role}</span>
               </div>
-              {member.role && (
-                <div style={{ display:'inline-block', marginTop:4, padding:'2px 10px',
-                  borderRadius:20, background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-                  <span style={{ fontSize:11, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-                    {member.role}
-                  </span>
-                </div>
-              )}
-              {member.area && (
-                <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:6 }}>
-                  <MapPin size={11} color={t.textSub}/>
-                  <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.area}</span>
-                </div>
-              )}
-
-              {/* Phone number display */}
-              {member.phone && (
-                <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:4 }}>
-                  <Phone size={11} color={t.textSub}/>
-                  <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.phone}</span>
-                </div>
-              )}
-
-              {/* Action buttons — only if phone exists */}
-              {member.phone && (
-                <div style={{ display:'flex', gap:8, marginTop:10 }}>
-                  {/* Call Button */}
-                  <button
-                    onClick={() => handleCall(member.phone)}
-                    style={{
-                      flex:1, padding:'8px 10px', borderRadius:10,
-                      border:`1.5px solid ${t.accentBorder}`,
-                      background:t.accentBg,
-                      color:t.accent, fontSize:12, fontWeight:700,
-                      cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-                      fontFamily:"'DM Sans',sans-serif", transition:'all 0.2s'
-                    }}>
-                    <Phone size={13}/>
-                    Call
-                  </button>
-
-                  {/* WhatsApp Button */}
-                  <button
-                    onClick={() => handleWhatsApp(member.phone)}
-                    style={{
-                      flex:1, padding:'8px 10px', borderRadius:10,
-                      border:'1.5px solid rgba(37,211,102,0.35)',
-                      background:'rgba(37,211,102,0.10)',
-                      color:'#25d366', fontSize:12, fontWeight:700,
-                      cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-                      fontFamily:"'DM Sans',sans-serif", transition:'all 0.2s'
-                    }}>
-                    {/* WhatsApp SVG icon */}
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                    </svg>
-                    WhatsApp
-                  </button>
-                </div>
-              )}
-            </div>
+            )}
+            {member.phone && (
+              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:6 }}>
+                <Phone size={12} color={t.textSub}/>
+                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.phone}</span>
+              </div>
+            )}
+            {member.area && (
+              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                <MapPin size={12} color={t.textSub}/>
+                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.area}</span>
+              </div>
+            )}
           </div>
         </Card>
       ))}
-
-      {/* Mawaid Helpline Section */}
-      <div style={{ marginTop:8, marginBottom:4 }}>
-        <SectionLabel>Al-Mawaid Helpline</SectionLabel>
-        <Card active style={{ display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ fontSize:14, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif", marginBottom:4 }}>
-            📞 General Helpline
-          </div>
-          <div style={{ fontSize:13, color:t.textBody, fontFamily:"'DM Sans',sans-serif", lineHeight:1.6 }}>
-            For general inquiries, thali issues, or urgent requests — reach us directly.
-          </div>
-
-          {/* Static helpline — update number as needed */}
-          <HelplineContact
-            name="Al-Mawaid Office"
-            phone="919999999999"
-            label="Helpline"
-          />
-        </Card>
-      </div>
     </main>
-  )
-}
-
-/* ─── Helpline Contact Row ───────────────────────────────────── */
-function HelplineContact({ name, phone, label }) {
-  const t = useTheme()
-
-  const handleCall = () => {
-    if (phone) window.open(`tel:${phone}`, '_self')
-  }
-
-  const handleWhatsApp = () => {
-    if (phone) window.open(`https://wa.me/${phone}`, '_blank')
-  }
-
-  return (
-    <div style={{ padding:'12px 0', borderTop:`1px solid ${t.border}` }}>
-      <div style={{ fontSize:13, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif", marginBottom:2 }}>
-        {name}
-      </div>
-      {label && (
-        <div style={{ fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif", marginBottom:8 }}>
-          {label} · +{phone}
-        </div>
-      )}
-      <div style={{ display:'flex', gap:8 }}>
-        <button onClick={handleCall}
-          style={{ flex:1, padding:'8px 10px', borderRadius:10,
-            border:`1.5px solid ${t.accentBorder}`, background:t.accentBg,
-            color:t.accent, fontSize:12, fontWeight:700, cursor:'pointer',
-            display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-            fontFamily:"'DM Sans',sans-serif" }}>
-          <Phone size={13}/> Call
-        </button>
-        <button onClick={handleWhatsApp}
-          style={{ flex:1, padding:'8px 10px', borderRadius:10,
-            border:'1.5px solid rgba(37,211,102,0.35)', background:'rgba(37,211,102,0.10)',
-            color:'#25d366', fontSize:12, fontWeight:700, cursor:'pointer',
-            display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-            fontFamily:"'DM Sans',sans-serif" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-          </svg>
-          WhatsApp
-        </button>
-      </div>
-    </div>
   )
 }
 
@@ -2198,6 +1737,7 @@ function QueriesSection() {
             background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
             fontSize:14, resize:'vertical', outline:'none', fontFamily:"'DM Sans',sans-serif", marginBottom:10 }}
           placeholder="Describe your query or issue…"/>
+
         {mediaFiles.length > 0 && (
           <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:10 }}>
             {mediaFiles.map((item, i) => (
@@ -2217,6 +1757,7 @@ function QueriesSection() {
             ))}
           </div>
         )}
+
         <input ref={fileInputRef} type="file" accept="image/*,video/*" multiple onChange={handleFileSelect} style={{ display:'none' }}/>
         {mediaFiles.length < 4 && (
           <button onClick={() => fileInputRef.current?.click()}
@@ -2228,12 +1769,14 @@ function QueriesSection() {
             <Camera size={14}/> Attach Photo / Video ({mediaFiles.length}/4)
           </button>
         )}
+
         {error   && <ErrorBanner msg={error}/>}
         {success && (
           <div style={{ marginBottom:10, padding:11, borderRadius:10,
             background:t.successBg, border:`1px solid ${t.successBorder}`,
             color:t.successText, fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>{success}</div>
         )}
+
         <button onClick={handleSubmit} disabled={submitting}
           style={{ width:'100%', padding:12, borderRadius:11, border:'none',
             background: submitting ? t.border : t.accentGrad, color:'#fff',
