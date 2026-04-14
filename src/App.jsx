@@ -1439,7 +1439,7 @@ function KhidmatPage({ onBack }) {
     id:'general-helpline',
     name:'General Helpline No.',
     role:'Support Desk',
-    phone:'+911234567890',
+    phone:'+917737151253',
     area:'All Areas'
   }
 
