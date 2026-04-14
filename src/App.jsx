@@ -1444,13 +1444,6 @@ function KhidmatPage({ onBack }) {
   const t = useTheme()
   const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
-  const helplineMember = {
-    id:'general-helpline',
-    name:'AlMawaid Helpline No.',
-    role:'Support Desk',
-    phone:'+917737151253',
-    area:'Office-105'
-  }
 
   useEffect(() => {
     supabase.from('khidmat_guzaar').select('*').order('sort_order', { ascending:true })
