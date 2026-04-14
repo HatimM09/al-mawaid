@@ -417,7 +417,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const gpayReceiverUpiId = '9876543210@upi'
+  const gpayReceiverUpiId = 'murtazacool558@okhdfcbank'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -1249,7 +1249,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
+        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
         desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
@@ -1446,10 +1446,10 @@ function KhidmatPage({ onBack }) {
   const [loading, setLoading] = useState(true)
   const helplineMember = {
     id:'general-helpline',
-    name:'General Helpline No.',
+    name:'AlMawaid Helpline No.',
     role:'Support Desk',
-    phone:'+911234567890',
-    area:'All Areas'
+    phone:'+917737151253',
+    area:'Office-105'
   }
 
   useEffect(() => {
