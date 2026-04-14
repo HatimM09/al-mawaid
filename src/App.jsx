@@ -5,7 +5,7 @@ import {
   Star, Camera, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, ChevronLeft, ChevronRight,
-  Phone, MapPin, Users, Upload, Wallet
+  Phone, MapPin, Users, Upload, Wallet, Bell, LifeBuoy, Info
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -392,13 +392,24 @@ function HomePage({ setActiveTab }) {
   const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
   const [feedbackCounts, setFeedbackCounts]     = useState({})
   const [statsLoading, setStatsLoading] = useState(true)
+  const [paymentReceipt, setPaymentReceipt] = useState(null)
+  const [paymentPending, setPaymentPending] = useState(false)
 
-  const gpayReceiverUpiId = '6375250267@upi'
+  const gpayReceiverUpiId = '9876543210@upi'
   const fixedPaymentAmount = '400.00'
+  const paymentStorageKey = `almawaid_payment_receipt_${user.id}`
 
   const surveyOpen = isSurveyOpen()
 
-  useEffect(() => { loadData() }, [user])
+  useEffect(() => {
+    loadData()
+    const savedReceipt = localStorage.getItem(paymentStorageKey)
+    if (savedReceipt) {
+      try {
+        setPaymentReceipt(JSON.parse(savedReceipt))
+      } catch {}
+    }
+  }, [user])
 
   const loadData = async () => {
     try {
@@ -440,6 +451,8 @@ function HomePage({ setActiveTab }) {
   }
 
   const handleGPayPayment = () => {
+    setPaymentPending(true)
+
     const paymentUrl =
       `tez://upi/pay?pa=${encodeURIComponent(gpayReceiverUpiId)}` +
       `&pn=${encodeURIComponent(profileData.name || 'Al-Mawaid')}` +
@@ -448,6 +461,20 @@ function HomePage({ setActiveTab }) {
       `&tn=${encodeURIComponent('Al-Mawaid payment')}`
 
     window.location.href = paymentUrl
+  }
+
+  const handlePaymentConfirmed = () => {
+    const now = new Date()
+    const receipt = {
+      amount: fixedPaymentAmount,
+      receiver: gpayReceiverUpiId,
+      paidAt: now.toISOString(),
+      receiptId: `ALM-${now.getTime()}`
+    }
+
+    setPaymentReceipt(receipt)
+    setPaymentPending(false)
+    localStorage.setItem(paymentStorageKey, JSON.stringify(receipt))
   }
 
   return (
@@ -471,37 +498,102 @@ function HomePage({ setActiveTab }) {
 
 
       <Card style={{ marginBottom:18 }}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-          <div>
-            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
-            <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
-            <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>Your Thali Delivery amount.</div>
-          </div>
+        {!paymentReceipt ? (
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
+            <div>
+              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
+              <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
+              <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
+                {paymentPending ? 'Return here after paying in GPay and confirm to generate your receipt.' : 'Fixed amount. Change only the receiver UPI ID in code.'}
+              </div>
+            </div>
 
-          <button
-            onClick={handleGPayPayment}
-            style={{
-              minWidth:170,
-              padding:'13px 18px',
-              border:'none',
-              borderRadius:14,
-              background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
-              color:'#fff',
-              fontSize:14,
-              fontWeight:700,
-              cursor:'pointer',
-              display:'flex',
-              alignItems:'center',
-              justifyContent:'center',
-              gap:8,
-              boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
-              fontFamily:"'DM Sans',sans-serif"
-            }}
-          >
-            <Wallet size={16} />
-            Pay Now
-          </button>
-        </div>
+            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+              <button
+                onClick={handleGPayPayment}
+                style={{
+                  minWidth:170,
+                  padding:'13px 18px',
+                  border:'none',
+                  borderRadius:14,
+                  background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
+                  color:'#fff',
+                  fontSize:14,
+                  fontWeight:700,
+                  cursor:'pointer',
+                  display:'flex',
+                  alignItems:'center',
+                  justifyContent:'center',
+                  gap:8,
+                  boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
+                  fontFamily:"'DM Sans',sans-serif"
+                }}
+              >
+                <Wallet size={16} />
+                Pay with GPay
+              </button>
+
+              {paymentPending && (
+                <button
+                  onClick={handlePaymentConfirmed}
+                  style={{
+                    minWidth:170,
+                    padding:'13px 18px',
+                    border:`1px solid ${t.accentBorder}`,
+                    borderRadius:14,
+                    background:t.accentBg,
+                    color:t.accent,
+                    fontSize:14,
+                    fontWeight:700,
+                    cursor:'pointer',
+                    display:'flex',
+                    alignItems:'center',
+                    justifyContent:'center',
+                    gap:8,
+                    fontFamily:"'DM Sans',sans-serif"
+                  }}
+                >
+                  <Check size={16} />
+                  I Paid Successfully
+                </button>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:12 }}>
+              <div>
+                <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.successText, fontFamily:"'DM Sans',sans-serif" }}>Payment Receipt</div>
+                <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Rs 400 Paid</div>
+              </div>
+              <div style={{ padding:'6px 12px', borderRadius:999, background:t.successBg, border:`1px solid ${t.successBorder}`, color:t.successText, fontSize:12, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+                Payment Done
+              </div>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Receipt ID</div>
+                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>{paymentReceipt.receiptId}</div>
+              </div>
+              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Amount</div>
+                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>Rs {paymentReceipt.amount}</div>
+              </div>
+              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Receiver</div>
+                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>{paymentReceipt.receiver}</div>
+              </div>
+              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
+                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Paid On</div>
+                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+                  {new Date(paymentReceipt.paidAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })} {' '}
+                  {new Date(paymentReceipt.paidAt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* ── Stats ── */}
@@ -1114,6 +1206,7 @@ function ProfilePage({ theme, setTheme }) {
   if (activeSubPage === 'surveys')  return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
   if (activeSubPage === 'requests') return <MyRequestsPage onBack={() => setActiveSubPage('main')}/>
   if (activeSubPage === 'khidmat')  return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'support')  return <SupportTicketsPage onBack={() => setActiveSubPage('main')}/>
 
   return <ProfileMainPage theme={theme} setTheme={setTheme} onNav={setActiveSubPage}/>
 }
@@ -1202,6 +1295,8 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
         desc="Meet our service team" onClick={() => onNav('khidmat')}/>
+      <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
+        desc="Raise general, thali, and delivery issues" onClick={() => onNav('support')}/>
 
       {/* Theme Switcher */}
       <div style={{ marginTop:20, marginBottom:20 }}>
@@ -1827,6 +1922,253 @@ function QueriesSection() {
 }
 
 // ══════════════════════════════════════════════════════════════
+
+function NotificationsPage() {
+  const t = useTheme()
+  const notices = [
+    {
+      id:'survey-window',
+      title:'Weekly Survey Window',
+      body:isSurveyOpen()
+        ? 'Your weekly meal survey is open now. Please submit lunch and dinner choices on time.'
+        : getSurveyWindowMessage(),
+      tone:t.accent,
+    },
+    {
+      id:'payment-reminder',
+      title:'Payment Reminder',
+      body:'Use the home page Google Pay button to pay the fixed Rs 400 amount when needed.',
+      tone:'#0f9d58',
+    },
+    {
+      id:'support-help',
+      title:'Need Help?',
+      body:'Open Support to raise general issues, thali-related issues, or delivery issues.',
+      tone:'#5b8def',
+    },
+  ]
+
+  return (
+    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+      <SectionLabel>Updates</SectionLabel>
+      {notices.map(item => (
+        <Card key={item.id} style={{ marginBottom:12 }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+            <div style={{ width:42, height:42, borderRadius:12, background:`${item.tone}20`,
+              border:`1px solid ${item.tone}45`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Bell size={18} color={item.tone}/>
+            </div>
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{item.title}</div>
+              <div style={{ fontSize:13, color:t.textSub, lineHeight:1.6, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>{item.body}</div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </main>
+  )
+}
+
+function SupportTicketsPage({ onBack = null }) {
+  const t = useTheme()
+  const { user } = useAuth()
+  const [ticketType, setTicketType] = useState('general')
+  const [subject, setSubject] = useState('')
+  const [details, setDetails] = useState('')
+  const [tickets, setTickets] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  const issueTypes = [
+    { id:'general', label:'General' },
+    { id:'thali-related', label:'Thali Related Issues' },
+    { id:'thali-delivery', label:'Thali Delivery Issues' },
+  ]
+
+  useEffect(() => { loadTickets() }, [])
+
+  const loadTickets = async () => {
+    try {
+      const { data } = await supabase.from('queries').select('*')
+        .eq('user_id', user.id).order('created_at', { ascending:false }).limit(20)
+      const supportOnly = (data || []).filter(item => (item.comment || '').startsWith('[Support Ticket]'))
+      setTickets(supportOnly)
+    } catch {}
+    finally { setLoading(false) }
+  }
+
+  const handleSubmit = async () => {
+    if (!subject.trim()) return setError('Please enter a subject')
+    if (!details.trim()) return setError('Please describe your problem')
+
+    setError('')
+    setSuccess('')
+    setSubmitting(true)
+    try {
+      const formattedComment = `[Support Ticket]\nType: ${ticketType}\nSubject: ${subject.trim()}\nIssue: ${details.trim()}`
+      const { error: dbErr } = await supabase.from('queries').insert([{
+        user_id:user.id,
+        comment:formattedComment,
+        media:[],
+        status:'open'
+      }])
+      if (dbErr) throw dbErr
+      setSuccess('Support ticket submitted successfully.')
+      setSubject('')
+      setDetails('')
+      setTicketType('general')
+      loadTickets()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const statusColor = s => s==='open' ? '#d4882a' : s==='resolved' ? '#5eba82' : '#7aabb8'
+  const inputStyle = {
+    width:'100%', padding:'11px 13px', borderRadius:11, boxSizing:'border-box',
+    background:t.inputBg, border:`1px solid ${t.inputBorder}`, color:t.text,
+    fontSize:14, outline:'none', fontFamily:"'DM Sans',sans-serif"
+  }
+
+  return (
+    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+      {onBack && (
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+          <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
+            <ChevronLeft size={20} color={t.accent}/>
+          </button>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+            Support Ticket
+          </h2>
+        </div>
+      )}
+
+      <Card active style={{ marginBottom:18 }}>
+        <div style={{ fontSize:18, fontWeight:700, color:t.accent, marginBottom:6, fontFamily:"'Playfair Display',serif" }}>Raise a Support Ticket</div>
+        <div style={{ fontSize:13, color:t.textSub, lineHeight:1.6, marginBottom:14, fontFamily:"'DM Sans',sans-serif" }}>
+          Tell us your problem and our team can follow up on general, thali-related, or delivery issues.
+        </div>
+
+        <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:8, marginBottom:12 }}>
+          {issueTypes.map(type => (
+            <button key={type.id} onClick={() => setTicketType(type.id)}
+              style={{
+                padding:'11px 12px', borderRadius:11, textAlign:'left', cursor:'pointer',
+                border:`1px solid ${ticketType===type.id ? t.accentBorder : t.border}`,
+                background: ticketType===type.id ? t.accentBg : t.card,
+                color: ticketType===type.id ? t.accent : t.textSub,
+                fontWeight:700, fontSize:13, fontFamily:"'DM Sans',sans-serif"
+              }}>
+              {type.label}
+            </button>
+          ))}
+        </div>
+
+        <input
+          value={subject}
+          onChange={e => setSubject(e.target.value)}
+          placeholder="Subject"
+          style={{ ...inputStyle, marginBottom:10 }}
+        />
+        <textarea
+          value={details}
+          onChange={e => setDetails(e.target.value)}
+          placeholder="Describe your problem"
+          style={{ ...inputStyle, minHeight:110, resize:'vertical', marginBottom:10 }}
+        />
+
+        {error && <ErrorBanner msg={error}/>}
+        {success && (
+          <div style={{ marginBottom:10, padding:11, borderRadius:10,
+            background:t.successBg, border:`1px solid ${t.successBorder}`,
+            color:t.successText, fontSize:13, fontWeight:600, fontFamily:"'DM Sans',sans-serif" }}>
+            {success}
+          </div>
+        )}
+
+        <button onClick={handleSubmit} disabled={submitting}
+          style={{ width:'100%', padding:12, borderRadius:11, border:'none',
+            background: submitting ? t.border : t.accentGrad, color:'#fff',
+            fontWeight:700, cursor: submitting ? 'not-allowed' : 'pointer', fontSize:14,
+            fontFamily:"'DM Sans',sans-serif" }}>
+          {submitting ? 'Submitting...' : 'Submit Support Ticket'}
+        </button>
+      </Card>
+
+      <SectionLabel>Recent Tickets</SectionLabel>
+      {loading ? <Spinner/> : tickets.length === 0 ? (
+        <div style={{ textAlign:'center', padding:36, color:t.textSub, fontSize:14, fontFamily:"'DM Sans',sans-serif" }}>
+          No support tickets raised yet.
+        </div>
+      ) : tickets.map(ticket => (
+        <Card key={ticket.id} style={{ marginBottom:10 }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, gap:10 }}>
+            <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
+              {new Date(ticket.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
+            </div>
+            <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20,
+              background:`${statusColor(ticket.status)}20`, color:statusColor(ticket.status),
+              border:`1px solid ${statusColor(ticket.status)}40`, fontFamily:"'DM Sans',sans-serif" }}>
+              {ticket.status?.toUpperCase()}
+            </span>
+          </div>
+          <div style={{ whiteSpace:'pre-line', fontSize:13, color:t.textBody, lineHeight:1.7, fontFamily:"'DM Sans',sans-serif" }}>
+            {ticket.comment?.replace('[Support Ticket]\n', '')}
+          </div>
+          {ticket.admin_reply && (
+            <div style={{ marginTop:8, padding:10, borderRadius:9, background:t.accentBg,
+              border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent,
+              fontFamily:"'DM Sans',sans-serif" }}>
+              Reply: {ticket.admin_reply}
+            </div>
+          )}
+        </Card>
+      ))}
+    </main>
+  )
+}
+
+function AboutPage() {
+  const t = useTheme()
+  const aboutCards = [
+    {
+      title:'About Al-Mawaid',
+      body:'This app helps members manage surveys, requests, payments, and support in one place.',
+    },
+    {
+      title:'What You Can Do',
+      body:'Submit feedback, manage thali requests, raise support tickets, and stay updated with notices.',
+    },
+    {
+      title:'Need Assistance?',
+      body:'Use the Support tab or the Support Ticket option inside your profile to contact the team.',
+    },
+  ]
+
+  return (
+    <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+      {aboutCards.map(card => (
+        <Card key={card.title} style={{ marginBottom:12 }}>
+          <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
+            <div style={{ width:42, height:42, borderRadius:12, background:t.accentBg,
+              border:`1px solid ${t.accentBorder}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+              <Info size={18} color={t.accent}/>
+            </div>
+            <div>
+              <div style={{ fontSize:16, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{card.title}</div>
+              <div style={{ fontSize:13, color:t.textSub, lineHeight:1.7, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>{card.body}</div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </main>
+  )
+}
+
 // ROOT APP
 // ══════════════════════════════════════════════════════════════
 export default function App() {
@@ -1850,13 +2192,24 @@ export default function App() {
   const signOut = useCallback(async () => { await supabase.auth.signOut() }, [])
 
   const tabs = [
-    { id:'home',     label:'Home',     Icon: Home },
-    { id:'feedback', label:'Feedback', Icon: Star },
-    { id:'post',     label:'Requests', Icon: FileText },
-    { id:'profile',  label:'Profile',  Icon: User },
+    { id:'home',          label:'Home',      Icon: Home },
+    { id:'notifications', label:'Alerts',    Icon: Bell },
+    { id:'feedback',      label:'Feedback',  Icon: Star },
+    { id:'support',       label:'Support',   Icon: LifeBuoy },
+    { id:'post',          label:'Requests',  Icon: FileText },
+    { id:'about',         label:'About',     Icon: Info },
+    { id:'profile',       label:'Profile',   Icon: User },
   ]
 
-  const tabLabels = { home:'AL-MAWAID', feedback:'FEEDBACK', post:'REQUESTS', profile:'PROFILE' }
+  const tabLabels = {
+    home:'AL-MAWAID',
+    notifications:'NOTIFICATIONS',
+    feedback:'FEEDBACK',
+    support:'SUPPORT',
+    post:'REQUESTS',
+    about:'ABOUT',
+    profile:'PROFILE'
+  }
 
   if (session === undefined) {
     return (
@@ -1924,10 +2277,13 @@ export default function App() {
           </header>
 
           {/* Pages */}
-          {activeTab === 'home'     && <HomePage setActiveTab={setActiveTab}/>}
-          {activeTab === 'feedback' && <FeedbackPage/>}
-          {activeTab === 'post'     && <PostPage/>}
-          {activeTab === 'profile'  && <ProfilePage theme={theme} setTheme={handleSetTheme}/>}
+          {activeTab === 'home'          && <HomePage setActiveTab={setActiveTab}/>}
+          {activeTab === 'notifications' && <NotificationsPage/>}
+          {activeTab === 'feedback'      && <FeedbackPage/>}
+          {activeTab === 'support'       && <SupportTicketsPage/>}
+          {activeTab === 'post'          && <PostPage/>}
+          {activeTab === 'about'         && <AboutPage/>}
+          {activeTab === 'profile'       && <ProfilePage theme={theme} setTheme={handleSetTheme}/>}
 
           {/* Bottom Nav */}
           <nav style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:30,
