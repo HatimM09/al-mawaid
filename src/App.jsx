@@ -1314,7 +1314,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
+        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
         desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
