@@ -404,7 +404,8 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const gpayReceiverUpiId = '7069102553@upi'
+  const primaryUpiId = 'almawaid@oksbi'
+  const alternateUpiId = 'almawaid@okaxis'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -450,12 +451,12 @@ function HomePage({ setActiveTab }) {
     setShowSurvey(true)
   }
 
-  const handleGPayPayment = () => {
+  const openUpiPayment = (upiId) => {
     setPaymentError('')
 
     const paymentUrl =
-      `tez://upi/pay?pa=${encodeURIComponent(gpayReceiverUpiId)}` +
-      `&pn=${encodeURIComponent(profileData.name || 'Al-Mawaid')}` +
+      `tez://upi/pay?pa=${encodeURIComponent(upiId)}` +
+      `&pn=${encodeURIComponent('Al-Mawaid')}` +
       `&am=${encodeURIComponent(fixedPaymentAmount)}` +
       '&cu=INR' +
       `&tn=${encodeURIComponent('Al-Mawaid payment')}`
@@ -464,13 +465,16 @@ function HomePage({ setActiveTab }) {
       window.location.href = paymentUrl
       window.setTimeout(() => {
         if (document.visibilityState === 'visible') {
-          setPaymentError('Google Pay could not complete or open properly. Please try again.')
+          setPaymentError('Payment could not complete. If you see exceeded limit in GPay, try the alternate UPI ID or another bank account in Google Pay.')
         }
       }, 1800)
     } catch {
       setPaymentError('Unable to open Google Pay right now. Please try again.')
     }
   }
+
+  const handleGPayPayment = () => openUpiPayment(primaryUpiId)
+  const handleAlternatePayment = () => openUpiPayment(alternateUpiId)
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
@@ -494,38 +498,68 @@ function HomePage({ setActiveTab }) {
 
       <Card style={{ marginBottom:18 }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-          <div>
+          <div style={{ flex:1, minWidth:220 }}>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
             <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
             <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
-              Fixed amount. Change only the receiver UPI ID in code.
+              Fixed amount. Primary UPI ID: {primaryUpiId}
+            </div>
+            <div style={{ marginTop:8, padding:'10px 12px', borderRadius:10, background:t.inputBg, border:`1px solid ${t.border}` }}>
+              <div style={{ fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif", lineHeight:1.6 }}>
+                If GPay shows exceeded limit, try the alternate UPI ID below or switch to another bank account inside Google Pay.
+              </div>
+              <div style={{ marginTop:6, fontSize:12, color:t.accent, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
+                Alternate UPI ID: {alternateUpiId}
+              </div>
             </div>
           </div>
 
-          <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+          <div style={{ display:'flex', flexDirection:'column', gap:10, flexShrink:0 }}>
             <button
-                onClick={handleGPayPayment}
-                style={{
-                  minWidth:170,
-                  padding:'13px 18px',
-                  border:'none',
-                  borderRadius:14,
-                  background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
-                  color:'#fff',
-                  fontSize:14,
-                  fontWeight:700,
-                  cursor:'pointer',
-                  display:'flex',
-                  alignItems:'center',
-                  justifyContent:'center',
-                  gap:8,
-                  boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
-                  fontFamily:"'DM Sans',sans-serif"
-                }}
-              >
-                <Wallet size={16} />
-                Pay with GPay
-              </button>
+              onClick={handleGPayPayment}
+              style={{
+                minWidth:190,
+                padding:'13px 18px',
+                border:'none',
+                borderRadius:14,
+                background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
+                color:'#fff',
+                fontSize:14,
+                fontWeight:700,
+                cursor:'pointer',
+                display:'flex',
+                alignItems:'center',
+                justifyContent:'center',
+                gap:8,
+                boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
+                fontFamily:"'DM Sans',sans-serif"
+              }}
+            >
+              <Wallet size={16} />
+              Pay with GPay
+            </button>
+            <button
+              onClick={handleAlternatePayment}
+              style={{
+                minWidth:190,
+                padding:'13px 18px',
+                border:`1px solid ${t.accentBorder}`,
+                borderRadius:14,
+                background:t.accentBg,
+                color:t.accent,
+                fontSize:14,
+                fontWeight:700,
+                cursor:'pointer',
+                display:'flex',
+                alignItems:'center',
+                justifyContent:'center',
+                gap:8,
+                fontFamily:"'DM Sans',sans-serif"
+              }}
+            >
+              <Wallet size={16} />
+              Try Alternate UPI
+            </button>
           </div>
         </div>
 
