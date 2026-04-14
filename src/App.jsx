@@ -1,15 +1,52 @@
 // src/App.jsx — Al-Mawaid Food Survey System v5
-import React from 'react';
-import { View, SafeAreaView } from 'react-native';
-import PaymentButton from './components/PaymentButton'; // import it
+import React from "react";
 
 export default function App() {
+  // Change these values
+  const receiverUpi = "9876543210"; // Use UPI ID like "name@upi" or a UPI-linked number
+  const receiverName = "Receiver Name";
+  const amount = "400.00";
+
+  const handlePayment = () => {
+    const upiUrl =
+      `upi://pay?pa=${encodeURIComponent(receiverUpi)}` +
+      `&pn=${encodeURIComponent(receiverName)}` +
+      `&am=${encodeURIComponent(amount)}` +
+      `&cu=INR` +
+      `&tn=${encodeURIComponent("Payment of Rs 400")}`;
+
+    window.location.href = upiUrl;
+  };
+
   return (
-    <SafeAreaView style={{ flex: 1, justifyContent: 'center' }}>
-      <PaymentButton /> 
-    </SafeAreaView>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        background: "#f5f5f5",
+      }}
+    >
+      <button
+        onClick={handlePayment}
+        style={{
+          padding: "14px 24px",
+          fontSize: "18px",
+          border: "none",
+          borderRadius: "10px",
+          background: "#0f9d58",
+          color: "#fff",
+          cursor: "pointer",
+          fontWeight: "bold",
+        }}
+      >
+        Pay ₹400
+      </button>
+    </div>
   );
 }
+
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, User, X,
