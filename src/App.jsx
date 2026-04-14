@@ -5,7 +5,7 @@ import {
   Star, Camera, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, ChevronLeft, ChevronRight,
-  Phone, MapPin, Users, Upload, Wallet, Bell, LifeBuoy, Info, MessageSquare
+  Phone, MapPin, Users, Upload, Wallet, Bell, LifeBuoy, Info
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -188,6 +188,15 @@ const ThemeCtx = createContext(THEMES.midnight)
 const useTheme = () => useContext(ThemeCtx)
 const AuthCtx  = createContext(null)
 const useAuth  = () => useContext(AuthCtx)
+
+const WhatsAppLogo = ({ size = 16 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      fill="currentColor"
+      d="M19.05 4.91A9.82 9.82 0 0 0 12.03 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.74.45 3.43 1.31 4.92L2 22l5.33-1.4a9.86 9.86 0 0 0 4.7 1.2h.01c5.46 0 9.9-4.44 9.9-9.9a9.83 9.83 0 0 0-2.89-6.99Zm-7.02 15.22h-.01a8.2 8.2 0 0 1-4.18-1.14l-.3-.18-3.16.83.84-3.08-.2-.31a8.18 8.18 0 0 1-1.25-4.35c0-4.53 3.69-8.22 8.23-8.22a8.16 8.16 0 0 1 5.82 2.41 8.16 8.16 0 0 1 2.41 5.82c0 4.54-3.69 8.22-8.2 8.22Zm4.51-6.16c-.25-.13-1.47-.72-1.7-.8-.23-.08-.4-.13-.57.12-.17.25-.65.8-.8.96-.15.17-.3.19-.55.07-.25-.13-1.07-.39-2.03-1.23-.75-.67-1.26-1.49-1.41-1.74-.15-.25-.02-.38.11-.5.11-.11.25-.29.38-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.57-1.37-.78-1.88-.21-.5-.43-.43-.57-.43h-.49c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.02 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.42 1.43.54.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.17-.48-.29Z"
+    />
+  </svg>
+)
 
 /* ─── Geo Background ─────────────────────────────────────────── */
 const GeoBg = ({ t: tProp }) => {
@@ -1439,7 +1448,7 @@ function KhidmatPage({ onBack }) {
     id:'general-helpline',
     name:'General Helpline No.',
     role:'Support Desk',
-    phone:'+917737151253',
+    phone:'+911234567890',
     area:'All Areas'
   }
 
@@ -1535,7 +1544,7 @@ function KhidmatPage({ onBack }) {
                   }}
                   aria-label={`WhatsApp ${member.name}`}
                 >
-                  <MessageSquare size={16} />
+                  <WhatsAppLogo size={18} />
                 </a>
               </div>
             )}
