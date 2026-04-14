@@ -404,7 +404,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const gpayReceiverUpiId = 'shydrabadwala53@okhdfcbank'
+  const gpayReceiverUpiId = '9876543210@upi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -498,7 +498,7 @@ function HomePage({ setActiveTab }) {
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
             <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
             <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
-              Your Monthly Thali Delivery Amount>
+              Fixed amount. Change only the receiver UPI ID in code.
             </div>
           </div>
 
@@ -524,7 +524,7 @@ function HomePage({ setActiveTab }) {
                 }}
               >
                 <Wallet size={16} />
-                Pay Now
+                Pay with GPay
               </button>
           </div>
         </div>
