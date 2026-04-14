@@ -1470,7 +1470,7 @@ function KhidmatPage({ onBack }) {
       </div>
       <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
         border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-        🤝 Our dedicated service team — the ones who make every meal possible.
+        🤝 Our dedicated Al Mawaid team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
