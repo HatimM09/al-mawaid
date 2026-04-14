@@ -404,7 +404,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const gpayReceiverUpiId = '9876543210@upi'
+  const gpayReceiverUpiId = 'murtazacool558@okhdfcbank'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
