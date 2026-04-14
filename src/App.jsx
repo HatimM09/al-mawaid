@@ -169,6 +169,20 @@ const getSurveyWindowMessage = () => {
   return 'Survey opens Saturday at 8:00 PM.'
 }
 
+
+const isPaymentWindowOpen = () => {
+  const today = new Date().getDate()
+  return today >= 28 || today <= 2
+}
+
+const getPaymentWindowMessage = () => {
+  const today = new Date().getDate()
+  if (today >= 28 || today <= 2) {
+    return 'Payment window is open from the 28th to the 2nd.'
+  }
+  return 'Payment is available only from the 28th of the month till the 2nd.'
+}
+
 // ─── Contexts ─────────────────────────────────────────────────
 const ThemeCtx = createContext(THEMES.midnight)
 const useTheme = () => useContext(ThemeCtx)
@@ -395,11 +409,12 @@ function HomePage({ setActiveTab }) {
   const [paymentReceipt, setPaymentReceipt] = useState(null)
   const [paymentPending, setPaymentPending] = useState(false)
 
-  const gpayReceiverUpiId = 'murtazacool558@okhdfcbank'
+  const gpayReceiverUpiId = '9876543210@upi'
   const fixedPaymentAmount = '400.00'
   const paymentStorageKey = `almawaid_payment_receipt_${user.id}`
 
   const surveyOpen = isSurveyOpen()
+  const paymentWindowOpen = isPaymentWindowOpen()
 
   useEffect(() => {
     loadData()
@@ -451,6 +466,7 @@ function HomePage({ setActiveTab }) {
   }
 
   const handleGPayPayment = () => {
+    if (!paymentWindowOpen) return
     setPaymentPending(true)
 
     const paymentUrl =
@@ -504,36 +520,38 @@ function HomePage({ setActiveTab }) {
               <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
               <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
               <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
-                {paymentPending ? 'Return here after paying in GPay and confirm to generate your receipt.' : 'Fixed amount. Change only the receiver UPI ID in code.'}
+                {paymentPending ? 'Return here after paying in GPay and confirm to generate your receipt.' : getPaymentWindowMessage()}
               </div>
             </div>
 
             <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              <button
-                onClick={handleGPayPayment}
-                style={{
-                  minWidth:170,
-                  padding:'13px 18px',
-                  border:'none',
-                  borderRadius:14,
-                  background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
-                  color:'#fff',
-                  fontSize:14,
-                  fontWeight:700,
-                  cursor:'pointer',
-                  display:'flex',
-                  alignItems:'center',
-                  justifyContent:'center',
-                  gap:8,
-                  boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
-                  fontFamily:"'DM Sans',sans-serif"
-                }}
-              >
-                <Wallet size={16} />
-                Pay with GPay
-              </button>
+              {paymentWindowOpen && (
+                <button
+                  onClick={handleGPayPayment}
+                  style={{
+                    minWidth:170,
+                    padding:'13px 18px',
+                    border:'none',
+                    borderRadius:14,
+                    background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
+                    color:'#fff',
+                    fontSize:14,
+                    fontWeight:700,
+                    cursor:'pointer',
+                    display:'flex',
+                    alignItems:'center',
+                    justifyContent:'center',
+                    gap:8,
+                    boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
+                    fontFamily:"'DM Sans',sans-serif"
+                  }}
+                >
+                  <Wallet size={16} />
+                  Pay with GPay
+                </button>
+              )}
 
-              {paymentPending && (
+              {paymentWindowOpen && paymentPending && (
                 <button
                   onClick={handlePaymentConfirmed}
                   style={{
@@ -1203,10 +1221,12 @@ function ProfilePage({ theme, setTheme }) {
   const { user, signOut } = useAuth()
   const [activeSubPage, setActiveSubPage] = useState('main')
 
-  if (activeSubPage === 'surveys')  return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'requests') return <MyRequestsPage onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'khidmat')  return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
-  if (activeSubPage === 'support')  return <SupportTicketsPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'surveys')       return <MySurveysPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'requests')      return <MyRequestsPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'khidmat')       return <KhidmatPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'notifications') return <NotificationsPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'support')       return <SupportTicketsPage onBack={() => setActiveSubPage('main')}/>
+  if (activeSubPage === 'about')         return <AboutPage onBack={() => setActiveSubPage('main')}/>
 
   return <ProfileMainPage theme={theme} setTheme={setTheme} onNav={setActiveSubPage}/>
 }
@@ -1295,8 +1315,12 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
         desc="Meet our service team" onClick={() => onNav('khidmat')}/>
+      <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
+        desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
         desc="Raise general, thali, and delivery issues" onClick={() => onNav('support')}/>
+      <NavCard label="About" icon={<Info size={19} color="#fff"/>}
+        desc="Learn more about the app and services" onClick={() => onNav('about')}/>
 
       {/* Theme Switcher */}
       <div style={{ marginTop:20, marginBottom:20 }}>
@@ -1923,7 +1947,7 @@ function QueriesSection() {
 
 // ══════════════════════════════════════════════════════════════
 
-function NotificationsPage() {
+function NotificationsPage({ onBack = null }) {
   const t = useTheme()
   const notices = [
     {
@@ -1950,6 +1974,16 @@ function NotificationsPage() {
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+      {onBack && (
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+          <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
+            <ChevronLeft size={20} color={t.accent}/>
+          </button>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+            Alerts
+          </h2>
+        </div>
+      )}
       <SectionLabel>Updates</SectionLabel>
       {notices.map(item => (
         <Card key={item.id} style={{ marginBottom:12 }}>
@@ -2132,7 +2166,7 @@ function SupportTicketsPage({ onBack = null }) {
   )
 }
 
-function AboutPage() {
+function AboutPage({ onBack = null }) {
   const t = useTheme()
   const aboutCards = [
     {
@@ -2151,6 +2185,16 @@ function AboutPage() {
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
+      {onBack && (
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:20 }}>
+          <button onClick={onBack} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
+            <ChevronLeft size={20} color={t.accent}/>
+          </button>
+          <h2 style={{ margin:0, fontSize:20, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>
+            About
+          </h2>
+        </div>
+      )}
       {aboutCards.map(card => (
         <Card key={card.title} style={{ marginBottom:12 }}>
           <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
@@ -2192,24 +2236,13 @@ export default function App() {
   const signOut = useCallback(async () => { await supabase.auth.signOut() }, [])
 
   const tabs = [
-    { id:'home',          label:'Home',      Icon: Home },
-    { id:'notifications', label:'Alerts',    Icon: Bell },
-    { id:'feedback',      label:'Feedback',  Icon: Star },
-    { id:'support',       label:'Support',   Icon: LifeBuoy },
-    { id:'post',          label:'Requests',  Icon: FileText },
-    { id:'about',         label:'About',     Icon: Info },
-    { id:'profile',       label:'Profile',   Icon: User },
+    { id:'home',     label:'Home',     Icon: Home },
+    { id:'feedback', label:'Feedback', Icon: Star },
+    { id:'post',     label:'Requests', Icon: FileText },
+    { id:'profile',  label:'Profile',  Icon: User },
   ]
 
-  const tabLabels = {
-    home:'AL-MAWAID',
-    notifications:'NOTIFICATIONS',
-    feedback:'FEEDBACK',
-    support:'SUPPORT',
-    post:'REQUESTS',
-    about:'ABOUT',
-    profile:'PROFILE'
-  }
+  const tabLabels = { home:'AL-MAWAID', feedback:'FEEDBACK', post:'REQUESTS', profile:'PROFILE' }
 
   if (session === undefined) {
     return (
@@ -2277,13 +2310,10 @@ export default function App() {
           </header>
 
           {/* Pages */}
-          {activeTab === 'home'          && <HomePage setActiveTab={setActiveTab}/>}
-          {activeTab === 'notifications' && <NotificationsPage/>}
-          {activeTab === 'feedback'      && <FeedbackPage/>}
-          {activeTab === 'support'       && <SupportTicketsPage/>}
-          {activeTab === 'post'          && <PostPage/>}
-          {activeTab === 'about'         && <AboutPage/>}
-          {activeTab === 'profile'       && <ProfilePage theme={theme} setTheme={handleSetTheme}/>}
+          {activeTab === 'home'     && <HomePage setActiveTab={setActiveTab}/>}
+          {activeTab === 'feedback' && <FeedbackPage/>}
+          {activeTab === 'post'     && <PostPage/>}
+          {activeTab === 'profile'  && <ProfilePage theme={theme} setTheme={handleSetTheme}/>}
 
           {/* Bottom Nav */}
           <nav style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:30,
