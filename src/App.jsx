@@ -5,7 +5,7 @@ import {
   Star, Camera, Check, LogOut,
   Mail, Lock, Eye, EyeOff, AlertCircle, ChevronDown, ChevronUp,
   ClipboardList, MessageCircle, ChevronLeft, ChevronRight,
-  Phone, MapPin, Users, Upload, Wallet, Bell, LifeBuoy, Info
+  Phone, MapPin, Users, Upload, Wallet, Bell, LifeBuoy, Info, MessageSquare
 } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
 
@@ -117,8 +117,8 @@ const THEMES = {
 
 // ─── Menu Data ────────────────────────────────────────────────
 const WEEKLY_MENU = {
-  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chola','kulcha','Sreekhand','Dal','Chawal'],              dinner:['FMB Menu'] },
-  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['American Choupsey','Wafers','Butter Khichdi'], dinner:['Roti','Veg Jaipuri','Chicken Pulao','Soup'] },
+  monday:    { en:'Monday',    ar:'الاثنين',  lunch:['Chicken Biryani','Dal Makhani','Roti','Raita','Salad'],              dinner:['Grilled Fish','Vegetable Curry','Rice','Chapati','Pickle'] },
+  tuesday:   { en:'Tuesday',   ar:'الثلاثاء', lunch:['Mutton Rogan Josh','Paneer Butter Masala','Roti','Raita','Papadam'], dinner:['Chicken Tikka','Mixed Vegetables','Jeera Rice','Naan','Chutney'] },
   wednesday: { en:'Wednesday', ar:'الأربعاء', lunch:['Fish Curry','Aloo Gobi','Roti','Yogurt','Pickle'],                  dinner:['Beef Kebab','Palak Paneer','Pulao','Roti','Salad'] },
   thursday:  { en:'Thursday',  ar:'الخميس',  lunch:['Chicken Korma','Chana Masala','Rice','Naan','Raita'],               dinner:['Prawn Masala','Egg Curry','Jeera Rice','Chapati','Pickle'] },
   friday:    { en:'Friday',    ar:'الجمعة',  lunch:['Lamb Biryani','Vegetable Jalfrezi','Roti','Raita','Salad'],          dinner:['Tandoori Chicken','Dal Tadka','Rice','Roti','Chutney'] },
@@ -408,7 +408,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const gpayReceiverUpiId = 'murtazacool558@okhdfcbank'
+  const gpayReceiverUpiId = '9876543210@upi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -1435,6 +1435,13 @@ function KhidmatPage({ onBack }) {
   const t = useTheme()
   const [staff, setStaff]   = useState([])
   const [loading, setLoading] = useState(true)
+  const helplineMember = {
+    id:'general-helpline',
+    name:'General Helpline No.',
+    role:'Support Desk',
+    phone:'+911234567890',
+    area:'All Areas'
+  }
 
   useEffect(() => {
     supabase.from('khidmat_guzaar').select('*').order('sort_order', { ascending:true })
@@ -1460,32 +1467,81 @@ function KhidmatPage({ onBack }) {
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
           No staff profiles available.
         </div>
-      ) : staff.map(member => (
-        <Card key={member.id} active style={{ marginBottom:12, display:'flex', alignItems:'center', gap:16 }}>
-          <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={60}/>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{member.name}</div>
-            {member.role && (
-              <div style={{ display:'inline-block', marginTop:4, padding:'2px 10px',
-                borderRadius:20, background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
-                <span style={{ fontSize:11, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>{member.role}</span>
+      ) : [...staff, helplineMember].map(member => {
+        const rawPhone = member.phone || ''
+        const actionPhone = rawPhone.replace(/[^\d+]/g, '')
+        const whatsappPhone = actionPhone.replace(/^\+/, '')
+
+        return (
+          <Card key={member.id} active style={{ marginBottom:12, display:'flex', alignItems:'center', gap:16 }}>
+            <Avatar avatarUrl={member.avatar_url} name={member.name} email="" size={60}/>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontSize:17, fontWeight:700, color:t.accent, fontFamily:"'Playfair Display',serif" }}>{member.name}</div>
+              {member.role && (
+                <div style={{ display:'inline-block', marginTop:4, padding:'2px 10px',
+                  borderRadius:20, background:t.accentBg, border:`1px solid ${t.accentBorder}` }}>
+                  <span style={{ fontSize:11, fontWeight:700, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>{member.role}</span>
+                </div>
+              )}
+              {member.phone && (
+                <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:6 }}>
+                  <Phone size={12} color={t.textSub}/>
+                  <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.phone}</span>
+                </div>
+              )}
+              {member.area && (
+                <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
+                  <MapPin size={12} color={t.textSub}/>
+                  <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.area}</span>
+                </div>
+              )}
+            </div>
+
+            {actionPhone && (
+              <div style={{ display:'flex', flexDirection:'column', gap:8, flexShrink:0 }}>
+                <a
+                  href={`tel:${actionPhone}`}
+                  style={{
+                    width:42,
+                    height:42,
+                    borderRadius:12,
+                    background:t.accentGrad,
+                    color:'#fff',
+                    display:'flex',
+                    alignItems:'center',
+                    justifyContent:'center',
+                    textDecoration:'none',
+                    boxShadow:'0 8px 18px rgba(0,0,0,0.18)'
+                  }}
+                  aria-label={`Call ${member.name}`}
+                >
+                  <Phone size={16} />
+                </a>
+                <a
+                  href={`https://wa.me/${whatsappPhone}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    width:42,
+                    height:42,
+                    borderRadius:12,
+                    background:'linear-gradient(135deg,#25D366,#128C7E)',
+                    color:'#fff',
+                    display:'flex',
+                    alignItems:'center',
+                    justifyContent:'center',
+                    textDecoration:'none',
+                    boxShadow:'0 8px 18px rgba(18,140,126,0.22)'
+                  }}
+                  aria-label={`WhatsApp ${member.name}`}
+                >
+                  <MessageSquare size={16} />
+                </a>
               </div>
             )}
-            {member.phone && (
-              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:6 }}>
-                <Phone size={12} color={t.textSub}/>
-                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.phone}</span>
-              </div>
-            )}
-            {member.area && (
-              <div style={{ display:'flex', alignItems:'center', gap:5, marginTop:3 }}>
-                <MapPin size={12} color={t.textSub}/>
-                <span style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{member.area}</span>
-              </div>
-            )}
-          </div>
-        </Card>
-      ))}
+          </Card>
+        )
+      })}
     </main>
   )
 }
