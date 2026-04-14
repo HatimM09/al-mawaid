@@ -406,25 +406,15 @@ function HomePage({ setActiveTab }) {
   const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
   const [feedbackCounts, setFeedbackCounts]     = useState({})
   const [statsLoading, setStatsLoading] = useState(true)
-  const [paymentReceipt, setPaymentReceipt] = useState(null)
-  const [paymentPending, setPaymentPending] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
 
   const gpayReceiverUpiId = '9876543210@upi'
   const fixedPaymentAmount = '400.00'
-  const paymentStorageKey = `almawaid_payment_receipt_${user.id}`
 
   const surveyOpen = isSurveyOpen()
   const paymentWindowOpen = isPaymentWindowOpen()
 
-  useEffect(() => {
-    loadData()
-    const savedReceipt = localStorage.getItem(paymentStorageKey)
-    if (savedReceipt) {
-      try {
-        setPaymentReceipt(JSON.parse(savedReceipt))
-      } catch {}
-    }
-  }, [user])
+  useEffect(() => { loadData() }, [user])
 
   const loadData = async () => {
     try {
@@ -467,7 +457,7 @@ function HomePage({ setActiveTab }) {
 
   const handleGPayPayment = () => {
     if (!paymentWindowOpen) return
-    setPaymentPending(true)
+    setPaymentError('')
 
     const paymentUrl =
       `tez://upi/pay?pa=${encodeURIComponent(gpayReceiverUpiId)}` +
@@ -476,21 +466,16 @@ function HomePage({ setActiveTab }) {
       '&cu=INR' +
       `&tn=${encodeURIComponent('Al-Mawaid payment')}`
 
-    window.location.href = paymentUrl
-  }
-
-  const handlePaymentConfirmed = () => {
-    const now = new Date()
-    const receipt = {
-      amount: fixedPaymentAmount,
-      receiver: gpayReceiverUpiId,
-      paidAt: now.toISOString(),
-      receiptId: `ALM-${now.getTime()}`
+    try {
+      window.location.href = paymentUrl
+      window.setTimeout(() => {
+        if (document.visibilityState === 'visible') {
+          setPaymentError('Google Pay could not complete or open properly. Please try again.')
+        }
+      }, 1800)
+    } catch {
+      setPaymentError('Unable to open Google Pay right now. Please try again.')
     }
-
-    setPaymentReceipt(receipt)
-    setPaymentPending(false)
-    localStorage.setItem(paymentStorageKey, JSON.stringify(receipt))
   }
 
   return (
@@ -514,104 +499,45 @@ function HomePage({ setActiveTab }) {
 
 
       <Card style={{ marginBottom:18 }}>
-        {!paymentReceipt ? (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
-            <div>
-              <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
-              <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
-              <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
-                {paymentPending ? 'Return here after paying in GPay and confirm to generate your receipt.' : getPaymentWindowMessage()}
-              </div>
-            </div>
-
-            <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              {paymentWindowOpen && (
-                <button
-                  onClick={handleGPayPayment}
-                  style={{
-                    minWidth:170,
-                    padding:'13px 18px',
-                    border:'none',
-                    borderRadius:14,
-                    background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
-                    color:'#fff',
-                    fontSize:14,
-                    fontWeight:700,
-                    cursor:'pointer',
-                    display:'flex',
-                    alignItems:'center',
-                    justifyContent:'center',
-                    gap:8,
-                    boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
-                    fontFamily:"'DM Sans',sans-serif"
-                  }}
-                >
-                  <Wallet size={16} />
-                  Pay with GPay
-                </button>
-              )}
-
-              {paymentWindowOpen && paymentPending && (
-                <button
-                  onClick={handlePaymentConfirmed}
-                  style={{
-                    minWidth:170,
-                    padding:'13px 18px',
-                    border:`1px solid ${t.accentBorder}`,
-                    borderRadius:14,
-                    background:t.accentBg,
-                    color:t.accent,
-                    fontSize:14,
-                    fontWeight:700,
-                    cursor:'pointer',
-                    display:'flex',
-                    alignItems:'center',
-                    justifyContent:'center',
-                    gap:8,
-                    fontFamily:"'DM Sans',sans-serif"
-                  }}
-                >
-                  <Check size={16} />
-                  I Paid Successfully
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap' }}>
           <div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:12, flexWrap:'wrap', marginBottom:12 }}>
-              <div>
-                <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.successText, fontFamily:"'DM Sans',sans-serif" }}>Payment Receipt</div>
-                <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Rs 400 Paid</div>
-              </div>
-              <div style={{ padding:'6px 12px', borderRadius:999, background:t.successBg, border:`1px solid ${t.successBorder}`, color:t.successText, fontSize:12, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
-                Payment Done
-              </div>
-            </div>
-
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
-                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Receipt ID</div>
-                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>{paymentReceipt.receiptId}</div>
-              </div>
-              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
-                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Amount</div>
-                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>Rs {paymentReceipt.amount}</div>
-              </div>
-              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
-                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Receiver</div>
-                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>{paymentReceipt.receiver}</div>
-              </div>
-              <div style={{ padding:12, borderRadius:12, background:t.inputBg, border:`1px solid ${t.border}` }}>
-                <div style={{ fontSize:10, color:t.textSub, letterSpacing:'0.12em', textTransform:'uppercase', fontFamily:"'DM Sans',sans-serif" }}>Paid On</div>
-                <div style={{ marginTop:4, fontSize:13, color:t.text, fontWeight:700, fontFamily:"'DM Sans',sans-serif" }}>
-                  {new Date(paymentReceipt.paidAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })} {' '}
-                  {new Date(paymentReceipt.paidAt).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })}
-                </div>
-              </div>
+            <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
+            <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
+            <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>
+              {getPaymentWindowMessage()}
             </div>
           </div>
-        )}
+
+          <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+            {paymentWindowOpen && (
+              <button
+                onClick={handleGPayPayment}
+                style={{
+                  minWidth:170,
+                  padding:'13px 18px',
+                  border:'none',
+                  borderRadius:14,
+                  background:'linear-gradient(135deg,#0f9d58,#0b7d45)',
+                  color:'#fff',
+                  fontSize:14,
+                  fontWeight:700,
+                  cursor:'pointer',
+                  display:'flex',
+                  alignItems:'center',
+                  justifyContent:'center',
+                  gap:8,
+                  boxShadow:'0 10px 24px rgba(15,157,88,0.22)',
+                  fontFamily:"'DM Sans',sans-serif"
+                }}
+              >
+                <Wallet size={16} />
+                Pay with GPay
+              </button>
+            )}
+          </div>
+        </div>
+
+        {paymentError && <ErrorBanner msg={paymentError}/>}
       </Card>
 
       {/* ── Stats ── */}
@@ -1314,7 +1240,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
+        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
         desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
@@ -1528,7 +1454,7 @@ function KhidmatPage({ onBack }) {
       </div>
       <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
         border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-        🤝 Our dedicated Al Mawaid team — the ones who make every meal possible.
+        🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
