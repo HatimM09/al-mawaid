@@ -475,7 +475,7 @@ function HomePage({ setActiveTab }) {
           <div>
             <div style={{ fontSize:10, fontWeight:700, letterSpacing:'0.16em', textTransform:'uppercase', color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>Google Pay</div>
             <div style={{ fontSize:22, fontWeight:800, color:t.accent, marginTop:4, fontFamily:"'Playfair Display',serif" }}>Pay Rs 400</div>
-            <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>Fixed amount. Change only the receiver UPI ID in code.</div>
+            <div style={{ fontSize:12, color:t.textSub, marginTop:4, fontFamily:"'DM Sans',sans-serif" }}>Your Tahli Delivery amount.</div>
           </div>
 
           <button
@@ -499,7 +499,7 @@ function HomePage({ setActiveTab }) {
             }}
           >
             <Wallet size={16} />
-            Pay with GPay
+            Pay Now
           </button>
         </div>
       </Card>
