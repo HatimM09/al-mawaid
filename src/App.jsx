@@ -395,7 +395,7 @@ function HomePage({ setActiveTab }) {
   const [paymentReceipt, setPaymentReceipt] = useState(null)
   const [paymentPending, setPaymentPending] = useState(false)
 
-  const gpayReceiverUpiId = '9876543210@upi'
+  const gpayReceiverUpiId = 'murtazacool558@okhdfcbank'
   const fixedPaymentAmount = '400.00'
   const paymentStorageKey = `almawaid_payment_receipt_${user.id}`
 
