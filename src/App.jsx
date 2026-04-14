@@ -3,7 +3,7 @@ import React from "react";
 
 export default function App() {
   // Change these values
-  const receiverUpi = "9876543210"; // Use UPI ID like "name@upi" or a UPI-linked number
+  const receiverUpi = "6375250267"; // Use UPI ID like "name@upi" or a UPI-linked number
   const receiverName = "Receiver Name";
   const amount = "400.00";
 
