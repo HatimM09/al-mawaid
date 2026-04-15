@@ -405,7 +405,7 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
 
   const primaryUpiId = 'murtazacool558@okhdfcbank'
-  const alternateUpiId = 'murtazacool558@okhdfcbank'
+  const alternateUpiId = 'shydrabadwala53@okhdfcbank'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
