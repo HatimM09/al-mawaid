@@ -406,7 +406,7 @@ function HomePage({ setActiveTab }) {
 
   const primaryUpiId = 'murtazacool558@okhdfcbank'
   const alternateUpiId = 'murtazacool558@okhdfcbank'
-  const fixedPaymentAmount = '100.00'
+  const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -455,7 +455,7 @@ function HomePage({ setActiveTab }) {
     setPaymentError('')
 
     const paymentUrl =
-      `tez://upi/pay?pa=${encodeURIComponent(upiid)}` +
+      `tez://upi/pay?pa=${encodeURIComponent(upiId)}` +
       `&pn=${encodeURIComponent('Al-Mawaid')}` +
       `&am=${encodeURIComponent(fixedPaymentAmount)}` +
       '&cu=INR' +
