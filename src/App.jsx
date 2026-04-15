@@ -418,11 +418,9 @@ const openUpiPayment = (upiId, app = 'gpay') => {
     `&cu=INR` +
     `&tn=${encodeURIComponent('Al-Mawaid payment')}`
 
-  // Direct Google Pay deep-link
   const gpayUrl = `tez://upi/pay?${upiUrl.split('?')[1]}`
 
   try {
-    // Try Google Pay first
     if (app === 'gpay') {
       window.location.href = gpayUrl
     } else {
@@ -433,11 +431,7 @@ const openUpiPayment = (upiId, app = 'gpay') => {
     setTimeout(() => {
       if (document.visibilityState === 'visible') {
         setPaymentError(
-          'Google Pay is showing bank limit exceeded. This is usually from the selected bank account inside GPay, not your total account limit. Please try:\n\n' +
-          '• Switch to another bank account inside Google Pay\n' +
-          '• Use the Alternate UPI button\n' +
-          '• Use PhonePe / Paytm / BHIM with the same UPI ID\n' +
-          '• Wait 30–60 minutes if daily UPI limit is temporarily locked'
+      
         )
       }
     }, 2500)
