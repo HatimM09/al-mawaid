@@ -452,15 +452,6 @@ const handleGPayPayment = () => {
 
 const handleAlternatePayment = () => {
   openUpiPayment(alternateUpiId, 'upi')
-```
-
-Also update the second button text:
-
-```jsx
-Try Alternate UPI App
-```
-
-This change makes the first button open Google Pay directly, and if Google Pay still says “limit exceeded”, the second button opens the normal UPI chooser so the user can pay using another app or bank account.
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
