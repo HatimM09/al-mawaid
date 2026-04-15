@@ -404,7 +404,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const primaryUpiId = 'almawaid@oksbi'
+  const primaryUpiId = 'shydrabadwala53@okhdfcbank'
   const alternateUpiId = 'almawaid@okaxis'
   const fixedPaymentAmount = '400.00'
 
