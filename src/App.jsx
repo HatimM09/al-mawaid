@@ -405,7 +405,7 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
 
 const primaryUpiId = 'shydrabadwala53@okhdfcbank'
-const alternateUpiId = 'almawaid@okaxis'
+const alternateUpiId = 'murtazacool558@okhdfcbank'
 const fixedPaymentAmount = '400.00'
 
 const openUpiPayment = (upiId, app = 'gpay') => {
