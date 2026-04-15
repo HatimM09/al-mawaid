@@ -404,7 +404,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-const primaryUpiId = 'murtazacool558@okhdfcbank'
+const primaryUpiId = 'shydrabadwala53@okhdfcbank'
 const alternateUpiId = 'almawaid@okaxis'
 const fixedPaymentAmount = '100.00'
 
@@ -418,9 +418,11 @@ const openUpiPayment = (upiId, app = 'gpay') => {
     `&cu=INR` +
     `&tn=${encodeURIComponent('Al-Mawaid payment')}`
 
+  // Direct Google Pay deep-link
   const gpayUrl = `tez://upi/pay?${upiUrl.split('?')[1]}`
 
   try {
+    // Try Google Pay first
     if (app === 'gpay') {
       window.location.href = gpayUrl
     } else {
@@ -431,7 +433,11 @@ const openUpiPayment = (upiId, app = 'gpay') => {
     setTimeout(() => {
       if (document.visibilityState === 'visible') {
         setPaymentError(
-      
+          'Google Pay is showing bank limit exceeded. Please try:\n\n' +
+          '• Switch to another bank account inside Google Pay\n' +
+          '• Use the Alternate UPI button\n' +
+          '• Use PhonePe / Paytm / BHIM with the same UPI ID\n' +
+          '• Wait 30–60 minutes if daily UPI limit is temporarily locked'
         )
       }
     }, 2500)
@@ -446,6 +452,7 @@ const handleGPayPayment = () => {
 
 const handleAlternatePayment = () => {
   openUpiPayment(alternateUpiId, 'upi')
+}
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
