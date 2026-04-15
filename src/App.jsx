@@ -404,7 +404,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const primaryUpiId = 'shydrabadwala53@okhdfcbank'
+  const primaryUpiId = 'almawaid@oksbi'
   const alternateUpiId = 'almawaid@okaxis'
   const fixedPaymentAmount = '400.00'
 
@@ -1262,7 +1262,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
+        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
         desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
@@ -1403,7 +1403,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
-  const almawaidHelplineWhatsApp = '917737151253'
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
@@ -1518,7 +1518,7 @@ function KhidmatPage({ onBack }) {
       </div>
       <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
         border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-        🤝 Our dedicated AlMawaid team — the ones who make every meal possible.
+        🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
@@ -1833,6 +1833,7 @@ function QueriesSection() {
   const [error, setError]           = useState('')
   const [success, setSuccess]       = useState('')
   const fileInputRef = useRef(null)
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => { loadQueries() }, [])
 
@@ -1884,6 +1885,17 @@ function QueriesSection() {
   }
 
   const statusColor = s => s==='open' ? '#d4882a' : s==='resolved' ? '#5eba82' : '#7aabb8'
+
+  const buildQueryShareLink = (query) => {
+    const lines = [
+      'Assalamualaikum Al-Mawaid,',
+      'I want to share my query details.',
+      `Status: ${(query.status || 'open').toUpperCase()}`,
+      `Query: ${query.comment ? query.comment : (query.media?.length ? 'Media attached' : 'No comment')}`,
+      `Created on: ${new Date(query.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`
+    ]
+    return `https://wa.me/${almawaidHelplineWhatsApp}?text=${encodeURIComponent(lines.join('\n'))}`
+  }
 
   return (
     <div>
@@ -1950,15 +1962,38 @@ function QueriesSection() {
           fontFamily:"'DM Sans',sans-serif" }}>No queries yet.</div>
       ) : queries.map(q => (
         <Card key={q.id} style={{ marginBottom:10 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-            <span style={{ fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>
-              {new Date(q.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
-            </span>
-            <span style={{ fontSize:10, fontWeight:700, padding:'2px 9px', borderRadius:20,
-              background:`${statusColor(q.status)}20`, color:statusColor(q.status),
-              border:`1px solid ${statusColor(q.status)}38`, fontFamily:"'DM Sans',sans-serif" }}>
-              {q.status?.toUpperCase()}
-            </span>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:8 }}>
+            <div>
+              <span style={{ display:'block', fontSize:11, color:t.textSub, fontFamily:"'DM Sans',sans-serif", marginBottom:4 }}>
+                {new Date(q.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
+              </span>
+              <span style={{ fontSize:10, fontWeight:700, padding:'2px 9px', borderRadius:20,
+                background:`${statusColor(q.status)}20`, color:statusColor(q.status),
+                border:`1px solid ${statusColor(q.status)}38`, fontFamily:"'DM Sans',sans-serif" }}>
+                {q.status?.toUpperCase()}
+              </span>
+            </div>
+            <a
+              href={buildQueryShareLink(q)}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                width:38,
+                height:38,
+                borderRadius:12,
+                background:'linear-gradient(135deg,#25D366,#128C7E)',
+                color:'#fff',
+                display:'flex',
+                alignItems:'center',
+                justifyContent:'center',
+                textDecoration:'none',
+                flexShrink:0,
+                boxShadow:'0 8px 18px rgba(18,140,126,0.22)'
+              }}
+              aria-label="Share query on WhatsApp"
+            >
+              <WhatsAppLogo size={18} />
+            </a>
           </div>
           {q.comment && (
             <p style={{ margin:'0 0 8px', fontSize:14, color:t.textBody, lineHeight:1.6,
