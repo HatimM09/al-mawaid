@@ -455,7 +455,7 @@ function HomePage({ setActiveTab }) {
     setPaymentError('')
 
     const paymentUrl =
-      `tez://upi/pay?pa=${encodeURIComponent(murtazacool558@okhdfcbank)}` +
+      `tez://upi/pay?pa=${encodeURIComponent(upiid)}` +
       `&pn=${encodeURIComponent('Al-Mawaid')}` +
       `&am=${encodeURIComponent(fixedPaymentAmount)}` +
       '&cu=INR' +
