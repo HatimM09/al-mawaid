@@ -404,55 +404,73 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-const primaryUpiId = 'shydrabadwala53@okhdfcbank'
-const alternateUpiId = 'almawaid@okaxis'
-const fixedPaymentAmount = '100.00'
+  const primaryUpiId = 'almawaid@oksbi'
+  const alternateUpiId = 'almawaid@okaxis'
+  const fixedPaymentAmount = '400.00'
 
-const openUpiPayment = (upiId, app = 'gpay') => {
-  setPaymentError('')
+  const surveyOpen = isSurveyOpen()
 
-  const upiUrl =
-    `upi://pay?pa=${encodeURIComponent(upiId)}` +
-    `&pn=${encodeURIComponent('Al-Mawaid')}` +
-    `&am=${encodeURIComponent(fixedPaymentAmount)}` +
-    `&cu=INR` +
-    `&tn=${encodeURIComponent('Al-Mawaid payment')}`
+  useEffect(() => { loadData() }, [user])
 
-  // Direct Google Pay deep-link
-  const gpayUrl = `tez://upi/pay?${upiUrl.split('?')[1]}`
+  const loadData = async () => {
+    try {
+      const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
+      if (data) setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
+    } catch {}
 
-  try {
-    // Try Google Pay first
-    if (app === 'gpay') {
-      window.location.href = gpayUrl
-    } else {
-      // Fallback to generic UPI app chooser
-      window.location.href = upiUrl
-    }
+    try {
+      const { data } = await supabase.from('survey_responses').select('day,meal').eq('user_id', user.id)
+      const counts = {}
+      ;(data||[]).forEach(r => {
+        if (!counts[r.day]) counts[r.day] = new Set()
+        counts[r.day].add(r.meal)
+      })
+      setSurveyDaysCounts(counts)
+    } catch {}
 
-    setTimeout(() => {
-      if (document.visibilityState === 'visible') {
-        setPaymentError(
-          'Google Pay is showing bank limit exceeded. Please try:\n\n' +
-          '• Switch to another bank account inside Google Pay\n' +
-          '• Use the Alternate UPI button\n' +
-          '• Use PhonePe / Paytm / BHIM with the same UPI ID\n' +
-          '• Wait 30–60 minutes if daily UPI limit is temporarily locked'
-        )
-      }
-    }, 2500)
-  } catch (err) {
-    setPaymentError('Unable to open UPI payment app. Please try again.')
+    try {
+      const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
+      const counts = {}
+      ;(data||[]).forEach(r => {
+        if (!counts[r.day]) counts[r.day] = { lunch:false, dinner:false }
+        if (r.lunch_stars)  counts[r.day].lunch  = true
+        if (r.dinner_stars) counts[r.day].dinner = true
+      })
+      setFeedbackCounts(counts)
+    } catch {}
+
+    setStatsLoading(false)
   }
-}
 
-const handleGPayPayment = () => {
-  openUpiPayment(primaryUpiId, 'gpay')
-}
+  const surveyedDaysCount = Object.values(surveyDaysCounts).filter(s => s.size >= 2).length
+  const feedbackDaysCount = Object.values(feedbackCounts).filter(f => f.lunch && f.dinner).length
 
-const handleAlternatePayment = () => {
-  openUpiPayment(alternateUpiId, 'upi')
-}
+  const openSurveyFromDay = (day) => {
+    if (!surveyOpen) return
+    setSurveyStartDay(day)
+    setShowSurvey(true)
+  }
+
+  const openUpiPayment = (upiId) => {
+    setPaymentError('')
+
+    const params = `pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent('Al-Mawaid')}&am=${encodeURIComponent(fixedPaymentAmount)}&cu=INR&tn=${encodeURIComponent('Al-Mawaid payment')}`;
+    const paymentUrl = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+
+    try {
+      window.location.href = paymentUrl
+      window.setTimeout(() => {
+        if (document.visibilityState === 'visible') {
+          setPaymentError('Payment could not complete. If you see exceeded limit in GPay, try the alternate UPI ID or another bank account in Google Pay.')
+        }
+      }, 1800)
+    } catch {
+      setPaymentError('Unable to open Google Pay right now. Please try again.')
+    }
+  }
+
+  const handleGPayPayment = () => openUpiPayment(primaryUpiId)
+  const handleAlternatePayment = () => openUpiPayment(alternateUpiId)
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
@@ -1244,7 +1262,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests"  icon={<FileText size={19} color="#fff"/>}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')}/>
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff"/>}
-        desc="Meet our AlMawaid team" onClick={() => onNav('khidmat')}/>
+        desc="Meet our service team" onClick={() => onNav('khidmat')}/>
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff"/>}
         desc="See notices and important updates" onClick={() => onNav('notifications')}/>
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff"/>}
@@ -1385,7 +1403,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
-  const almawaidHelplineWhatsApp = '917737151253'
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
@@ -1500,7 +1518,7 @@ function KhidmatPage({ onBack }) {
       </div>
       <div style={{ marginBottom:16, padding:'11px 14px', borderRadius:12, background:t.accentBg,
         border:`1px solid ${t.accentBorder}`, fontSize:13, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>
-        🤝 Our dedicated AlMawaid team — the ones who make every meal possible.
+        🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner/> : staff.length === 0 ? (
         <div style={{ textAlign:'center', padding:48, color:t.textSub, fontSize:15, fontFamily:"'DM Sans',sans-serif" }}>
