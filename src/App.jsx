@@ -1407,7 +1407,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
-  const almawaidHelplineWhatsApp = '911234567890'
+  const almawaidHelplineWhatsApp = '917737151253'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
