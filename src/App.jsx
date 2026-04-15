@@ -404,8 +404,8 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const primaryUpiId = 'shydrabadwala53@okhdfcbank'
-  const alternateUpiId = 'murtazacool558@okhdfcbank'
+  const primaryUpiId = 'almawaid@oksbi'
+  const alternateUpiId = 'almawaid@okaxis'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -1407,6 +1407,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading]   = useState(true)
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
@@ -1417,6 +1418,24 @@ function MyRequestsPage({ onBack }) {
 
   const statusColor = s => s==='pending' ? '#d4882a' : s==='approved' ? '#5eba82' : '#e05555'
   const typeLabel   = t => t === 'resume' ? '▶️ Resume' : t === 'stop' ? '⏹️ Stop' : '➕ Extra Food'
+
+  const buildShareLink = (request) => {
+    const lines = [
+      'Assalamualaikum Al-Mawaid,',
+      'I want to share my request details.',
+      `Request type: ${typeLabel(request.request_type)}`,
+      `Status: ${(request.status || 'pending').toUpperCase()}`,
+    ]
+
+    if (request.from_date) lines.push(`Dates: ${request.from_date} to ${request.to_date}`)
+    if (request.extra_items?.length) {
+      lines.push(`Items: ${request.extra_items.map(item => `${item.name} x${item.qty}`).join(', ')}`)
+    }
+    if (request.admin_note) lines.push(`Admin note: ${request.admin_note}`)
+    lines.push(`Created on: ${new Date(request.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}`)
+
+    return `https://wa.me/${almawaidHelplineWhatsApp}?text=${encodeURIComponent(lines.join('\n'))}`
+  }
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:600, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
@@ -1434,17 +1453,40 @@ function MyRequestsPage({ onBack }) {
         </div>
       ) : requests.map(r => (
         <Card key={r.id} style={{ marginBottom:10 }}>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6 }}>
-            <span style={{ fontSize:15, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{typeLabel(r.request_type)}</span>
-            <span style={{ fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20,
-              background:`${statusColor(r.status)}20`, color:statusColor(r.status),
-              border:`1px solid ${statusColor(r.status)}40`, fontFamily:"'DM Sans',sans-serif" }}>
-              {r.status?.toUpperCase()}
-            </span>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:10, marginBottom:6 }}>
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:t.text, fontFamily:"'DM Sans',sans-serif" }}>{typeLabel(r.request_type)}</div>
+              <span style={{ display:'inline-flex', marginTop:6, fontSize:10, fontWeight:700, padding:'3px 10px', borderRadius:20,
+                background:`${statusColor(r.status)}20`, color:statusColor(r.status),
+                border:`1px solid ${statusColor(r.status)}40`, fontFamily:"'DM Sans',sans-serif" }}>
+                {r.status?.toUpperCase()}
+              </span>
+            </div>
+            <a
+              href={buildShareLink(r)}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                width:38,
+                height:38,
+                borderRadius:12,
+                background:'linear-gradient(135deg,#25D366,#128C7E)',
+                color:'#fff',
+                display:'flex',
+                alignItems:'center',
+                justifyContent:'center',
+                textDecoration:'none',
+                flexShrink:0,
+                boxShadow:'0 8px 18px rgba(18,140,126,0.22)'
+              }}
+              aria-label="Share request on WhatsApp"
+            >
+              <WhatsAppLogo size={18} />
+            </a>
           </div>
-          {r.from_date && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.from_date} → {r.to_date}</div>}
-          {r.extra_items && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.extra_items.map(i => `${i.name} ×${i.qty}`).join(', ')}</div>}
-          {r.admin_note && <div style={{ marginTop:8, fontSize:12, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>📝 {r.admin_note}</div>}
+          {r.from_date && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.from_date} -> {r.to_date}</div>}
+          {r.extra_items && <div style={{ fontSize:12, color:t.textSub, fontFamily:"'DM Sans',sans-serif" }}>{r.extra_items.map(i => `${i.name} x${i.qty}`).join(', ')}</div>}
+          {r.admin_note && <div style={{ marginTop:8, fontSize:12, color:t.accent, fontFamily:"'DM Sans',sans-serif" }}>Note: {r.admin_note}</div>}
           <div style={{ fontSize:10, color:t.textSub, marginTop:6, opacity:0.5, fontFamily:"'DM Sans',sans-serif" }}>
             {new Date(r.created_at).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' })}
           </div>
