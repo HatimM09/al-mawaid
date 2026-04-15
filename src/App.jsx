@@ -404,9 +404,9 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-const primaryUpiId = 'shydrabadwala53@okhdfcbank'
-const alternateUpiId = 'murtazacool558@okhdfcbank'
-const fixedPaymentAmount = '400.00'
+const primaryUpiId = 'murtazacool558@okhdfcbank'
+const alternateUpiId = 'almawaid@okaxis'
+const fixedPaymentAmount = '100.00'
 
 const openUpiPayment = (upiId, app = 'gpay') => {
   setPaymentError('')
@@ -452,7 +452,6 @@ const handleGPayPayment = () => {
 
 const handleAlternatePayment = () => {
   openUpiPayment(alternateUpiId, 'upi')
-}
 ```
 
 Also update the second button text:
