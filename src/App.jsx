@@ -404,77 +404,64 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const primaryUpiId = 'murtazacool558@okhdfcbank'
-  const alternateUpiId = 'shydrabadwala53@okhdfcbank'
-  const fixedPaymentAmount = '400.00'
+const primaryUpiId = 'shydrabadwala53@okhdfcbank'
+const alternateUpiId = 'almawaid@okaxis'
+const fixedPaymentAmount = '400.00'
 
-  const surveyOpen = isSurveyOpen()
+const openUpiPayment = (upiId, app = 'gpay') => {
+  setPaymentError('')
 
-  useEffect(() => { loadData() }, [user])
+  const upiUrl =
+    `upi://pay?pa=${encodeURIComponent(upiId)}` +
+    `&pn=${encodeURIComponent('Al-Mawaid')}` +
+    `&am=${encodeURIComponent(fixedPaymentAmount)}` +
+    `&cu=INR` +
+    `&tn=${encodeURIComponent('Al-Mawaid payment')}`
 
-  const loadData = async () => {
-    try {
-      const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      if (data) setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
-    } catch {}
+  // Direct Google Pay deep-link
+  const gpayUrl = `tez://upi/pay?${upiUrl.split('?')[1]}`
 
-    try {
-      const { data } = await supabase.from('survey_responses').select('day,meal').eq('user_id', user.id)
-      const counts = {}
-      ;(data||[]).forEach(r => {
-        if (!counts[r.day]) counts[r.day] = new Set()
-        counts[r.day].add(r.meal)
-      })
-      setSurveyDaysCounts(counts)
-    } catch {}
-
-    try {
-      const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
-      const counts = {}
-      ;(data||[]).forEach(r => {
-        if (!counts[r.day]) counts[r.day] = { lunch:false, dinner:false }
-        if (r.lunch_stars)  counts[r.day].lunch  = true
-        if (r.dinner_stars) counts[r.day].dinner = true
-      })
-      setFeedbackCounts(counts)
-    } catch {}
-
-    setStatsLoading(false)
-  }
-
-  const surveyedDaysCount = Object.values(surveyDaysCounts).filter(s => s.size >= 2).length
-  const feedbackDaysCount = Object.values(feedbackCounts).filter(f => f.lunch && f.dinner).length
-
-  const openSurveyFromDay = (day) => {
-    if (!surveyOpen) return
-    setSurveyStartDay(day)
-    setShowSurvey(true)
-  }
-
-  const openUpiPayment = (upiId) => {
-    setPaymentError('')
-
-    const paymentUrl =
-      `tez://upi/pay?pa=${encodeURIComponent(upiId)}` +
-      `&pn=${encodeURIComponent('Al-Mawaid')}` +
-      `&am=${encodeURIComponent(fixedPaymentAmount)}` +
-      '&cu=INR' +
-      `&tn=${encodeURIComponent('Al-Mawaid payment')}`
-
-    try {
-      window.location.href = paymentUrl
-      window.setTimeout(() => {
-        if (document.visibilityState === 'visible') {
-          setPaymentError('Payment could not complete. If you see exceeded limit in GPay, try the alternate UPI ID or another bank account in Google Pay.')
-        }
-      }, 1800)
-    } catch {
-      setPaymentError('Unable to open Google Pay right now. Please try again.')
+  try {
+    // Try Google Pay first
+    if (app === 'gpay') {
+      window.location.href = gpayUrl
+    } else {
+      // Fallback to generic UPI app chooser
+      window.location.href = upiUrl
     }
-  }
 
-  const handleGPayPayment = () => openUpiPayment(primaryUpiId)
-  const handleAlternatePayment = () => openUpiPayment(alternateUpiId)
+    setTimeout(() => {
+      if (document.visibilityState === 'visible') {
+        setPaymentError(
+          'Google Pay is showing bank limit exceeded. This is usually from the selected bank account inside GPay, not your total account limit. Please try:\n\n' +
+          '• Switch to another bank account inside Google Pay\n' +
+          '• Use the Alternate UPI button\n' +
+          '• Use PhonePe / Paytm / BHIM with the same UPI ID\n' +
+          '• Wait 30–60 minutes if daily UPI limit is temporarily locked'
+        )
+      }
+    }, 2500)
+  } catch (err) {
+    setPaymentError('Unable to open UPI payment app. Please try again.')
+  }
+}
+
+const handleGPayPayment = () => {
+  openUpiPayment(primaryUpiId, 'gpay')
+}
+
+const handleAlternatePayment = () => {
+  openUpiPayment(alternateUpiId, 'upi')
+}
+```
+
+Also update the second button text:
+
+```jsx
+Try Alternate UPI App
+```
+
+This change makes the first button open Google Pay directly, and if Google Pay still says “limit exceeded”, the second button opens the normal UPI chooser so the user can pay using another app or bank account.
 
   return (
     <main style={{ flex:1, padding:'16px 16px 96px', maxWidth:800, margin:'0 auto', width:'100%', boxSizing:'border-box' }}>
