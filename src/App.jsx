@@ -433,11 +433,12 @@ function HomePage({ setActiveTab }) {
   const [feedbackCounts, setFeedbackCounts] = useState({})
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
+  const [paymentLoading, setPaymentLoading] = useState(false)
   const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
-  const receiverName = 'AlMawaid'
-  const fixedPaymentAmount = '100.00'
+  const receiverUpiId = 'yourvpa@upi'
+  const receiverName = 'YourName'
+  const fixedPaymentAmount = '1.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -484,17 +485,11 @@ function HomePage({ setActiveTab }) {
 
   const handlePayment = () => {
     setPaymentError('')
-
-    // Critical fix: Do NOT encodeURIComponent the VPA (receiverUpiId).
-    // Some UPI apps (like GPay) reject the payment if '@' is encoded to '%40'.
     const params = `pa=${receiverUpiId}&pn=${encodeURIComponent(receiverName)}&am=${fixedPaymentAmount}&cu=INR`;
-    
-    // Check if Android, to use explicit intent, otherwise general upi intent
     const isAndroid = /Android/i.test(navigator.userAgent);
     const paymentUrl = isAndroid 
       ? `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
       : `upi://pay?${params}`;
-
     try {
       window.location.href = paymentUrl
       window.setTimeout(() => {
@@ -504,6 +499,68 @@ function HomePage({ setActiveTab }) {
       }, 1800)
     } catch {
       setPaymentError('Unable to open UPI apps right now. Please try again.')
+    }
+  }
+
+  const handleCashfreePayment = async () => {
+    setPaymentError('');
+    setPaymentLoading(true);
+    try {
+      // 1) Dynamically Load Cashfree JS SDK
+      const script = document.createElement('script');
+      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+      
+      const scriptLoadPromise = new Promise((resolve, reject) => {
+          script.onload = () => resolve(window.Cashfree);
+          script.onerror = () => reject(new Error("Failed to load Cashfree script. Are you offline?"));
+          document.body.appendChild(script);
+      });
+
+      const CashfreeClass = await scriptLoadPromise;
+      if (!CashfreeClass) throw new Error("Cashfree object is undefined");
+
+      const cashfree = CashfreeClass({
+          mode: "sandbox", // Switch to "production" for live
+      });
+
+      // 2) Create the order via secure Supabase Edge Function to protect API keys
+      const { data, error } = await supabase.functions.invoke('create-cashfree-order', {
+        body: { 
+            amount: fixedPaymentAmount, 
+            customer_id: user.id || 'cust_12345', 
+            customer_phone: profileData.phone || '9999999999', 
+            customer_email: user.email || 'guest@example.com', 
+            customer_name: profileData.name || 'Member' 
+        }
+      });
+
+      if (error || !data || !data.payment_session_id) {
+         throw new Error(error?.message || 'Setup Error: The Supabase Backend Edge Function failed to create order. Please make sure `create-cashfree-order` is deployed with your Cashfree Keys.');
+      }
+      
+      // 3) Open Checkout
+      const checkoutOptions = {
+        paymentSessionId: data.payment_session_id,
+        redirectTarget: "_modal",
+      };
+      
+      cashfree.checkout(checkoutOptions).then((result) => {
+          if (result.error) {
+              setPaymentError(result.error.message || 'Payment cancelled');
+          }
+          if (result.redirect) {
+              // redirection to cashfree checkout
+          }
+          if (result.paymentDetails) {
+              // payment is successful, verify and log receipt
+              setPaymentError('SUCCESS: Payment completed! You can view receipts in your dashboard soon.');
+          }
+      });
+
+    } catch (err) {
+      setPaymentError(err.message || 'Payment integration failed.');
+    } finally {
+      setPaymentLoading(false);
     }
   }
 
@@ -544,7 +601,8 @@ function HomePage({ setActiveTab }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
             <button
-              onClick={handlePayment}
+              onClick={handleCashfreePayment}
+              disabled={paymentLoading}
               style={{
                 minWidth: 190,
                 padding: '13px 18px',
@@ -554,7 +612,8 @@ function HomePage({ setActiveTab }) {
                 color: '#fff',
                 fontSize: 14,
                 fontWeight: 700,
-                cursor: 'pointer',
+                cursor: paymentLoading ? 'not-allowed' : 'pointer',
+                opacity: paymentLoading ? 0.7 : 1,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -564,7 +623,29 @@ function HomePage({ setActiveTab }) {
               }}
             >
               <Wallet size={16} />
-              Pay with GPay / UPI App
+              {paymentLoading ? 'Connecting...' : 'Secure Pay with Cashfree'}
+            </button>
+            <button
+              onClick={handlePayment}
+              style={{
+                minWidth: 190,
+                padding: '13px 18px',
+                border: `1px solid ${t.accentBorder}`,
+                borderRadius: 14,
+                background: t.accentBg,
+                color: t.accent,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                fontFamily: "'DM Sans',sans-serif"
+              }}
+            >
+              <Wallet size={16} />
+              GPay / Simple UPI Option
             </button>
             <button
               onClick={() => setShowQR(!showQR)}
