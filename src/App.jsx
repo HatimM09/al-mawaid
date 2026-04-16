@@ -435,8 +435,9 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
   const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
-  const fixedPaymentAmount = '400.00'
+  const receiverUpiId = 'yourvpa@upi'
+  const receiverName = 'YourName'
+  const fixedPaymentAmount = '1.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -486,7 +487,7 @@ function HomePage({ setActiveTab }) {
 
     // Critical fix: Do NOT encodeURIComponent the VPA (receiverUpiId).
     // Some UPI apps (like GPay) reject the payment if '@' is encoded to '%40'.
-    const params = `pa=${receiverUpiId}&pn=${encodeURIComponent('Al-Mawaid')}&am=${fixedPaymentAmount}&cu=INR`;
+    const params = `pa=${receiverUpiId}&pn=${encodeURIComponent(receiverName)}&am=${fixedPaymentAmount}&cu=INR`;
     
     // Check if Android, to use explicit intent, otherwise general upi intent
     const isAndroid = /Android/i.test(navigator.userAgent);
@@ -596,7 +597,7 @@ function HomePage({ setActiveTab }) {
               Scan to Pay ₹{fixedPaymentAmount}
             </div>
             <img 
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${receiverUpiId}&pn=Al-Mawaid&am=${fixedPaymentAmount}&cu=INR`)}`} 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${receiverUpiId}&pn=${encodeURIComponent(receiverName)}&am=${fixedPaymentAmount}&cu=INR`)}`} 
               alt="UPI QR Code" 
               onClick={handlePayment}
               style={{ width: 200, height: 200, display: 'block', margin: '0 auto', borderRadius: 8, border: '1px solid #eee', cursor: 'pointer' }} 
