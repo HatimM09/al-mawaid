@@ -433,8 +433,9 @@ function HomePage({ setActiveTab }) {
   const [feedbackCounts, setFeedbackCounts] = useState({})
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
+  const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
+  const receiverUpiId = 'almawaid@oksbi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -557,8 +558,43 @@ function HomePage({ setActiveTab }) {
               <Wallet size={16} />
               Pay with UPI App
             </button>
+            <button
+              onClick={() => setShowQR(!showQR)}
+              style={{
+                minWidth: 190,
+                padding: '13px 18px',
+                border: `1px solid ${t.accentBorder}`,
+                borderRadius: 14,
+                background: t.accentBg,
+                color: t.accent,
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                fontFamily: "'DM Sans',sans-serif"
+              }}
+            >
+              <Camera size={16} />
+              {showQR ? 'Hide QR Code' : 'Show QR Code'}
+            </button>
           </div>
         </div>
+
+        {showQR && (
+          <div style={{ marginTop: 16, textAlign: 'center', padding: '16px', background: '#fff', borderRadius: 12 }}>
+            <div style={{ marginBottom: 12, fontSize: 13, color: '#333', fontWeight: 700, fontFamily: "'DM Sans',sans-serif" }}>
+              Scan to Pay ₹{fixedPaymentAmount}
+            </div>
+            <img 
+              src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${receiverUpiId}&pn=Al-Mawaid&am=${fixedPaymentAmount}&cu=INR`)}`} 
+              alt="UPI QR Code" 
+              style={{ width: 200, height: 200, display: 'block', margin: '0 auto', borderRadius: 8, border: '1px solid #eee' }} 
+            />
+          </div>
+        )}
 
         {paymentError && <ErrorBanner msg={paymentError} />}
       </Card>
@@ -1507,7 +1543,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
-  const almawaidHelplineWhatsApp = '917737151253'
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
