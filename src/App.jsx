@@ -1550,7 +1550,7 @@ function MyRequestsPage({ onBack }) {
 
   const buildShareLink = (request) => {
     const lines = [
-      'Assalamualaikum Al-Mawaid,',
+      'Salam Jameel Al-Mawaid,',
       'I want to share my request details.',
       `Request type: ${typeLabel(request.request_type)}`,
       `Status: ${(request.status || 'pending').toUpperCase()}`,
@@ -2058,7 +2058,7 @@ function QueriesSection() {
 
   const buildQueryShareLink = (query) => {
     const lines = [
-      'Assalamualaikum Al-Mawaid,',
+      'Salam Jameel Al-Mawaid,',
       'I want to share my query details.',
       `Status: ${(query.status || 'open').toUpperCase()}`,
       `Query: ${query.comment ? query.comment : (query.media?.length ? 'Media attached' : 'No comment')}`,
