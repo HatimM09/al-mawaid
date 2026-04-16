@@ -434,8 +434,7 @@ function HomePage({ setActiveTab }) {
   const [statsLoading, setStatsLoading] = useState(true)
   const [paymentError, setPaymentError] = useState('')
 
-  const primaryUpiId = 'almawaid@oksbi'
-  const alternateUpiId = 'almawaid@okaxis'
+  const receiverUpiId = 'almawaid@oksbi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -481,26 +480,23 @@ function HomePage({ setActiveTab }) {
     setShowSurvey(true)
   }
 
-  const openUpiPayment = (upiId) => {
+  const handlePayment = () => {
     setPaymentError('')
 
-    const params = `pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent('Al-Mawaid')}&am=${encodeURIComponent(fixedPaymentAmount)}&cu=INR&tn=${encodeURIComponent('Al-Mawaid payment')}`;
-    const paymentUrl = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+    const params = `pa=${encodeURIComponent(receiverUpiId)}&pn=${encodeURIComponent('Al-Mawaid')}&am=${encodeURIComponent(fixedPaymentAmount)}&cu=INR&tn=${encodeURIComponent('Al-Mawaid payment')}`;
+    const paymentUrl = `upi://pay?${params}`;
 
     try {
       window.location.href = paymentUrl
       window.setTimeout(() => {
         if (document.visibilityState === 'visible') {
-          setPaymentError('Payment could not complete. If you see exceeded limit in GPay, try the alternate UPI ID or another bank account in Google Pay.')
+          setPaymentError('Payment could not complete. Ensure you have a UPI app installed.')
         }
       }, 1800)
     } catch {
-      setPaymentError('Unable to open Google Pay right now. Please try again.')
+      setPaymentError('Unable to open UPI apps right now. Please try again.')
     }
   }
-
-  const handleGPayPayment = () => openUpiPayment(primaryUpiId)
-  const handleAlternatePayment = () => openUpiPayment(alternateUpiId)
 
   return (
     <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: 800, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
@@ -525,30 +521,27 @@ function HomePage({ setActiveTab }) {
       <Card style={{ marginBottom: 18 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 220 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>Google Pay</div>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
             <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs 400</div>
             <div style={{ fontSize: 12, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>
-              Fixed amount. Primary UPI ID: {primaryUpiId}
+              Fixed amount. UPI ID: {receiverUpiId}
             </div>
             <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
               <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                If GPay shows exceeded limit, try the alternate UPI ID below or switch to another bank account inside Google Pay.
-              </div>
-              <div style={{ marginTop: 6, fontSize: 12, color: t.accent, fontWeight: 700, fontFamily: "'DM Sans',sans-serif" }}>
-                Alternate UPI ID: {alternateUpiId}
+                Choose any installed UPI app (GPay, PhonePe, Paytm, etc.) to complete your payment.
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
             <button
-              onClick={handleGPayPayment}
+              onClick={handlePayment}
               style={{
                 minWidth: 190,
                 padding: '13px 18px',
                 border: 'none',
                 borderRadius: 14,
-                background: 'linear-gradient(135deg,#0f9d58,#0b7d45)',
+                background: t.accentGrad,
                 color: '#fff',
                 fontSize: 14,
                 fontWeight: 700,
@@ -557,34 +550,12 @@ function HomePage({ setActiveTab }) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 8,
-                boxShadow: '0 10px 24px rgba(15,157,88,0.22)',
+                boxShadow: `0 10px 24px ${t.accentBg}`,
                 fontFamily: "'DM Sans',sans-serif"
               }}
             >
               <Wallet size={16} />
-              Pay with GPay
-            </button>
-            <button
-              onClick={handleAlternatePayment}
-              style={{
-                minWidth: 190,
-                padding: '13px 18px',
-                border: `1px solid ${t.accentBorder}`,
-                borderRadius: 14,
-                background: t.accentBg,
-                color: t.accent,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                fontFamily: "'DM Sans',sans-serif"
-              }}
-            >
-              <Wallet size={16} />
-              Try Alternate UPI
+              Pay with UPI App
             </button>
           </div>
         </div>
@@ -1375,7 +1346,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests" icon={<FileText size={19} color="#fff" />}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')} />
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff" />}
-        desc="Meet AlMawaid team" onClick={() => onNav('khidmat')} />
+        desc="Meet our service team" onClick={() => onNav('khidmat')} />
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff" />}
         desc="See notices and important updates" onClick={() => onNav('notifications')} />
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff" />}
@@ -1536,7 +1507,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
-  const almawaidHelplineWhatsApp = '917737151253'
+  const almawaidHelplineWhatsApp = '911234567890'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
@@ -1550,7 +1521,7 @@ function MyRequestsPage({ onBack }) {
 
   const buildShareLink = (request) => {
     const lines = [
-      'Salam Jameel Al-Mawaid,',
+      'Assalamualaikum Al-Mawaid,',
       'I want to share my request details.',
       `Request type: ${typeLabel(request.request_type)}`,
       `Status: ${(request.status || 'pending').toUpperCase()}`,
@@ -1655,7 +1626,7 @@ function KhidmatPage({ onBack }) {
         marginBottom: 16, padding: '11px 14px', borderRadius: 12, background: t.accentBg,
         border: `1px solid ${t.accentBorder}`, fontSize: 13, color: t.accent, fontFamily: "'DM Sans',sans-serif"
       }}>
-        🤝 Our dedicated AlMawaid team — the ones who make every meal possible.
+        🤝 Our dedicated service team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner /> : staff.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 48, color: t.textSub, fontSize: 15, fontFamily: "'DM Sans',sans-serif" }}>
@@ -2058,7 +2029,7 @@ function QueriesSection() {
 
   const buildQueryShareLink = (query) => {
     const lines = [
-      'Salam Jameel Al-Mawaid,',
+      'Assalamualaikum Al-Mawaid,',
       'I want to share my query details.',
       `Status: ${(query.status || 'open').toUpperCase()}`,
       `Query: ${query.comment ? query.comment : (query.media?.length ? 'Media attached' : 'No comment')}`,
