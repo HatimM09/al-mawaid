@@ -435,7 +435,7 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
   const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
+  const receiverUpiId = 'almawaid@oksbi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -484,14 +484,21 @@ function HomePage({ setActiveTab }) {
   const handlePayment = () => {
     setPaymentError('')
 
-    const params = `pa=${encodeURIComponent(receiverUpiId)}&pn=${encodeURIComponent('Al-Mawaid')}&am=${encodeURIComponent(fixedPaymentAmount)}&cu=INR&tn=${encodeURIComponent('Al-Mawaid payment')}`;
-    const paymentUrl = `upi://pay?${params}`;
+    // Critical fix: Do NOT encodeURIComponent the VPA (receiverUpiId).
+    // Some UPI apps (like GPay) reject the payment if '@' is encoded to '%40'.
+    const params = `pa=${receiverUpiId}&pn=${encodeURIComponent('Al-Mawaid')}&am=${fixedPaymentAmount}&cu=INR`;
+    
+    // Check if Android, to use explicit intent, otherwise general upi intent
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const paymentUrl = isAndroid 
+      ? `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`
+      : `upi://pay?${params}`;
 
     try {
       window.location.href = paymentUrl
       window.setTimeout(() => {
         if (document.visibilityState === 'visible') {
-          setPaymentError('Payment could not complete. Ensure you have a UPI app installed.')
+          setPaymentError('Payment could not complete. Open your UPI app and try again.')
         }
       }, 1800)
     } catch {
@@ -535,6 +542,29 @@ function HomePage({ setActiveTab }) {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+            <button
+              onClick={handlePayment}
+              style={{
+                minWidth: 190,
+                padding: '13px 18px',
+                border: 'none',
+                borderRadius: 14,
+                background: t.accentGrad,
+                color: '#fff',
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                boxShadow: `0 10px 24px ${t.accentBg}`,
+                fontFamily: "'DM Sans',sans-serif"
+              }}
+            >
+              <Wallet size={16} />
+              Pay with GPay / UPI App
+            </button>
             <button
               onClick={() => setShowQR(!showQR)}
               style={{
