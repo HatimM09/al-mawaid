@@ -435,7 +435,7 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
   const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
+  const receiverUpiId = 'almawaid@oksbi'
   const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
@@ -536,29 +536,6 @@ function HomePage({ setActiveTab }) {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
             <button
-              onClick={handlePayment}
-              style={{
-                minWidth: 190,
-                padding: '13px 18px',
-                border: 'none',
-                borderRadius: 14,
-                background: t.accentGrad,
-                color: '#fff',
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                boxShadow: `0 10px 24px ${t.accentBg}`,
-                fontFamily: "'DM Sans',sans-serif"
-              }}
-            >
-              <Wallet size={16} />
-              Pay with UPI App
-            </button>
-            <button
               onClick={() => setShowQR(!showQR)}
               style={{
                 minWidth: 190,
@@ -591,8 +568,12 @@ function HomePage({ setActiveTab }) {
             <img 
               src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`upi://pay?pa=${receiverUpiId}&pn=Al-Mawaid&am=${fixedPaymentAmount}&cu=INR`)}`} 
               alt="UPI QR Code" 
-              style={{ width: 200, height: 200, display: 'block', margin: '0 auto', borderRadius: 8, border: '1px solid #eee' }} 
+              onClick={handlePayment}
+              style={{ width: 200, height: 200, display: 'block', margin: '0 auto', borderRadius: 8, border: '1px solid #eee', cursor: 'pointer' }} 
             />
+            <div style={{ marginTop: 10, fontSize: 11, color: '#666', fontFamily: "'DM Sans',sans-serif" }}>
+              (Tap the QR code to open UPI app directly on mobile)
+            </div>
           </div>
         )}
 
