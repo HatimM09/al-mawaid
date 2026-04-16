@@ -436,9 +436,9 @@ function HomePage({ setActiveTab }) {
   const [paymentLoading, setPaymentLoading] = useState(false)
   const [paymentReceipt, setPaymentReceipt] = useState(null)
 
-  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
-  const receiverName = 'Shabbir'
-  const fixedPaymentAmount = '400.00'
+  const receiverUpiId = 'yourvpa@upi'
+  const receiverName = 'YourName'
+  const fixedPaymentAmount = '1.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -489,71 +489,71 @@ function HomePage({ setActiveTab }) {
     try {
       const script = document.createElement('script');
       script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-      
+
       const scriptLoadPromise = new Promise((resolve, reject) => {
-          script.onload = () => resolve(window.Cashfree);
-          script.onerror = () => reject(new Error("Failed to load Cashfree script. Are you offline?"));
-          document.body.appendChild(script);
+        script.onload = () => resolve(window.Cashfree);
+        script.onerror = () => reject(new Error("Failed to load Cashfree script. Are you offline?"));
+        document.body.appendChild(script);
       });
 
       const CashfreeClass = await scriptLoadPromise;
       if (!CashfreeClass) throw new Error("Cashfree object is undefined");
 
       const cashfree = CashfreeClass({
-          mode: "production", // Direct to production as user requests
+        mode: "production", // Direct to production as user requests
       });
 
       // Creating order securely bypassing backend via CORS proxy
       // WARNING: Exposed Secret Key
       const orderId = 'ORD_' + Math.floor(Math.random() * 1000000000);
       const res = await fetch('https://corsproxy.io/?https://api.cashfree.com/pg/orders', {
-         method: 'POST',
-         headers: {
-            'x-client-id': '12611419de3385897f7feded6221411621',
-            'x-client-secret': 'cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e',
-            'x-api-version': '2023-08-01',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-         },
-         body: JSON.stringify({
-            order_amount: fixedPaymentAmount,
-            order_currency: "INR",
-            order_id: orderId,
-            customer_details: {
-                customer_id: user.id || 'cust_12345',
-                customer_phone: profileData.phone || '9999999999',
-                customer_email: user.email || 'guest@example.com',
-                customer_name: profileData.name || 'Member'
-            },
-            order_meta: {
-                return_url: window.location.href
-            }
-         })
+        method: 'POST',
+        headers: {
+          'x-client-id': '12611419de3385897f7feded6221411621',
+          'x-client-secret': 'cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e',
+          'x-api-version': '2023-08-01',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+          order_amount: fixedPaymentAmount,
+          order_currency: "INR",
+          order_id: orderId,
+          customer_details: {
+            customer_id: user.id || 'cust_12345',
+            customer_phone: profileData.phone || '9999999999',
+            customer_email: user.email || 'guest@example.com',
+            customer_name: profileData.name || 'Member'
+          },
+          order_meta: {
+            return_url: window.location.href
+          }
+        })
       });
 
       const data = await res.json();
 
       if (!res.ok || !data || !data.payment_session_id) {
-         throw new Error(data?.message || 'Failed to initialize Cashfree Order.');
+        throw new Error(data?.message || 'Failed to initialize Cashfree Order.');
       }
-      
+
       const checkoutOptions = {
         paymentSessionId: data.payment_session_id,
         redirectTarget: "_modal",
       };
-      
+
       cashfree.checkout(checkoutOptions).then((result) => {
-          if (result.error) {
-              setPaymentError(result.error.message || 'Payment cancelled');
-          }
-          if (result.paymentDetails) {
-              setPaymentReceipt({
-                 orderId: orderId,
-                 amount: fixedPaymentAmount,
-                 date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-                 paymentMethod: "Cashfree UPI"
-              })
-          }
+        if (result.error) {
+          setPaymentError(result.error.message || 'Payment cancelled');
+        }
+        if (result.paymentDetails) {
+          setPaymentReceipt({
+            orderId: orderId,
+            amount: fixedPaymentAmount,
+            date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+            paymentMethod: "Cashfree UPI"
+          })
+        }
       });
 
     } catch (err) {
@@ -584,91 +584,91 @@ function HomePage({ setActiveTab }) {
 
 
       {!paymentReceipt ? (
-          <Card style={{ marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
-                <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
-                  <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                    Pay securely using Cashfree Payments Gateway.
-                  </div>
+        <Card style={{ marginBottom: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1, minWidth: 220 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
+              <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                  Pay securely using Cashfree Payments Gateway.
                 </div>
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-                <button
-                  onClick={handleCashfreePayment}
-                  disabled={paymentLoading}
-                  style={{
-                    minWidth: 190,
-                    padding: '13px 18px',
-                    border: 'none',
-                    borderRadius: 14,
-                    background: t.accentGrad,
-                    color: '#fff',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                    opacity: paymentLoading ? 0.7 : 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    boxShadow: `0 10px 24px ${t.accentBg}`,
-                    fontFamily: "'DM Sans',sans-serif"
-                  }}
-                >
-                  <Wallet size={16} />
-                  {paymentLoading ? 'Connecting...' : 'Secure Pay with Cashfree'}
-                </button>
-              </div>
             </div>
-            {paymentError && <ErrorBanner msg={paymentError} />}
-          </Card>
-      ) : (
-          <div className="receipt-container" style={{ marginBottom: 18, background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333', fontFamily: "'DM Sans',sans-serif" }}>
-             <div style={{ textAlign: 'center', marginBottom: 20 }}>
-                <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#4aa36e', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: 24 }}>✓</div>
-                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Payment Successful!</h2>
-                <p style={{ margin: '4px 0 0', fontSize: 13, color: '#666' }}>Thank you for your payment.</p>
-             </div>
-             
-             <div style={{ borderTop: '1px dashed #ccc', borderBottom: '1px dashed #ccc', padding: '16px 0', marginBottom: 20 }}>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: '#666' }}>Order ID</span>
-                    <span style={{ fontWeight: 600 }}>{paymentReceipt.orderId}</span>
-                 </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: '#666' }}>Date</span>
-                    <span style={{ fontWeight: 600 }}>{paymentReceipt.date}</span>
-                 </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-                    <span style={{ color: '#666' }}>Amount Paid</span>
-                    <span style={{ fontWeight: 600 }}>₹{paymentReceipt.amount}</span>
-                 </div>
-                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-                    <span style={{ color: '#666' }}>Method</span>
-                    <span style={{ fontWeight: 600 }}>{paymentReceipt.paymentMethod}</span>
-                 </div>
-             </div>
 
-             <div style={{ display: 'flex', gap: 10 }}>
-                 <button 
-                  onClick={() => window.print()}
-                  style={{ flex: 1, padding: '12px 6px', border: '1px solid #4aa36e', background: '#eaf4ee', color: '#4aa36e', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
-                    Download PDF
-                 </button>
-                 <button 
-                  onClick={() => {
-                      const text = `*Payment Receipt*\n\nStatus: Successful ✅\nOrder ID: ${paymentReceipt.orderId}\nAmount: ₹${paymentReceipt.amount}\nDate: ${paymentReceipt.date}\n\nThank you!`;
-                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-                  }}
-                  style={{ flex: 1, padding: '12px 6px', border: 'none', background: '#25D366', color: '#fff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
-                    Share WhatsApp
-                 </button>
-             </div>
-             <style>{`
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+              <button
+                onClick={handleCashfreePayment}
+                disabled={paymentLoading}
+                style={{
+                  minWidth: 190,
+                  padding: '13px 18px',
+                  border: 'none',
+                  borderRadius: 14,
+                  background: t.accentGrad,
+                  color: '#fff',
+                  fontSize: 14,
+                  fontWeight: 700,
+                  cursor: paymentLoading ? 'not-allowed' : 'pointer',
+                  opacity: paymentLoading ? 0.7 : 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  boxShadow: `0 10px 24px ${t.accentBg}`,
+                  fontFamily: "'DM Sans',sans-serif"
+                }}
+              >
+                <Wallet size={16} />
+                {paymentLoading ? 'Connecting...' : 'Secure Pay with Cashfree'}
+              </button>
+            </div>
+          </div>
+          {paymentError && <ErrorBanner msg={paymentError} />}
+        </Card>
+      ) : (
+        <div className="receipt-container" style={{ marginBottom: 18, background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333', fontFamily: "'DM Sans',sans-serif" }}>
+          <div style={{ textAlign: 'center', marginBottom: 20 }}>
+            <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#4aa36e', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: 24 }}>✓</div>
+            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Payment Successful!</h2>
+            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#666' }}>Thank you for your payment.</p>
+          </div>
+
+          <div style={{ borderTop: '1px dashed #ccc', borderBottom: '1px dashed #ccc', padding: '16px 0', marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+              <span style={{ color: '#666' }}>Order ID</span>
+              <span style={{ fontWeight: 600 }}>{paymentReceipt.orderId}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+              <span style={{ color: '#666' }}>Date</span>
+              <span style={{ fontWeight: 600 }}>{paymentReceipt.date}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
+              <span style={{ color: '#666' }}>Amount Paid</span>
+              <span style={{ fontWeight: 600 }}>₹{paymentReceipt.amount}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
+              <span style={{ color: '#666' }}>Method</span>
+              <span style={{ fontWeight: 600 }}>{paymentReceipt.paymentMethod}</span>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => window.print()}
+              style={{ flex: 1, padding: '12px 6px', border: '1px solid #4aa36e', background: '#eaf4ee', color: '#4aa36e', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
+              Download PDF
+            </button>
+            <button
+              onClick={() => {
+                const text = `*Payment Receipt*\n\nStatus: Successful ✅\nOrder ID: ${paymentReceipt.orderId}\nAmount: ₹${paymentReceipt.amount}\nDate: ${paymentReceipt.date}\n\nThank you!`;
+                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
+              }}
+              style={{ flex: 1, padding: '12px 6px', border: 'none', background: '#25D366', color: '#fff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
+              Share WhatsApp
+            </button>
+          </div>
+          <style>{`
                  @media print {
                      body * { visibility: hidden; }
                      .receipt-container, .receipt-container * { visibility: visible; }
@@ -676,7 +676,7 @@ function HomePage({ setActiveTab }) {
                      .receipt-container button { display: none; }
                  }
              `}</style>
-          </div>
+        </div>
       )}
 
       {/* ── Stats ── */}
@@ -2632,7 +2632,7 @@ function ResetPasswordPage({ onBack = null }) {
           {error && <ErrorBanner msg={error} />}
           {success && (
             <div style={{ marginBottom: 16, padding: '12px 16px', borderRadius: 12, background: t.successBg, border: `1px solid ${t.successBorder}`, fontSize: 13, color: t.successText, fontFamily: "'DM Sans',sans-serif" }}>
-               ✅ {success}
+              ✅ {success}
             </div>
           )}
           <button type="submit" disabled={loading} style={{ width: '100%', padding: 14, borderRadius: 12, border: 'none', background: loading ? t.border : t.accentGrad, color: '#fff', fontSize: 15, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, fontFamily: "'DM Sans',sans-serif" }}>
