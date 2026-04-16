@@ -435,9 +435,9 @@ function HomePage({ setActiveTab }) {
   const [paymentError, setPaymentError] = useState('')
   const [showQR, setShowQR] = useState(false)
 
-  const receiverUpiId = 'yourvpa@upi'
-  const receiverName = 'YourName'
-  const fixedPaymentAmount = '1.00'
+  const receiverUpiId = 'shydrabadwala53@okhdfcbank'
+  const receiverName = 'AlMawaid'
+  const fixedPaymentAmount = '100.00'
 
   const surveyOpen = isSurveyOpen()
 
