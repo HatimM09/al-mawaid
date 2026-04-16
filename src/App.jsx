@@ -1375,7 +1375,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
       <NavCard label="My Requests" icon={<FileText size={19} color="#fff" />}
         desc="Resume, stop & extra food requests" onClick={() => onNav('requests')} />
       <NavCard label="Khidmat Guzaar" icon={<Users size={19} color="#fff" />}
-        desc="Meet our service team" onClick={() => onNav('khidmat')} />
+        desc="Meet AlMawaid team" onClick={() => onNav('khidmat')} />
       <NavCard label="Alerts" icon={<Bell size={19} color="#fff" />}
         desc="See notices and important updates" onClick={() => onNav('notifications')} />
       <NavCard label="Support Ticket" icon={<LifeBuoy size={19} color="#fff" />}
@@ -1536,7 +1536,7 @@ function MyRequestsPage({ onBack }) {
   const { user } = useAuth()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
-  const almawaidHelplineWhatsApp = '911234567890'
+  const almawaidHelplineWhatsApp = '917737151253'
 
   useEffect(() => {
     supabase.from('thali_requests').select('*').eq('user_id', user.id)
@@ -1655,7 +1655,7 @@ function KhidmatPage({ onBack }) {
         marginBottom: 16, padding: '11px 14px', borderRadius: 12, background: t.accentBg,
         border: `1px solid ${t.accentBorder}`, fontSize: 13, color: t.accent, fontFamily: "'DM Sans',sans-serif"
       }}>
-        🤝 Our dedicated service team — the ones who make every meal possible.
+        🤝 Our dedicated AlMawaid team — the ones who make every meal possible.
       </div>
       {loading ? <Spinner /> : staff.length === 0 ? (
         <div style={{ textAlign: 'center', padding: 48, color: t.textSub, fontSize: 15, fontFamily: "'DM Sans',sans-serif" }}>
