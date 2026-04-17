@@ -472,17 +472,15 @@ function HomePage({ setActiveTab }) {
     } catch { }
 
     try {
-      const { data } = await supabase.from('payments').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1)
+      const { data } = await supabase.from('payments').select('*').eq('user_id', user.id).ilike('status', 'success').order('created_at', { ascending: false }).limit(1)
       if (data && data.length > 0) {
         const p = data[0];
-        if (p.status?.toLowerCase() === 'success') {
-          setPaymentReceipt({
-            orderId: p.order_id,
-            amount: p.amount,
-            date: new Date(p.created_at).toLocaleString('en-IN'),
-            paymentMethod: p.method || 'Online Payment'
-          })
-        }
+        setPaymentReceipt({
+          orderId: p.order_id,
+          amount: p.amount,
+          date: new Date(p.created_at).toLocaleString('en-IN'),
+          paymentMethod: p.method || 'Online Payment'
+        })
       }
     } catch { }
 
