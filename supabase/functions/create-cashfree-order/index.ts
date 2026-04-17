@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const CASHFREE_APP_ID = Deno.env.get("12611419de3385897f7feded6221411621") 
-const CASHFREE_SECRET_KEY = Deno.env.get("cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e") 
+const CASHFREE_APP_ID = "12611419de3385897f7feded6221411621"
+const CASHFREE_SECRET_KEY = "cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e"
 
 // Use 'https://sandbox.cashfree.com/pg/orders' for testing
 // Use 'https://api.cashfree.com/pg/orders' for production
@@ -48,7 +48,13 @@ serve(async (req) => {
       })
     })
 
-    const cashfreeData = await cashfreeRes.json()
+    const cashfreeText = await cashfreeRes.text()
+    let cashfreeData;
+    try {
+      cashfreeData = JSON.parse(cashfreeText)
+    } catch (e) {
+      throw new Error(`Parse error. Cashfree API returned: ${cashfreeText}`)
+    }
 
     if (!cashfreeRes.ok) {
       throw new Error(cashfreeData.message || "Failed to create Cashfree order from bank")
