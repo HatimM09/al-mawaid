@@ -483,84 +483,26 @@ function HomePage({ setActiveTab }) {
     setShowSurvey(true)
   }
 
-  const handleCashfreePayment = async () => {
-    setPaymentError('');
+  const cashfreeLink = "https://payments.cashfree.com/links?code=ia8ic9gl04og_AAAAAAATPlU";
+
+  const handleCashfreePayment = () => {
+    // Open Cashfree hosted link
+    window.open(cashfreeLink, '_blank');
+    
+    // Switch to waiting state so the user can confirm their payment manually
     setPaymentLoading(true);
-    try {
-      const script = document.createElement('script');
-      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+  }
 
-      const scriptLoadPromise = new Promise((resolve, reject) => {
-        script.onload = () => resolve(window.Cashfree);
-        script.onerror = () => reject(new Error("Failed to load Cashfree script. Are you offline?"));
-        document.body.appendChild(script);
-      });
-
-      const CashfreeClass = await scriptLoadPromise;
-      if (!CashfreeClass) throw new Error("Cashfree object is undefined");
-
-      const cashfree = CashfreeClass({
-        mode: "production", // Direct to production as user requests
-      });
-
-      // Creating order securely bypassing backend via CORS proxy
-      // WARNING: Exposed Secret Key
-      const orderId = 'ORD_' + Math.floor(Math.random() * 1000000000);
-      const res = await fetch('https://corsproxy.io/?https://api.cashfree.com/pg/orders', {
-        method: 'POST',
-        headers: {
-          'x-client-id': '12611419de3385897f7feded6221411621',
-          'x-client-secret': 'cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e',
-          'x-api-version': '2023-08-01',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-          order_amount: fixedPaymentAmount,
-          order_currency: "INR",
-          order_id: orderId,
-          customer_details: {
-            customer_id: user.id || 'cust_12345',
-            customer_phone: profileData.phone || '9999999999',
-            customer_email: user.email || 'guest@example.com',
-            customer_name: profileData.name || 'Member'
-          },
-          order_meta: {
-            return_url: window.location.href
-          }
-        })
-      });
-
-      const data = await res.json();
-
-      if (!res.ok || !data || !data.payment_session_id) {
-        throw new Error(data?.message || 'Failed to initialize Cashfree Order.');
-      }
-
-      const checkoutOptions = {
-        paymentSessionId: data.payment_session_id,
-        redirectTarget: "_modal",
-      };
-
-      cashfree.checkout(checkoutOptions).then((result) => {
-        if (result.error) {
-          setPaymentError(result.error.message || 'Payment cancelled');
-        }
-        if (result.paymentDetails) {
-          setPaymentReceipt({
-            orderId: orderId,
-            amount: fixedPaymentAmount,
-            date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-            paymentMethod: "Cashfree UPI"
-          })
-        }
-      });
-
-    } catch (err) {
-      setPaymentError(err.message || 'Payment integration failed.');
-    } finally {
-      setPaymentLoading(false);
-    }
+  const confirmSimulatedPayment = () => {
+    // Simulate a successful verification locally
+    const simulatedOrderId = 'CF_LNK_' + Math.floor(Math.random() * 1000000000);
+    setPaymentReceipt({
+       orderId: simulatedOrderId,
+       amount: fixedPaymentAmount,
+       date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+       paymentMethod: "Cashfree Payment Link"
+    });
+    setPaymentLoading(false);
   }
 
   return (
@@ -597,31 +539,54 @@ function HomePage({ setActiveTab }) {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-              <button
-                onClick={handleCashfreePayment}
-                disabled={paymentLoading}
-                style={{
-                  minWidth: 190,
-                  padding: '13px 18px',
-                  border: 'none',
-                  borderRadius: 14,
-                  background: t.accentGrad,
-                  color: '#fff',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: paymentLoading ? 'not-allowed' : 'pointer',
-                  opacity: paymentLoading ? 0.7 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: `0 10px 24px ${t.accentBg}`,
-                  fontFamily: "'DM Sans',sans-serif"
-                }}
-              >
-                <Wallet size={16} />
-                {paymentLoading ? 'Connecting...' : 'Secure Pay with Cashfree'}
-              </button>
+              {!paymentLoading ? (
+                <button
+                  onClick={handleCashfreePayment}
+                  style={{
+                    minWidth: 190,
+                    padding: '13px 18px',
+                    border: 'none',
+                    borderRadius: 14,
+                    background: t.accentGrad,
+                    color: '#fff',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    boxShadow: `0 10px 24px ${t.accentBg}`,
+                    fontFamily: "'DM Sans',sans-serif"
+                  }}
+                >
+                  <Wallet size={16} />
+                  Secure Pay with Cashfree
+                </button>
+              ) : (
+                <button
+                  onClick={confirmSimulatedPayment}
+                  style={{
+                    minWidth: 190,
+                    padding: '13px 18px',
+                    border: `1px solid ${t.successBorder}`,
+                    borderRadius: 14,
+                    background: t.successBg,
+                    color: t.successText,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontFamily: "'DM Sans',sans-serif"
+                  }}
+                >
+                  <Check size={16} />
+                  I have paid
+                </button>
+              )}
             </div>
           </div>
           {paymentError && <ErrorBanner msg={paymentError} />}
