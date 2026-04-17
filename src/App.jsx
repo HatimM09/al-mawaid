@@ -438,7 +438,7 @@ function HomePage({ setActiveTab }) {
 
   const receiverUpiId = 'yourvpa@upi'
   const receiverName = 'YourName'
-  const fixedPaymentAmount = '400.00'
+  const fixedPaymentAmount = '1.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -483,26 +483,65 @@ function HomePage({ setActiveTab }) {
     setShowSurvey(true)
   }
 
-  const cashfreeLink = "https://payments.cashfree.com/links?code=ia8ic9gl04og_AAAAAAATPlU";
-
-  const handleCashfreePayment = () => {
-    // Open Cashfree hosted link
-    window.open(cashfreeLink, '_blank');
-    
-    // Switch to waiting state so the user can confirm their payment manually
+  const handleCashfreePayment = async () => {
     setPaymentLoading(true);
-  }
+    setPaymentError('');
+    try {
+      // 1. Create order via Supabase Edge Function
+      const orderId = 'ORDER_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+      const { data, error } = await supabase.functions.invoke('create-cashfree-order', {
+        body: {
+          amount: fixedPaymentAmount,
+          order_id: orderId,
+          customer_id: user.id || 'cust_123',
+          customer_name: profileData?.name || user.email?.split('@')[0] || 'User',
+          customer_email: user.email || 'user@example.com',
+          customer_phone: '9999999999'
+        }
+      });
 
-  const confirmSimulatedPayment = () => {
-    // Simulate a successful verification locally
-    const simulatedOrderId = 'CF_LNK_' + Math.floor(Math.random() * 1000000000);
-    setPaymentReceipt({
-       orderId: simulatedOrderId,
-       amount: fixedPaymentAmount,
-       date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-       paymentMethod: "Cashfree Payment Link"
-    });
-    setPaymentLoading(false);
+      if (error) throw new Error(error.message);
+      if (data?.error) throw new Error(data.error);
+
+      // 2. Load Cashfree SDK dynamically
+      let cfInstance;
+      if (window.Cashfree) {
+        cfInstance = window.Cashfree({ mode: 'production' });
+      } else {
+        await new Promise((resolve) => {
+          const script = document.createElement('script');
+          script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+          script.onload = resolve;
+          document.body.appendChild(script);
+        });
+        cfInstance = window.Cashfree({ mode: 'production' });
+      }
+
+      // 3. Initiate checkout
+      cfInstance.checkout({
+        paymentSessionId: data.payment_session_id,
+        redirectTarget: "_modal",
+      }).then((result) => {
+        if (result.error) {
+          setPaymentError(result.error.message || 'Payment failed or cancelled.');
+          setPaymentLoading(false);
+        } else if (result.paymentDetails) {
+          // Auto Success Receipt!
+          setPaymentReceipt({
+            orderId: data.order_id,
+            amount: fixedPaymentAmount,
+            date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
+            paymentMethod: result.paymentDetails?.paymentMessage || "Online UPI/Card Payment"
+          });
+          setPaymentLoading(false);
+        } else {
+          setPaymentLoading(false);
+        }
+      });
+    } catch (err) {
+      setPaymentError(err.message || 'Failed to initialize payment');
+      setPaymentLoading(false);
+    }
   }
 
   return (
@@ -533,7 +572,7 @@ function HomePage({ setActiveTab }) {
               <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
               <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
                 <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                 Your Thali Delivery Amount
+                  Pay securely using Cashfree Payments Gateway.
                 </div>
               </div>
             </div>
@@ -561,53 +600,26 @@ function HomePage({ setActiveTab }) {
                   }}
                 >
                   <Wallet size={16} />
-                  Pay Now
+                  Secure Pay with Cashfree
                 </button>
               ) : (
-                <button
-                  onClick={confirmSimulatedPayment}
-                  style={{
+                <div style={{
                     minWidth: 190,
                     padding: '13px 18px',
-                    border: `1px solid ${t.successBorder}`,
+                    border: `1px solid ${t.border}`,
                     borderRadius: 14,
-                    background: t.successBg,
-                    color: t.successText,
+                    background: t.card,
+                    color: t.accent,
                     fontSize: 14,
                     fontWeight: 700,
-                    cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 8,
                     fontFamily: "'DM Sans',sans-serif"
-                  }}
-                >
-                  <Check size={16} />
-                  I have paid
-                </button>
-          <button
-                  onClick={confirmSimulatedPayment}
-                  style={{
-                    minWidth: 190,
-                    padding: '13px 18px',
-                    border: `1px solid ${t.successBorder}`,
-                    borderRadius: 14,
-                    background: t.successBg,
-                    color: t.FailedText,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    fontFamily: "'DM Sans',sans-serif"
-                  }}
-                >
-                  <Check size={16} />
-                  I have not paid
-                </button>
+                }}>
+                  Processing...
+                </div>
               )}
             </div>
           </div>
