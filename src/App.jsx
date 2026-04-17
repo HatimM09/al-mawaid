@@ -493,9 +493,9 @@ function HomePage({ setActiveTab }) {
         body: {
           amount: fixedPaymentAmount,
           order_id: orderId,
-          customer_id: user.id || 'cust_123',
-          customer_name: profileData?.name || user.email?.split('@')[0] || 'User',
-          customer_email: user.email || 'user@example.com',
+          customer_id: user?.id || 'cust_123',
+          customer_name: profileData?.name || user?.email?.split('@')[0] || 'User',
+          customer_email: user?.email || 'user@example.com',
           customer_phone: '9999999999'
         }
       });
