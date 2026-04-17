@@ -438,7 +438,7 @@ function HomePage({ setActiveTab }) {
 
   const receiverUpiId = 'yourvpa@upi'
   const receiverName = 'YourName'
-  const fixedPaymentAmount = '1.00'
+  const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -533,7 +533,7 @@ function HomePage({ setActiveTab }) {
               <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
               <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
                 <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                  Pay securely using Cashfree Payments Gateway.
+                 Your Thali Delivery Amount
                 </div>
               </div>
             </div>
@@ -561,7 +561,7 @@ function HomePage({ setActiveTab }) {
                   }}
                 >
                   <Wallet size={16} />
-                  Secure Pay with Cashfree
+                  Pay Now
                 </button>
               ) : (
                 <button
