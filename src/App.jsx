@@ -586,6 +586,28 @@ function HomePage({ setActiveTab }) {
                   <Check size={16} />
                   I have paid
                 </button>
+          <button
+                  onClick={confirmSimulatedPayment}
+                  style={{
+                    minWidth: 190,
+                    padding: '13px 18px',
+                    border: `1px solid ${t.successBorder}`,
+                    borderRadius: 14,
+                    background: t.successBg,
+                    color: t.FailedText,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontFamily: "'DM Sans',sans-serif"
+                  }}
+                >
+                  <Check size={16} />
+                  I have not paid
+                </button>
               )}
             </div>
           </div>
