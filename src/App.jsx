@@ -487,20 +487,36 @@ function HomePage({ setActiveTab }) {
     setPaymentLoading(true);
     setPaymentError('');
     try {
-      // 1. Create order via Supabase Edge Function
+      // 1. Create order via direct Fetch to Edge Function
       const orderId = 'ORDER_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-      const { data, error } = await supabase.functions.invoke('create-cashfree-order', {
-        body: {
-          amount: fixedPaymentAmount,
-          order_id: orderId,
-          customer_id: user?.id || 'cust_123',
-          customer_name: profileData?.name || user?.email?.split('@')[0] || 'User',
-          customer_email: user?.email || 'user@example.com',
-          customer_phone: '9999999999'
-        }
+      
+      const payload = {
+        amount: fixedPaymentAmount,
+        order_id: orderId,
+        customer_id: user?.id || 'cust_123',
+        customer_name: profileData?.name || user?.email?.split('@')[0] || 'User',
+        customer_email: user?.email || 'user@example.com',
+        customer_phone: '9999999999'
+      };
+
+      const functionUrl = import.meta.env.VITE_SUPABASE_URL + '/functions/v1/create-cashfree-order';
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const res = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${anonKey}`
+        },
+        body: JSON.stringify(payload)
       });
 
-      if (error) throw new Error(error.message);
+      if (!res.ok) {
+        let errText = await res.text();
+        throw new Error(`Edge Function error (${res.status}): ${errText}`);
+      }
+
+      const data = await res.json();
       if (data?.error) throw new Error(data.error);
 
       // 2. Load Cashfree SDK dynamically
