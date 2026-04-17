@@ -605,7 +605,11 @@ function HomePage({ setActiveTab }) {
       </Card>
 
 
-      {!paymentReceipt ? (
+      {statsLoading ? (
+        <Card style={{ marginBottom: 18, display: 'flex', justifyContent: 'center', padding: '30px 0' }}>
+          <Spinner fullPage={false} />
+        </Card>
+      ) : !paymentReceipt ? (
         <Card style={{ marginBottom: 18 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
             <div style={{ flex: 1, minWidth: 220 }}>
