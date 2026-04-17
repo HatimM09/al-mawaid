@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const CASHFREE_APP_ID = Deno.env.get("12611419de3385897f7feded6221411621") || "PLEASE_SET_CASHFREE_APP_ID"
-const CASHFREE_SECRET_KEY = Deno.env.get("cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e") || "PLEASE_SET_CASHFREE_SECRET_KEY"
+const CASHFREE_APP_ID = Deno.env.get("12611419de3385897f7feded6221411621") 
+const CASHFREE_SECRET_KEY = Deno.env.get("cfsk_ma_prod_ca5d63f7c7cf9380cf859854a82f3047_c2b6047e") 
 
 // Use 'https://sandbox.cashfree.com/pg/orders' for testing
 // Use 'https://api.cashfree.com/pg/orders' for production
