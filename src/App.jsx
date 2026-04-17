@@ -438,7 +438,7 @@ function HomePage({ setActiveTab }) {
 
   const receiverUpiId = 'yourvpa@upi'
   const receiverName = 'YourName'
-  const fixedPaymentAmount = '1.00'
+  const fixedPaymentAmount = '400.00'
 
   const surveyOpen = isSurveyOpen()
 
