@@ -438,7 +438,7 @@ function HomePage({ setActiveTab }) {
 
   const receiverUpiId = 'yourvpa@upi'
   const receiverName = 'YourName'
-  const fixedPaymentAmount = '400.00'
+  const fixedPaymentAmount = '1.00'
 
   const surveyOpen = isSurveyOpen()
 
@@ -469,6 +469,21 @@ function HomePage({ setActiveTab }) {
           if (r.dinner_stars) counts[r.day].dinner = true
         })
       setFeedbackCounts(counts)
+    } catch { }
+
+    try {
+      const { data } = await supabase.from('payments').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1)
+      if (data && data.length > 0) {
+        const p = data[0];
+        if (p.status?.toLowerCase() === 'success') {
+          setPaymentReceipt({
+            orderId: p.order_id,
+            amount: p.amount,
+            date: new Date(p.created_at).toLocaleString('en-IN'),
+            paymentMethod: p.method || 'Online Payment'
+          })
+        }
+      }
     } catch { }
 
     setStatsLoading(false)
@@ -543,13 +558,25 @@ function HomePage({ setActiveTab }) {
           setPaymentLoading(false);
         } else if (result.paymentDetails) {
           // Auto Success Receipt!
+          const methodString = result.paymentDetails?.paymentMessage || "Online UPI/Card Payment";
+          
           setPaymentReceipt({
             orderId: data.order_id,
             amount: fixedPaymentAmount,
             date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-            paymentMethod: result.paymentDetails?.paymentMessage || "Online UPI/Card Payment"
+            paymentMethod: methodString
           });
           setPaymentLoading(false);
+
+          // Save exact payment details to Supabase database so it persists on reload!
+          supabase.from('payments').insert([{
+            user_id: user?.id,
+            order_id: data.order_id,
+            amount: fixedPaymentAmount,
+            method: methodString,
+            status: 'success'
+          }]).then(() => console.log('Payment securely saved to Supabase!'));
+
         } else {
           setPaymentLoading(false);
         }
