@@ -288,8 +288,7 @@ const Card = ({ children, active, style: extraStyle = {} }) => {
 // ══════════════════════════════════════════════════════════════
 // LOGIN PAGE
 // ══════════════════════════════════════════════════════════════
-function LoginPage() {
-  const t = THEMES.midnight
+function LoginPage({ t }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPass, setShowPass] = useState(false)
@@ -2772,7 +2771,7 @@ export default function App() {
     )
   }
 
-  if (!session) return <LoginPage />
+  if (!session) return <LoginPage t={currentTheme} />
 
   const t = currentTheme
 
