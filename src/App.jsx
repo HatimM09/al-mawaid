@@ -320,23 +320,28 @@ function LoginPage() {
 
   return (
     <div style={{
-      minHeight: '100vh', background: t.bgGrad, display: 'flex', alignItems: 'center',
+      minHeight: '100vh', backgroundColor: t.bg, display: 'flex', alignItems: 'center',
       justifyContent: 'center', padding: 20, position: 'relative', overflow: 'hidden',
       fontFamily: "'DM Sans',sans-serif"
     }}>
+      {/* ── Dynamic Ambient Aurora Orbs to power the Glass Refraction ── */}
+      <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50vw', height: '50vw', background: t.accentGrad, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.5, transform: 'translateZ(0)' }} />
+      <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '60vw', height: '60vw', background: t.accent, borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, transform: 'translateZ(0)' }} />
+      <div style={{ position: 'absolute', top: '20%', right: '10%', width: '30vw', height: '30vw', background: t.successText || '#60c078', borderRadius: '50%', filter: 'blur(90px)', opacity: 0.25, transform: 'translateZ(0)' }} />
+
       <GeoBg t={t} />
 
       <div style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 400,
-        background: t.loginCard, 
-        backdropFilter: 'blur(36px) saturate(180%)', 
-        WebkitBackdropFilter: 'blur(36px) saturate(180%)',
+        background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))', 
+        backdropFilter: 'blur(40px) saturate(200%)', 
+        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
         borderRadius: 24,
         padding: '40px 28px', 
-        border: `1px solid ${t.borderActive}`,
-        borderTop: `1px solid rgba(255,255,255,0.25)`,
-        borderLeft: `1px solid rgba(255,255,255,0.15)`,
-        boxShadow: '0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        borderTop: '1px solid rgba(255, 255, 255, 0.35)',
+        borderLeft: '1px solid rgba(255, 255, 255, 0.25)',
+        boxShadow: '0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)',
         transform: 'translateZ(0)' // Hardware acceleration
       }}>
 
