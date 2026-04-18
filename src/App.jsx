@@ -116,7 +116,7 @@ const THEMES = {
 }
 
 // ─── Menu Data ────────────────────────────────────────────────
-const WEEKLY_MENU = {
+const DEFAULT_WEEKLY_MENU = {
   monday: { en: 'Monday', ar: 'الاثنين', lunch: ['Chola', 'kulcha', 'Sreekhand', 'Dal ', 'Chawal'], dinner: ['FMB MENU'] },
   tuesday: { en: 'Tuesday', ar: 'الثلاثاء', lunch: ['American Choupsey', 'Wafers', 'Butter Khichdi'], dinner: ['Roti', 'Veg Jaipuri', 'Chicken pulao', 'Soup'] },
   wednesday: { en: 'Wednesday', ar: 'الأربعاء', lunch: ['Vegetable Sandwich', 'Bhel Salad', 'Corn Pulao'], dinner: ['Roti', 'White Chicken', 'Manchurian Rice', 'Gravy'] },
@@ -175,6 +175,8 @@ const ThemeCtx = createContext(THEMES.midnight)
 const useTheme = () => useContext(ThemeCtx)
 const AuthCtx = createContext(null)
 const useAuth = () => useContext(AuthCtx)
+const MenuCtx = createContext(DEFAULT_WEEKLY_MENU)
+const useMenuConfig = () => useContext(MenuCtx)
 
 const WhatsAppLogo = ({ size = 16 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -845,7 +847,8 @@ function HomePage({ setActiveTab }) {
 
       {/* ── Days Accordion ── */}
       {DAYS.map(day => {
-        const menu = WEEKLY_MENU[day]
+        const menuConfig = useMenuConfig()
+        const menu = menuConfig[day]
         const isExpanded = expandedDay === day
         const daySurvey = surveyDaysCounts[day]
         const dayFb = feedbackCounts[day]
@@ -952,6 +955,7 @@ function HomePage({ setActiveTab }) {
 // ══════════════════════════════════════════════════════════════
 function SurveyModal({ startDay = 'monday', onClose }) {
   const t = useTheme()
+  const menuConfig = useMenuConfig()
   const { user } = useAuth()
   const [currentDay, setCurrentDay] = useState(startDay)
   const [currentMeal, setCurrentMeal] = useState('lunch')
@@ -962,7 +966,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
   const [editBlocked, setEditBlocked] = useState(false)
 
   const currentDayIndex = DAYS.indexOf(currentDay)
-  const menu = WEEKLY_MENU[currentDay]
+  const menu = menuConfig[currentDay]
 
   useEffect(() => { loadExisting() }, [currentDay, currentMeal])
 
@@ -1051,7 +1055,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
                 color: currentDay === day ? t.accent : t.textSub,
                 fontWeight: 700, fontSize: 10, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif"
               }}>
-              {WEEKLY_MENU[day].en.slice(0, 3)}
+              {menuConfig[day].en.slice(0, 3)}
             </button>
           ))}
         </div>
@@ -1220,6 +1224,7 @@ function SurveyModal({ startDay = 'monday', onClose }) {
 // ══════════════════════════════════════════════════════════════
 function FeedbackPage() {
   const t = useTheme()
+  const menuConfig = useMenuConfig()
   const { user } = useAuth()
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -1233,7 +1238,7 @@ function FeedbackPage() {
   const [hoveredDinner, setHoveredDinner] = useState(0)
 
   const todayKey = getTodayKey()
-  const menu = WEEKLY_MENU[todayKey]
+  const menu = menuConfig[todayKey]
 
   const STAR_EMOJIS = { 1: '😡', 2: '😟', 3: '😐', 4: '😊', 5: '😍' }
   const STAR_LABELS = { 1: 'Terrible', 2: 'Poor', 3: 'Okay', 4: 'Good', 5: 'Excellent!' }
@@ -1621,6 +1626,7 @@ function ProfileMainPage({ theme, setTheme, onNav }) {
 // ══════════════════════════════════════════════════════════════
 function MySurveysPage({ onBack }) {
   const t = useTheme()
+  const menuConfig = useMenuConfig()
   const { user } = useAuth()
   const [surveys, setSurveys] = useState({})
   const [loading, setLoading] = useState(true)
@@ -2748,6 +2754,7 @@ export default function App() {
   const [session, setSession] = useState(undefined)
   const [activeTab, setActiveTab] = useState('home')
   const [theme, setTheme] = useState(() => localStorage.getItem('almawaid_theme') || 'midnight')
+  const [menuConfig, setMenuConfig] = useState(DEFAULT_WEEKLY_MENU)
 
   const currentTheme = THEMES[theme] || THEMES.midnight
 
@@ -2759,6 +2766,18 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, session) => setSession(session))
+    
+    // Fetch dynamic menu
+    supabase.from('weekly_menu').select('*').order('sort_order').then(({ data }) => {
+      if (data && data.length > 0) {
+        const dict = {}
+        data.forEach(d => {
+          dict[d.day_name] = { en: d.day_en, ar: d.day_ar, lunch: d.lunch || [], dinner: d.dinner || [] }
+        })
+        setMenuConfig(dict)
+      }
+    })
+
     return () => subscription.unsubscribe()
   }, [])
 
@@ -2791,12 +2810,13 @@ export default function App() {
 
   return (
     <ThemeCtx.Provider value={t}>
-      <AuthCtx.Provider value={{ user: session.user, signOut }}>
-        <div style={{
-          fontFamily: "'DM Sans','Segoe UI',-apple-system,sans-serif",
-          minHeight: '100vh', background: t.bgGrad, color: t.text,
-          display: 'flex', flexDirection: 'column'
-        }}>
+      <MenuCtx.Provider value={menuConfig}>
+        <AuthCtx.Provider value={{ user: session.user, signOut }}>
+          <div style={{
+            fontFamily: "'DM Sans','Segoe UI',-apple-system,sans-serif",
+            minHeight: '100vh', background: t.bgGrad, color: t.text,
+            display: 'flex', flexDirection: 'column'
+          }}>
 
           {/* Header */}
           <header style={{
@@ -2913,6 +2933,7 @@ export default function App() {
           `}</style>
         </div>
       </AuthCtx.Provider>
+      </MenuCtx.Provider>
     </ThemeCtx.Provider>
   )
 }
