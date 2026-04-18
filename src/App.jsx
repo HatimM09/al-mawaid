@@ -319,62 +319,73 @@ function LoginPage({ t }) {
 
   return (
     <div style={{
-      minHeight: '100vh', backgroundColor: t.bg, display: 'flex', alignItems: 'center',
+      minHeight: '100vh', display: 'flex', alignItems: 'center',
       justifyContent: 'center', padding: 20, position: 'relative', overflow: 'hidden',
       fontFamily: "'DM Sans',sans-serif"
     }}>
-      {/* ── Dynamic Ambient Aurora Orbs to power the Glass Refraction ── */}
-      <div style={{ position: 'absolute', top: '-10%', left: '-10%', width: '50vw', height: '50vw', background: t.accentGrad, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.5, transform: 'translateZ(0)' }} />
-      <div style={{ position: 'absolute', bottom: '-20%', right: '-10%', width: '60vw', height: '60vw', background: t.accent, borderRadius: '50%', filter: 'blur(120px)', opacity: 0.35, transform: 'translateZ(0)' }} />
-      <div style={{ position: 'absolute', top: '20%', right: '10%', width: '30vw', height: '30vw', background: t.successText || '#60c078', borderRadius: '50%', filter: 'blur(90px)', opacity: 0.25, transform: 'translateZ(0)' }} />
+      {/* ── Uploaded Image Background ── */}
+      <div style={{
+        position: 'absolute', inset: -40, 
+        backgroundImage: "url('/bg.jpg')", 
+        backgroundPosition: 'center', 
+        backgroundSize: 'cover',
+        filter: 'blur(16px) brightness(1.05) saturate(1.2)', 
+        zIndex: 0,
+        transform: 'translateZ(0)'
+      }} />
 
-      <GeoBg t={t} />
+      {/* ── Geo Overlay for texture ── */}
+      <div style={{ position: 'absolute', inset: 0, zIndex: 0, opacity: 0.15 }}>
+        <GeoBg t={t} />
+      </div>
 
       <div style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 400,
-        background: 'transparent', 
-        backdropFilter: 'blur(20px) saturate(180%)', 
-        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-        borderRadius: 24,
-        padding: '40px 28px', 
-        borderTop: '1px solid rgba(255, 255, 255, 0.4)',
-        borderLeft: '1px solid rgba(255, 255, 255, 0.3)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRight: '1px solid rgba(255, 255, 255, 0.05)',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.6)'
+        background: 'rgba(255, 255, 255, 0.2)', 
+        backdropFilter: 'blur(24px) saturate(160%)', 
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        borderRadius: 32,
+        padding: '40px 32px', 
+        borderTop: '1px solid rgba(255, 255, 255, 0.7)',
+        borderLeft: '1px solid rgba(255, 255, 255, 0.5)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 40px 100px rgba(0,0,0,0.3), inset 0 2px 20px rgba(255,255,255,0.4)',
       }}>
 
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <div style={{
             width: 88, height: 88, margin: '0 auto 16px', borderRadius: '50%',
-            background: t.accentGrad, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: `0 12px 36px rgba(196,156,90,0.25)`
+            background: 'linear-gradient(135deg, #C18544, #8D5B2D)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: `0 12px 36px rgba(141,91,45,0.4)`
           }}>
             <img src="/al-mawaid.png" alt="Al-Mawaid" style={{ width: 60, height: 60, objectFit: 'contain' }} />
           </div>
           <h1 style={{
-            margin: '0 0 6px', fontSize: 30, fontWeight: 700, color: t.accent,
+            margin: '0 0 6px', fontSize: 32, fontWeight: 800, color: '#4A3B2C',
             letterSpacing: '0.06em', fontFamily: "'Playfair Display',serif"
           }}>Al-Mawaid</h1>
           <p style={{
-            margin: 0, fontSize: 15, color: t.textSub, fontFamily: "'Noto Nastaliq Urdu','Amiri',serif",
+            margin: 0, fontSize: 16, color: '#765C48', fontFamily: "'Noto Nastaliq Urdu','Amiri',serif",
             letterSpacing: '0.1em', lineHeight: 1.8
           }}>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
         </div>
 
         {/* Tabs */}
         <div style={{
-          display: 'flex', gap: 6, marginBottom: 22,
-          background: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 5
+          display: 'flex', gap: 6, marginBottom: 24,
+          background: 'rgba(255,255,255,0.4)', borderRadius: 12, padding: 5,
+          boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.05)'
         }}>
           {['login', 'signup'].map(m => (
             <button key={m} onClick={() => setMode(m)}
               style={{
-                flex: 1, padding: '9px 16px', borderRadius: 9, border: 'none',
-                background: mode === m ? t.accentGrad : 'transparent',
-                color: mode === m ? '#fff' : t.textSub, fontWeight: 600, cursor: 'pointer',
-                transition: 'all 0.25s', fontSize: 14, fontFamily: "'DM Sans',sans-serif"
+                flex: 1, padding: '10px 16px', borderRadius: 9, border: 'none',
+                background: mode === m ? '#fff' : 'transparent',
+                color: mode === m ? '#4A3B2C' : '#8A725D', fontWeight: 700, cursor: 'pointer',
+                transition: 'all 0.25s', fontSize: 14, fontFamily: "'DM Sans',sans-serif",
+                boxShadow: mode === m ? '0 4px 12px rgba(0,0,0,0.08)' : 'none'
               }}>
               {m === 'login' ? 'Sign In' : 'Sign Up'}
             </button>
@@ -382,31 +393,33 @@ function LoginPage({ t }) {
         </div>
 
         <form onSubmit={handleAuth}>
-          <div style={{ marginBottom: 14 }}>
+          <div style={{ marginBottom: 16 }}>
             <label style={{
-              display: 'block', fontSize: 10, fontWeight: 700, color: t.textSub,
-              marginBottom: 7, letterSpacing: '0.14em', fontFamily: "'DM Sans',sans-serif"
+              display: 'block', fontSize: 11, fontWeight: 800, color: '#765C48',
+              marginBottom: 8, letterSpacing: '0.14em', fontFamily: "'DM Sans',sans-serif"
             }}>EMAIL</label>
             <div style={{ position: 'relative' }}>
-              <Mail size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: t.accent, opacity: 0.6 }} />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inp} placeholder="your@email.com" />
+              <Mail size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#A8713D' }} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required 
+                style={{ ...inp, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.6)', color: '#4A3B2C', fontSize: 16, paddingLeft: 46 }} 
+                placeholder="your@email.com" />
             </div>
           </div>
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 24 }}>
             <label style={{
-              display: 'block', fontSize: 10, fontWeight: 700, color: t.textSub,
-              marginBottom: 7, letterSpacing: '0.14em', fontFamily: "'DM Sans',sans-serif"
+              display: 'block', fontSize: 11, fontWeight: 800, color: '#765C48',
+              marginBottom: 8, letterSpacing: '0.14em', fontFamily: "'DM Sans',sans-serif"
             }}>PASSWORD</label>
             <div style={{ position: 'relative' }}>
-              <Lock size={14} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: t.accent, opacity: 0.6 }} />
+              <Lock size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#A8713D' }} />
               <input type={showPass ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)} required
-                style={{ ...inp, paddingRight: 44 }} placeholder="••••••••" />
+                style={{ ...inp, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.6)', color: '#4A3B2C', fontSize: 16, paddingLeft: 46, paddingRight: 46 }} placeholder="••••••••" />
               <button type="button" onClick={() => setShowPass(!showPass)}
                 style={{
-                  position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                  position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                   background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex'
                 }}>
-                {showPass ? <EyeOff size={14} color={t.accent} /> : <Eye size={14} color={t.accent} />}
+                {showPass ? <EyeOff size={16} color="#A8713D" /> : <Eye size={16} color="#A8713D" />}
               </button>
             </div>
           </div>
@@ -415,11 +428,12 @@ function LoginPage({ t }) {
 
           <button type="submit" disabled={loading}
             style={{
-              width: '100%', padding: 14, borderRadius: 12, border: 'none',
-              background: loading ? t.border : t.accentGrad, color: '#fff', fontSize: 15, fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
-              boxShadow: `0 6px 20px ${t.accentBg}`, transition: 'all 0.25s', marginTop: 4,
-              fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.02em'
+              width: '100%', padding: '16px', borderRadius: 16, border: 'none',
+              background: loading ? 'rgba(255,255,255,0.5)' : 'linear-gradient(135deg, #C18544, #8D5B2D)', 
+              color: loading ? '#8A725D' : '#fff', fontSize: 16, fontWeight: 800,
+              cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1,
+              boxShadow: loading ? 'none' : `0 8px 24px rgba(141,91,45,0.35)`, transition: 'all 0.25s', marginTop: 8,
+              fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.04em'
             }}>
             {loading ? 'Please wait…' : mode === 'signup' ? 'Create Account' : 'Sign In'}
           </button>
