@@ -472,7 +472,23 @@ function HomePage({ setActiveTab }) {
     } catch { }
 
     try {
-      const { data } = await supabase.from('payments').select('*').eq('user_id', user.id).ilike('status', 'success').order('created_at', { ascending: false }).limit(1)
+      const getCycleStartDate = () => {
+        const now = new Date();
+        const d = now.getDate();
+        const m = now.getMonth();
+        const y = now.getFullYear();
+        // If today is 28th or later, cycle started this month on the 28th.
+        // Otherwise, it started last month on the 28th.
+        return new Date(y, d >= 28 ? m : m - 1, 28).toISOString();
+      };
+      
+      const { data } = await supabase.from('payments')
+        .select('*')
+        .eq('user_id', user.id)
+        .ilike('status', 'success')
+        .gte('created_at', getCycleStartDate())
+        .order('created_at', { ascending: false })
+        .limit(1);
       if (data && data.length > 0) {
         const p = data[0];
         setPaymentReceipt({
@@ -610,66 +626,74 @@ function HomePage({ setActiveTab }) {
           <Spinner fullPage={false} />
         </Card>
       ) : !paymentReceipt ? (
-        <Card style={{ marginBottom: 18 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 220 }}>
-              <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
-              <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
-                <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                  Pay securely using Cashfree Payments Gateway.
+        (new Date().getDate() >= 28 || new Date().getDate() <= 2) ? (
+          <Card style={{ marginBottom: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
+                <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
+                <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
+                  <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
+                    Monthly Payment Window is Open (28th to 2nd). Pay securely via Cashfree.
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-              {!paymentLoading ? (
-                <button
-                  onClick={handleCashfreePayment}
-                  style={{
-                    minWidth: 190,
-                    padding: '13px 18px',
-                    border: 'none',
-                    borderRadius: 14,
-                    background: t.accentGrad,
-                    color: '#fff',
-                    fontSize: 14,
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    boxShadow: `0 10px 24px ${t.accentBg}`,
-                    fontFamily: "'DM Sans',sans-serif"
-                  }}
-                >
-                  <Wallet size={16} />
-                  Secure Pay with Cashfree
-                </button>
-              ) : (
-                <div style={{
-                    minWidth: 190,
-                    padding: '13px 18px',
-                    border: `1px solid ${t.border}`,
-                    borderRadius: 14,
-                    background: t.card,
-                    color: t.accent,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    fontFamily: "'DM Sans',sans-serif"
-                }}>
-                  Processing...
-                </div>
-              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
+                {!paymentLoading ? (
+                  <button
+                    onClick={handleCashfreePayment}
+                    style={{
+                      minWidth: 190,
+                      padding: '13px 18px',
+                      border: 'none',
+                      borderRadius: 14,
+                      background: t.accentGrad,
+                      color: '#fff',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      boxShadow: `0 10px 24px ${t.accentBg}`,
+                      fontFamily: "'DM Sans',sans-serif"
+                    }}
+                  >
+                    <Wallet size={16} />
+                    Secure Pay with Cashfree
+                  </button>
+                ) : (
+                  <div style={{
+                      minWidth: 190,
+                      padding: '13px 18px',
+                      border: `1px solid ${t.border}`,
+                      borderRadius: 14,
+                      background: t.card,
+                      color: t.accent,
+                      fontSize: 14,
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
+                      fontFamily: "'DM Sans',sans-serif"
+                  }}>
+                    Processing...
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          {paymentError && <ErrorBanner msg={paymentError} />}
-        </Card>
+            {paymentError && <ErrorBanner msg={paymentError} />}
+          </Card>
+        ) : (
+          <Card style={{ marginBottom: 18, padding: '20px', textAlign: 'center' }}>
+             <Wallet size={32} color={t.textSub} style={{ opacity: 0.5, marginBottom: 12 }} />
+             <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>Payment Window Closed</div>
+             <div style={{ fontSize: 13, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>The payment window opens on the 28th of every month.</div>
+          </Card>
+
       ) : (
         <div className="receipt-container" style={{ marginBottom: 18, background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333', fontFamily: "'DM Sans',sans-serif" }}>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
