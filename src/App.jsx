@@ -333,16 +333,16 @@ function LoginPage() {
 
       <div style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 400,
-        background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.01))', 
-        backdropFilter: 'blur(40px) saturate(200%)', 
-        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+        background: 'transparent', 
+        backdropFilter: 'blur(20px) saturate(180%)', 
+        WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         borderRadius: 24,
         padding: '40px 28px', 
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        borderTop: '1px solid rgba(255, 255, 255, 0.35)',
-        borderLeft: '1px solid rgba(255, 255, 255, 0.25)',
-        boxShadow: '0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2)',
-        transform: 'translateZ(0)' // Hardware acceleration
+        borderTop: '1px solid rgba(255, 255, 255, 0.4)',
+        borderLeft: '1px solid rgba(255, 255, 255, 0.3)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRight: '1px solid rgba(255, 255, 255, 0.05)',
+        boxShadow: '0 40px 100px rgba(0,0,0,0.6)'
       }}>
 
         {/* Logo */}
