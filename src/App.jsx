@@ -451,6 +451,7 @@ function LoginPage({ t }) {
 // ══════════════════════════════════════════════════════════════
 function HomePage({ setActiveTab }) {
   const t = useTheme()
+  const menuConfig = useMenuConfig()
   const { user } = useAuth()
   const [expandedDay, setExpandedDay] = useState(null)
   const [showSurvey, setShowSurvey] = useState(false)
@@ -726,6 +727,7 @@ function HomePage({ setActiveTab }) {
              <div style={{ fontSize: 13, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>The payment window opens on the 28th of every month.</div>
           </Card>
 
+        )
       ) : (
         <div className="receipt-container" style={{ marginBottom: 18, background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333', fontFamily: "'DM Sans',sans-serif" }}>
           <div style={{ textAlign: 'center', marginBottom: 20 }}>
@@ -847,7 +849,6 @@ function HomePage({ setActiveTab }) {
 
       {/* ── Days Accordion ── */}
       {DAYS.map(day => {
-        const menuConfig = useMenuConfig()
         const menu = menuConfig[day]
         const isExpanded = expandedDay === day
         const daySurvey = surveyDaysCounts[day]
@@ -1663,7 +1664,7 @@ function MySurveysPage({ onBack }) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <img src="/al-mawaid.png" alt="" style={{ width: 28, height: 28, objectFit: 'contain' }} />
               <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>
-                {WEEKLY_MENU[day].en}
+                {menuConfig[day].en}
               </div>
             </div>
             {['lunch', 'dinner'].map(meal => {
@@ -2768,8 +2769,13 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, session) => setSession(session))
     
     // Fetch dynamic menu
-    supabase.from('weekly_menu').select('*').order('sort_order').then(({ data }) => {
+    supabase.from('weekly_menu').select('*').order('sort_order').then(({ data, error }) => {
+      if (error) {
+        console.error('Error fetching menu:', error);
+        return;
+      }
       if (data && data.length > 0) {
+        console.log('Menu loaded from Supabase:', data);
         const dict = {}
         data.forEach(d => {
           dict[d.day_name] = { en: d.day_en, ar: d.day_ar, lunch: d.lunch || [], dinner: d.dinner || [] }
