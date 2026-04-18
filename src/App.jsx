@@ -43,7 +43,7 @@ const THEMES = {
     spinnerTop: '#c49c5a',
     inputBg: 'rgba(255,255,255,0.04)',
     inputBorder: 'rgba(196,156,90,0.22)',
-    loginCard: 'rgba(20,29,46,0.92)',
+    loginCard: 'rgba(20,29,46,0.45)',
     headerWave: '#0b0f1a',
     successBg: 'rgba(74,163,110,0.12)',
     successBorder: 'rgba(74,163,110,0.3)',
@@ -75,7 +75,7 @@ const THEMES = {
     spinnerTop: '#9c5a2a',
     inputBg: 'rgba(156,90,42,0.04)',
     inputBorder: 'rgba(156,90,42,0.2)',
-    loginCard: 'rgba(255,255,255,0.96)',
+    loginCard: 'rgba(255,255,255,0.65)',
     headerWave: '#faf6ef',
     successBg: 'rgba(60,140,80,0.08)',
     successBorder: 'rgba(60,140,80,0.28)',
@@ -107,7 +107,7 @@ const THEMES = {
     spinnerTop: '#b89e50',
     inputBg: 'rgba(120,180,100,0.05)',
     inputBorder: 'rgba(184,158,80,0.22)',
-    loginCard: 'rgba(17,30,20,0.92)',
+    loginCard: 'rgba(17,30,20,0.45)',
     headerWave: '#0a130e',
     successBg: 'rgba(80,180,100,0.12)',
     successBorder: 'rgba(80,180,100,0.3)',
@@ -328,9 +328,16 @@ function LoginPage() {
 
       <div style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 400,
-        background: t.loginCard, backdropFilter: 'blur(24px)', borderRadius: 24,
-        padding: '40px 28px', border: `1px solid ${t.borderActive}`,
-        boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
+        background: t.loginCard, 
+        backdropFilter: 'blur(36px) saturate(180%)', 
+        WebkitBackdropFilter: 'blur(36px) saturate(180%)',
+        borderRadius: 24,
+        padding: '40px 28px', 
+        border: `1px solid ${t.borderActive}`,
+        borderTop: `1px solid rgba(255,255,255,0.25)`,
+        borderLeft: `1px solid rgba(255,255,255,0.15)`,
+        boxShadow: '0 40px 100px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1), inset 0 -1px 0 rgba(0,0,0,0.3)',
+        transform: 'translateZ(0)' // Hardware acceleration
       }}>
 
         {/* Logo */}
