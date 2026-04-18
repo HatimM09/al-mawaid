@@ -447,7 +447,12 @@ function HomePage({ setActiveTab }) {
   const loadData = async () => {
     try {
       const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      if (data) setProfileData({ name: data.name || '', thali_number: data.thali_number || '', avatar_url: data.avatar_url || '' })
+      if (data) setProfileData({ 
+        name: data.name || '', 
+        thali_number: data.thali_number || '', 
+        avatar_url: data.avatar_url || '',
+        phone: data.phone || data.mobile_number || data.contact || ''
+      })
     } catch { }
 
     try {
@@ -525,7 +530,7 @@ function HomePage({ setActiveTab }) {
         customer_id: user?.id || 'cust_123',
         customer_name: profileData?.name || user?.email?.split('@')[0] || 'User',
         customer_email: user?.email || 'user@example.com',
-        customer_phone: '9999999999'
+        customer_phone: profileData?.phone || user?.phone || user?.user_metadata?.phone || '9999999999'
       };
 
       const functionUrl = import.meta.env.VITE_SUPABASE_URL + '/functions/v1/create-cashfree-order';
