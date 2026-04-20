@@ -618,88 +618,122 @@ function HomePage({ setActiveTab }) {
         </div>
       </Card>
 
-      {/* Today's Menu Section */}
+      {/* Daily Meal Experience (Merged Menu & Ratings) */}
       <div style={{ marginBottom: 25 }}>
-        <SectionLabel>Today's Special Menu</SectionLabel>
-        <Card style={{ padding: 18, background: t.accentBg, border: `1.5px solid ${t.accentBorder}` }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-             <div style={{ fontSize: 18, fontWeight: 800, color: t.accent, textTransform: 'capitalize' }}>{todayKey}</div>
-             <div style={{ fontSize: 14, color: t.textSub, fontFamily: "'Amiri',serif" }}>{todayMenu?.ar}</div>
+        <SectionLabel>Daily Meal Experience</SectionLabel>
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ padding: '20px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: t.accent, textTransform: 'capitalize', fontFamily: "'Playfair Display',serif" }}>{todayKey}'s Selection</div>
+              <div style={{ fontSize: 12, color: t.textSub, opacity: 0.7 }}>Experience your daily meals</div>
+            </div>
+            <div style={{ fontSize: 16, color: t.accent, fontFamily: "'Amiri',serif", opacity: 0.8 }}>{todayMenu?.ar}</div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
-             <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>Lunch</div>
-                <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.lunch?.join(', ')}</div>
-             </div>
-             <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>Dinner</div>
-                <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.dinner?.join(', ')}</div>
-             </div>
-          </div>
-        </Card>
-      </div>
 
-      {/* Survey Button Section */}
-      <div style={{ marginBottom: 25 }}>
-        <SectionLabel>Weekly Feedback & Survey</SectionLabel>
-        <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
-          style={{
-            width: '100%', padding: 18, borderRadius: 16, border: 'none',
-            background: surveyOpen ? t.accentGrad : t.border,
-            color: '#fff', fontSize: 15, fontWeight: 800, cursor: surveyOpen ? 'pointer' : 'not-allowed',
-            boxShadow: surveyOpen ? '0 8px 24px rgba(196,156,90,0.25)' : 'none',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
-            opacity: surveyOpen ? 1 : 0.6
-          }}>
-          <ClipboardList size={20} />
-          {surveyOpen ? 'Start Weekly Survey' : 'Survey Closed Currently'}
-        </button>
-      </div>
-
-      {/* Unified Feedback Card */}
-      <div style={{ marginBottom: 25 }}>
-        <SectionLabel>Daily Meal Feedback</SectionLabel>
-        <Card style={{ padding: 20 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 15, flexWrap: 'wrap' }}>
-              {['lunch', 'dinner'].map(meal => (
-                <div key={meal} style={{ flex: 1, minWidth: 140 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, marginBottom: 8 }}>
+          <div style={{ padding: 20 }}>
+            {['lunch', 'dinner'].map((meal, idx) => (
+              <div key={meal} style={{ 
+                marginBottom: idx === 0 ? 24 : 0,
+                padding: '16px',
+                background: t.accentBg,
+                borderRadius: 18,
+                border: `1px solid ${t.accentBorder}`
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div style={{ 
+                    fontSize: 13, fontWeight: 800, color: t.accent, 
+                    display: 'flex', alignItems: 'center', gap: 6, textTransform: 'uppercase', letterSpacing: '0.04em' 
+                  }}>
                     {meal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 4 }}>
                     {[1, 2, 3, 4, 5].map(star => (
                       <button key={star} onClick={() => setFeedback(prev => ({ ...prev, [meal]: star }))}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        <Star size={22} fill={feedback[meal] >= star ? t.accent : 'none'} color={feedback[meal] >= star ? t.accent : t.textSub} />
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 2 }}>
+                        <Star 
+                          size={18} 
+                          fill={feedback[meal] >= star ? t.accent : 'none'} 
+                          color={feedback[meal] >= star ? t.accent : t.accentBorder} 
+                          strokeWidth={2}
+                        />
                       </button>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
 
-            <div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 4 }}>
+                  {(meal === 'lunch' ? todayMenu?.lunch : todayMenu?.dinner)?.map(dish => (
+                    <span key={dish} style={{ 
+                      fontSize: 11, fontWeight: 600, padding: '5px 10px', 
+                      borderRadius: 8, background: t.card, color: t.textBody,
+                      border: `1px solid ${t.border}`
+                    }}>
+                      {dish}
+                    </span>
+                  )) || <span style={{ fontSize: 11, color: t.textSub }}>No menu available</span>}
+                </div>
+              </div>
+            ))}
+
+            <div style={{ marginTop: 20 }}>
               <textarea
-                placeholder="Any comments for today's meals?"
+                placeholder="Share your thoughts on today's food..."
                 value={feedback.comment}
                 onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
                 style={{
-                  width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 12, padding: 12,
-                  color: t.text, fontSize: 13, minHeight: 80, fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none'
+                  width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 14, padding: 14,
+                  color: t.text, fontSize: 13, minHeight: 90, fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none',
+                  transition: 'all 0.2s'
                 }}
               />
             </div>
 
             <button onClick={handleFeedbackSubmit} disabled={feedbackLoading}
               style={{
-                width: '100%', padding: 16, borderRadius: 14, border: 'none', background: t.accentGrad,
-                color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(196,156,90,0.2)'
-              }}>
-              {feedbackLoading ? 'Submitting...' : feedbackSubmitted ? '✅ Feedback Sent!' : 'Submit Daily Ratings'}
+                width: '100%', padding: 16, borderRadius: 16, border: 'none', background: t.accentGrad,
+                color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', 
+                boxShadow: `0 8px 25px ${t.accentBg}`, marginTop: 14,
+                transition: 'transform 0.2s'
+              }}
+              onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
+              onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
+            >
+              {feedbackLoading ? 'Submitting...' : feedbackSubmitted ? '✅ Feedback Shared!' : 'Submit Today\'s Feedback'}
             </button>
           </div>
         </Card>
+      </div>
+
+      {/* Weekly Survey Entry */}
+      <div style={{ marginBottom: 25 }}>
+        <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
+          style={{
+            width: '100%', padding: '18px 20px', borderRadius: 20, border: 'none',
+            background: surveyOpen ? t.card : t.border,
+            color: surveyOpen ? t.accent : t.textSub, 
+            fontSize: 15, fontWeight: 800, cursor: surveyOpen ? 'pointer' : 'not-allowed',
+            boxShadow: `0 10px 30px rgba(0,0,0,0.1)`,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            opacity: surveyOpen ? 1 : 0.6,
+            border: `1px solid ${surveyOpen ? t.accentBorder : t.border}`,
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ 
+              width: 40, height: 40, borderRadius: 12, background: t.accentBg,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>
+              <ClipboardList size={22} color={t.accent} />
+            </div>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontSize: 15, color: t.text }}>Weekly Food Survey</div>
+              <div style={{ fontSize: 11, color: t.textSub, fontWeight: 500, opacity: 0.7 }}>
+                {surveyOpen ? 'Open for submissions' : 'Currently closed'}
+              </div>
+            </div>
+          </div>
+          <ChevronRight size={20} opacity={0.5} />
+        </button>
       </div>
 
       {showSurvey && (
