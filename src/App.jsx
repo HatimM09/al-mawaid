@@ -287,10 +287,96 @@ const Card = ({ children, active, style: extraStyle = {} }) => {
       background: active ? t.cardActive : t.card,
       border: `1px solid ${active ? t.borderActive : t.border}`,
       boxShadow: active ? `0 6px 24px ${t.accentBg}` : '0 2px 8px rgba(0,0,0,0.08)',
-      ...extraStyle
-    }}>
-      {children}
     </div>
+  )
+}
+
+/* ─── Feature Card ───────────────────────────────────────────── */
+const FeatureCard = ({ title, sub, Icon, color, onClick }) => {
+  const t = useTheme()
+  return (
+    <Card onClick={onClick} style={{ cursor: 'pointer', padding: 18, flex: 1, border: `1px solid ${t.border}` }}>
+      <div style={{ width: 40, height: 40, borderRadius: 12, background: `${color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: color, marginBottom: 12 }}>
+        <Icon size={20} />
+      </div>
+      <div style={{ fontSize: 13, fontWeight: 800, color: t.text, fontFamily: "'DM Sans',sans-serif" }}>{title}</div>
+      <div style={{ fontSize: 11, color: t.textSub, opacity: 0.7, marginTop: 2 }}>{sub}</div>
+    </Card>
+  )
+}
+
+// ══════════════════════════════════════════════════════════════
+// MENU PAGE
+// ══════════════════════════════════════════════════════════════
+function MenuPage() {
+  const t = useTheme()
+  const menuConfig = useMenuConfig()
+  const [expandedDay, setExpandedDay] = useState(getTodayKey())
+
+  return (
+    <main style={{ padding: '16px 16px 96px' }}>
+      <SectionLabel>Weekly Menu Overview</SectionLabel>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {DAYS.map(day => {
+          const menu = menuConfig[day]
+          if (!menu) return null
+          const isToday = day === getTodayKey()
+          const isExpanded = expandedDay === day
+
+          return (
+            <Card key={day} active={isExpanded} style={{ padding: 0, overflow: 'hidden' }}>
+              <div
+                onClick={() => setExpandedDay(isExpanded ? null : day)}
+                style={{
+                  padding: '16px 20px', display: 'flex', justifyContent: 'space-between',
+                  alignItems: 'center', cursor: 'pointer', background: isToday ? 'rgba(196,156,90,0.08)' : 'transparent'
+                }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 38, height: 38, borderRadius: 12, background: isToday ? t.accentGrad : t.cardActive,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? '#fff' : t.accent
+                  }}>
+                    <ClipboardList size={18} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: t.text, textTransform: 'capitalize', fontFamily: "'DM Sans',sans-serif" }}>
+                      {menu.en} {isToday && <span style={{ fontSize: 10, color: t.accent, marginLeft: 4 }}>(Today)</span>}
+                    </div>
+                    <div style={{ fontSize: 12, color: t.textSub, opacity: 0.7 }}>{menu.ar}</div>
+                  </div>
+                </div>
+                {isExpanded ? <ChevronUp size={18} color={t.textSub} /> : <ChevronDown size={18} color={t.textSub} />}
+              </div>
+
+              {isExpanded && (
+                <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {[['Lunch', menu.lunch], ['Dinner', menu.dinner]].map(([label, dishes], li) => (
+                    <div key={li}>
+                      <div style={{
+                        fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1.5,
+                        color: t.accent, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6
+                      }}>
+                        <div style={{ width: 14, height: 1.5, background: t.accent }}></div> {label}
+                      </div>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                        {dishes.map(d => (
+                          <div key={d} style={{
+                            padding: '8px 14px', borderRadius: 10, background: t.cardActive,
+                            border: `1px solid ${t.border}`, fontSize: 13, color: t.textBody, display: 'flex', alignItems: 'center', gap: 6
+                          }}>
+                            {isRotiItem(d) ? '🍞' : '🍽️'} {d}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          )
+        })}
+      </div>
+    </main>
   )
 }
 
@@ -460,124 +546,43 @@ function HomePage({ setActiveTab }) {
   const t = useTheme()
   const menuConfig = useMenuConfig()
   const { user } = useAuth()
-  const [expandedDay, setExpandedDay] = useState(null)
-  const [showSurvey, setShowSurvey] = useState(false)
-  const [surveyStartDay, setSurveyStartDay] = useState('monday')
-  const [profileData, setProfileData] = useState({ name: '', thali_number: '', avatar_url: '' })
-  const [surveyDaysCounts, setSurveyDaysCounts] = useState({})
-  const [feedbackCounts, setFeedbackCounts] = useState({})
-  const [statsLoading, setStatsLoading] = useState(true)
-  const [paymentError, setPaymentError] = useState('')
-  const [paymentLoading, setPaymentLoading] = useState(false)
-  const [paymentReceipt, setPaymentReceipt] = useState(null)
+  const [profile, setProfile] = useState(null)
+  
+  // Unified Feedback States
+  const [feedback, setFeedback] = useState({ lunch: 0, dinner: 0, comment: '' })
+  const [feedbackLoading, setFeedbackLoading] = useState(false)
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
 
-  const receiverUpiId = 'yourvpa@upi'
-  const receiverName = 'YourName'
-  const fixedPaymentAmount = '1.00'
-
+  const emojis = ['😞', '😐', '🙂', '😊', '🤩']
   const surveyOpen = isSurveyOpen()
 
-  useEffect(() => { loadData() }, [user])
+  useEffect(() => {
+    if (user) {
+      supabase.from('user_stats').select('thali_number, name').eq('user_id', user.id).single()
+        .then(({ data }) => setProfile(data))
+    }
+  }, [user])
 
-  const loadData = async () => {
+  const handleFeedbackSubmit = async () => {
+    if (feedback.lunch === 0 && feedback.dinner === 0) {
+      alert('Please rate at least one meal.')
+      return
+    }
+    setFeedbackLoading(true)
     try {
-      const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      if (data) setProfileData({
-        name: data.name || '',
-        thali_number: data.thali_number || '',
-        avatar_url: data.avatar_url || '',
-        phone: data.phone || data.mobile_number || data.contact || ''
-      })
-    } catch { }
-
-    try {
-      const { data } = await supabase.from('survey_responses').select('day,meal').eq('user_id', user.id)
-      const counts = {}
-        ; (data || []).forEach(r => {
-          if (!counts[r.day]) counts[r.day] = new Set()
-          counts[r.day].add(r.meal)
-        })
-      setSurveyDaysCounts(counts)
-    } catch { }
-
-    try {
-      const { data } = await supabase.from('daily_feedback').select('day,lunch_stars,dinner_stars').eq('user_id', user.id)
-      const counts = {}
-        ; (data || []).forEach(r => {
-          if (!counts[r.day]) counts[r.day] = { lunch: false, dinner: false }
-          if (r.lunch_stars) counts[r.day].lunch = true
-          if (r.dinner_stars) counts[r.day].dinner = true
-        })
-      setFeedbackCounts(counts)
-    } catch { }
-
-    try {
-      const getCycleStartDate = () => {
-        const now = new Date();
-        const d = now.getDate();
-        const m = now.getMonth();
-        const y = now.getFullYear();
-        // If today is 28th or later, cycle started this month on the 28th.
-        // Otherwise, it started last month on the 28th.
-        return new Date(y, d >= 28 ? m : m - 1, 28).toISOString();
-      };
-
-      const { data } = await supabase.from('payments')
-        .select('*')
-        .eq('user_id', user.id)
-        .ilike('status', 'success')
-        .gte('created_at', getCycleStartDate())
-        .order('created_at', { ascending: false })
-        .limit(1);
-      if (data && data.length > 0) {
-        const p = data[0];
-        setPaymentReceipt({
-          orderId: p.order_id,
-          amount: p.amount,
-          date: new Date(p.created_at).toLocaleString('en-IN'),
-          paymentMethod: p.method || 'Online Payment'
-        })
-      }
-    } catch { }
-
-    setStatsLoading(false)
+      const { error } = await supabase.from('daily_feedback').upsert([{
+        user_id: user.id, day: getTodayKey(),
+        lunch_stars: feedback.lunch, lunch_emoji: emojis[feedback.lunch - 1] || '',
+        dinner_stars: feedback.dinner, dinner_emoji: emojis[feedback.dinner - 1] || '',
+        comment: feedback.comment
+      }], { onConflict: 'user_id,day' })
+      if (error) throw error
+      setFeedbackSubmitted(true); setTimeout(() => setFeedbackSubmitted(false), 3000)
+      setFeedback({ lunch: 0, dinner: 0, comment: '' })
+    } catch (err) { alert(err.message) }
+    finally { setFeedbackLoading(false) }
   }
 
-  const surveyedDaysCount = Object.values(surveyDaysCounts).filter(s => s.size >= 2).length
-  const feedbackDaysCount = Object.values(feedbackCounts).filter(f => f.lunch && f.dinner).length
-
-  const openSurveyFromDay = (day) => {
-    if (!surveyOpen) return
-    setSurveyStartDay(day)
-    setShowSurvey(true)
-  }
-
-  const handleCashfreePayment = async () => {
-    setPaymentLoading(true);
-    setPaymentError('');
-    try {
-      // 1. Create order via direct Fetch to Edge Function
-      const orderId = 'ORDER_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-
-      const payload = {
-        amount: fixedPaymentAmount,
-        order_id: orderId,
-        customer_id: user?.id || 'cust_123',
-        customer_name: profileData?.name || user?.email?.split('@')[0] || 'User',
-        customer_email: user?.email || 'user@example.com',
-        customer_phone: profileData?.phone || user?.phone || user?.user_metadata?.phone || '9999999999'
-      };
-
-      const functionUrl = import.meta.env.VITE_SUPABASE_URL + '/functions/v1/create-cashfree-order';
-      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const res = await fetch(functionUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${anonKey}`
-        },
-        body: JSON.stringify(payload)
       });
 
       if (!res.ok) {
@@ -588,7 +593,6 @@ function HomePage({ setActiveTab }) {
       const data = await res.json();
       if (data?.error) throw new Error(data.error);
 
-      // 2. Load Cashfree SDK dynamically
       let cfInstance;
       if (window.Cashfree) {
         cfInstance = window.Cashfree({ mode: 'production' });
@@ -602,7 +606,6 @@ function HomePage({ setActiveTab }) {
         cfInstance = window.Cashfree({ mode: 'production' });
       }
 
-      // 3. Initiate checkout
       cfInstance.checkout({
         paymentSessionId: data.payment_session_id,
         redirectTarget: "_modal",
@@ -611,26 +614,21 @@ function HomePage({ setActiveTab }) {
           setPaymentError(result.error.message || 'Payment failed or cancelled.');
           setPaymentLoading(false);
         } else if (result.paymentDetails) {
-          // Auto Success Receipt!
           const methodString = result.paymentDetails?.paymentMessage || "Online UPI/Card Payment";
-
           setPaymentReceipt({
             orderId: data.order_id,
-            amount: fixedPaymentAmount,
+            amount: '1.00',
             date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
             paymentMethod: methodString
           });
           setPaymentLoading(false);
-
-          // Save exact payment details to Supabase database so it persists on reload!
           supabase.from('payments').insert([{
             user_id: user?.id,
             order_id: data.order_id,
-            amount: fixedPaymentAmount,
+            amount: '1.00',
             method: methodString,
             status: 'success'
           }]).then(() => console.log('Payment securely saved to Supabase!'));
-
         } else {
           setPaymentLoading(false);
         }
@@ -660,133 +658,54 @@ function HomePage({ setActiveTab }) {
         </div>
       </Card>
 
-
-      {statsLoading ? (
-        <Card style={{ marginBottom: 18, display: 'flex', justifyContent: 'center', padding: '30px 0' }}>
-          <Spinner fullPage={false} />
-        </Card>
-      ) : !paymentReceipt ? (
-        (new Date().getDate() >= 28 || new Date().getDate() <= 2) ? (
-          <Card style={{ marginBottom: 18 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 220 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>UPI Payment</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, marginTop: 4, fontFamily: "'Playfair Display',serif" }}>Pay Rs {fixedPaymentAmount}</div>
-                <div style={{ marginTop: 8, padding: '10px 12px', borderRadius: 10, background: t.inputBg, border: `1px solid ${t.border}` }}>
-                  <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif", lineHeight: 1.6 }}>
-                    Monthly Payment Window is Open (28th to 2nd). Pay securely via Cashfree.
+      {/* Unified Feedback Section */}
+      <div style={{ marginBottom: 25 }}>
+        <SectionLabel>Today's Meal Feedback</SectionLabel>
+        <Card style={{ padding: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Meal Ratings */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 15, flexWrap: 'wrap' }}>
+              {['lunch', 'dinner'].map(meal => (
+                <div key={meal} style={{ flex: 1, minWidth: 140 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, marginBottom: 8, textTransform: 'capitalize' }}>
+                    {meal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button key={star} onClick={() => setFeedback(prev => ({ ...prev, [meal]: star }))}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                        <Star size={20} fill={feedback[meal] >= star ? t.accent : 'none'} color={feedback[meal] >= star ? t.accent : t.textSub} />
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flexShrink: 0 }}>
-                {!paymentLoading ? (
-                  <button
-                    onClick={handleCashfreePayment}
-                    style={{
-                      minWidth: 190,
-                      padding: '13px 18px',
-                      border: 'none',
-                      borderRadius: 14,
-                      background: t.accentGrad,
-                      color: '#fff',
-                      fontSize: 14,
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      boxShadow: `0 10px 24px ${t.accentBg}`,
-                      fontFamily: "'DM Sans',sans-serif"
-                    }}
-                  >
-                    <Wallet size={16} />
-                    Secure Pay with Cashfree
-                  </button>
-                ) : (
-                  <div style={{
-                    minWidth: 190,
-                    padding: '13px 18px',
-                    border: `1px solid ${t.border}`,
-                    borderRadius: 14,
-                    background: t.card,
-                    color: t.accent,
-                    fontSize: 14,
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 8,
-                    fontFamily: "'DM Sans',sans-serif"
-                  }}>
-                    Processing...
-                  </div>
-                )}
-              </div>
+            {/* Single Comment Box */}
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: t.textSub, marginBottom: 8, opacity: 0.6 }}>Your Comments</div>
+              <textarea
+                placeholder="Share your thoughts on today's meals..."
+                value={feedback.comment}
+                onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
+                style={{
+                  width: '100%', background: t.inputBg, border: `1px solid ${t.border}`, borderRadius: 12, padding: 12,
+                  color: t.text, fontSize: 13, minHeight: 80, fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none'
+                }}
+              />
             </div>
-            {paymentError && <ErrorBanner msg={paymentError} />}
-          </Card>
-        ) : (
-          <Card style={{ marginBottom: 18, padding: '20px', textAlign: 'center' }}>
-            <Wallet size={32} color={t.textSub} style={{ opacity: 0.5, marginBottom: 12 }} />
-            <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>Payment Window Closed</div>
-            <div style={{ fontSize: 13, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>The payment window opens on the 28th of every month.</div>
-          </Card>
 
-        )
-      ) : (
-        <div className="receipt-container" style={{ marginBottom: 18, background: '#fff', borderRadius: 16, padding: 24, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', color: '#333', fontFamily: "'DM Sans',sans-serif" }}>
-          <div style={{ textAlign: 'center', marginBottom: 20 }}>
-            <div style={{ width: 50, height: 50, borderRadius: '50%', background: '#4aa36e', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px', fontSize: 24 }}>✓</div>
-            <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700 }}>Payment Successful!</h2>
-            <p style={{ margin: '4px 0 0', fontSize: 13, color: '#666' }}>Thank you for your payment.</p>
-          </div>
-
-          <div style={{ borderTop: '1px dashed #ccc', borderBottom: '1px dashed #ccc', padding: '16px 0', marginBottom: 20 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: '#666' }}>Order ID</span>
-              <span style={{ fontWeight: 600 }}>{paymentReceipt.orderId}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: '#666' }}>Date</span>
-              <span style={{ fontWeight: 600 }}>{paymentReceipt.date}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 13 }}>
-              <span style={{ color: '#666' }}>Amount Paid</span>
-              <span style={{ fontWeight: 600 }}>₹{paymentReceipt.amount}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13 }}>
-              <span style={{ color: '#666' }}>Method</span>
-              <span style={{ fontWeight: 600 }}>{paymentReceipt.paymentMethod}</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button
-              onClick={() => window.print()}
-              style={{ flex: 1, padding: '12px 6px', border: '1px solid #4aa36e', background: '#eaf4ee', color: '#4aa36e', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
-              Download PDF
-            </button>
-            <button
-              onClick={() => {
-                const text = `*Payment Receipt*\n\nStatus: Successful ✅\nOrder ID: ${paymentReceipt.orderId}\nAmount: ₹${paymentReceipt.amount}\nDate: ${paymentReceipt.date}\n\nThank you!`;
-                window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`);
-              }}
-              style={{ flex: 1, padding: '12px 6px', border: 'none', background: '#25D366', color: '#fff', borderRadius: 8, fontWeight: 600, cursor: 'pointer', fontSize: 12 }}>
-              Share WhatsApp
+            <button onClick={handleFeedbackSubmit} disabled={feedbackLoading}
+              style={{
+                width: '100%', padding: 14, borderRadius: 12, border: 'none', background: t.accentGrad,
+                color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 16px rgba(196,156,90,0.15)'
+              }}>
+              {feedbackLoading ? 'Sending...' : feedbackSubmitted ? '✅ Feedback Submitted!' : 'Submit Daily Ratings'}
             </button>
           </div>
-          <style>{`
-                 @media print {
-                     body * { visibility: hidden; }
-                     .receipt-container, .receipt-container * { visibility: visible; }
-                     .receipt-container { position: absolute; left: 0; top: 0; width: 100%; max-width: 400px; box-shadow: none; border: none; padding: 0; }
-                     .receipt-container button { display: none; }
-                 }
-             `}</style>
-        </div>
-      )}
+        </Card>
+      </div>
 
       {/* ── Stats ── */}
       {!statsLoading && (
@@ -806,137 +725,6 @@ function HomePage({ setActiveTab }) {
         </div>
       )}
 
-      {/* ── Survey window notice ── */}
-      {!surveyOpen && (
-        <div style={{
-          marginBottom: 16, padding: '12px 16px', borderRadius: 12,
-          background: t.accentBg, border: `1px solid ${t.accentBorder}`,
-          fontSize: 13, color: t.accent, fontFamily: "'DM Sans',sans-serif",
-          display: 'flex', alignItems: 'center', gap: 8
-        }}>
-          🕐 {getSurveyWindowMessage()}
-        </div>
-      )}
-      {surveyOpen && (
-        <div style={{
-          marginBottom: 16, padding: '12px 16px', borderRadius: 12,
-          background: t.successBg, border: `1px solid ${t.successBorder}`,
-          fontSize: 13, color: t.successText, fontFamily: "'DM Sans',sans-serif",
-          display: 'flex', alignItems: 'center', gap: 8
-        }}>
-          ✅ {new Date().getDate() <= 2 || new Date().getDate() >= 28 ? 'Monthly Survey Open (28th–2nd)' : 'Weekly Survey Window Open'}
-        </div>
-      )}
-
-      {/* ── Weekly Menu Header ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <img src="/al-mawaid.png" alt="" style={{
-          width: 32, height: 32, objectFit: 'contain',
-          filter: 'drop-shadow(0 2px 8px rgba(196,156,90,0.4))', flexShrink: 0
-        }} />
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>Weekly Menu</div>
-          <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'DM Sans',sans-serif" }}>Monday – Saturday · tap to expand</div>
-        </div>
-      </div>
-
-      {/* ── Start Survey CTA ── */}
-      <button onClick={() => openSurveyFromDay('monday')}
-        disabled={!surveyOpen}
-        style={{
-          width: '100%', padding: 13, borderRadius: 13, border: 'none', marginBottom: 14,
-          background: surveyOpen ? t.accentGrad : t.border, color: '#fff', fontSize: 14, fontWeight: 700,
-          cursor: surveyOpen ? 'pointer' : 'not-allowed', opacity: surveyOpen ? 1 : 0.55,
-          display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-          boxShadow: surveyOpen ? `0 6px 20px ${t.accentBg}` : 'none',
-          fontFamily: "'DM Sans',sans-serif"
-        }}>
-        <ClipboardList size={16} /> Start Weekly Survey
-      </button>
-
-      {/* ── Days Accordion ── */}
-      {DAYS.map(day => {
-        const menu = menuConfig[day]
-        const isExpanded = expandedDay === day
-        const daySurvey = surveyDaysCounts[day]
-        const dayFb = feedbackCounts[day]
-        const surveyDone = daySurvey && daySurvey.size >= 2
-        const lunchFb = dayFb?.lunch
-        const dinnerFb = dayFb?.dinner
-
-        return (
-          <div key={day} style={{ marginBottom: 8 }}>
-            <button onClick={() => setExpandedDay(isExpanded ? null : day)}
-              style={{
-                width: '100%', padding: '12px 14px', borderRadius: 13,
-                border: `1px solid ${isExpanded ? t.borderActive : t.border}`,
-                background: isExpanded ? t.cardActive : t.card, cursor: 'pointer',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                transition: 'all 0.25s', textAlign: 'left'
-              }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <img src="/al-mawaid.png" alt="" style={{
-                  width: 30, height: 30, objectFit: 'contain', flexShrink: 0,
-                  filter: 'drop-shadow(0 2px 6px rgba(196,156,90,0.3))'
-                }} />
-                <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>{menu.en}</div>
-                  <div style={{ fontSize: 11, color: t.textSub, fontFamily: "'Amiri',serif", marginTop: 1 }}>{menu.ar}</div>
-                  <div style={{ display: 'flex', gap: 5, marginTop: 4, flexWrap: 'wrap' }}>
-                    <span style={{
-                      fontSize: 10, padding: '2px 8px', borderRadius: 20,
-                      background: surveyDone ? `${t.successBg}` : t.accentBg,
-                      color: surveyDone ? t.successText : t.textSub, fontWeight: 700,
-                      border: `1px solid ${surveyDone ? t.successBorder : t.border}`,
-                      fontFamily: "'DM Sans',sans-serif"
-                    }}>
-                      {surveyDone ? '✓ Survey' : '○ Survey'}
-                    </span>
-                    <span style={{
-                      fontSize: 10, padding: '2px 8px', borderRadius: 20,
-                      background: (lunchFb || dinnerFb) ? 'rgba(200,80,100,0.10)' : t.accentBg,
-                      color: (lunchFb || dinnerFb) ? '#e06070' : t.textSub, fontWeight: 700,
-                      border: `1px solid ${(lunchFb || dinnerFb) ? 'rgba(200,80,100,0.28)' : t.border}`,
-                      fontFamily: "'DM Sans',sans-serif"
-                    }}>
-                      {lunchFb && dinnerFb ? '✓ Feedback' : lunchFb || dinnerFb ? '◑ Feedback' : '○ Feedback'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {surveyOpen && (
-                  <button onClick={e => { e.stopPropagation(); openSurveyFromDay(day) }}
-                    style={{
-                      background: t.accentBg, border: `1px solid ${t.accentBorder}`,
-                      borderRadius: 8, padding: '4px 10px', cursor: 'pointer',
-                      color: t.accent, fontSize: 10, fontWeight: 700,
-                      fontFamily: "'DM Sans',sans-serif"
-                    }}>
-                    Survey
-                  </button>
-                )}
-                <div style={{
-                  width: 24, height: 24, borderRadius: '50%', background: t.accentBg,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                }}>
-                  {isExpanded ? <ChevronUp size={12} color={t.accent} /> : <ChevronDown size={12} color={t.accent} />}
-                </div>
-              </div>
-            </button>
-
-            {isExpanded && (
-              <div style={{
-                marginTop: 4, padding: '14px 16px', background: t.inputBg,
-                borderRadius: 12, border: `1px solid ${t.border}`
-              }}>
-                {[['☀️ Lunch', menu.lunch], ['🌙 Dinner', menu.dinner]].map(([label, dishes], li) => (
-                  <div key={label} style={{ marginBottom: li === 0 ? 14 : 0 }}>
-                    <div style={{
-                      fontSize: 13, fontWeight: 700, color: t.accent,
-                      fontFamily: "'DM Sans',sans-serif", marginBottom: 8
-                    }}>{label}</div>
-                    <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 2.0 }}>
                       {dishes.map(d => (
                         <li key={d} style={{ fontSize: 14, color: t.textBody, fontFamily: "'DM Sans',sans-serif" }}>{d}</li>
                       ))}
@@ -2884,12 +2672,12 @@ export default function App() {
 
   const tabs = [
     { id: 'home', label: 'Home', Icon: Home },
-    { id: 'feedback', label: 'Feedback', Icon: Star },
+    { id: 'menu', label: 'Menu', Icon: ClipboardList },
     { id: 'post', label: 'Requests', Icon: FileText },
     { id: 'profile', label: 'Profile', Icon: User },
   ]
 
-  const tabLabels = { home: 'AL-MAWAID', feedback: 'FEEDBACK', post: 'REQUESTS', profile: 'PROFILE' }
+  const tabLabels = { home: 'AL-MAWAID', menu: 'WEEKLY MENU', post: 'REQUESTS', profile: 'PROFILE' }
 
   if (session === undefined) {
     return (
@@ -2972,7 +2760,7 @@ export default function App() {
 
             {/* Pages */}
             {activeTab === 'home' && <HomePage setActiveTab={setActiveTab} />}
-            {activeTab === 'feedback' && <FeedbackPage />}
+            {activeTab === 'menu' && <MenuPage />}
             {activeTab === 'post' && <PostPage />}
             {activeTab === 'profile' && <ProfilePage theme={theme} setTheme={handleSetTheme} />}
 
