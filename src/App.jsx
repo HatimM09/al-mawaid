@@ -135,32 +135,31 @@ const getTodayKey = () => {
 }
 
 // ─── Survey Window Check ──────────────────────────────────────
-// Open: Saturday 20:00 → Monday 10:00
+// Open: Saturday 20:00 → Monday 14:00 (2:00 PM)
 const isSurveyOpen = () => {
   const now = new Date()
-  const day = now.getDay()  // 0=Sun,1=Mon,2=Tue,...,6=Sat
+  const day = now.getDay()
   const hour = now.getHours()
   const min = now.getMinutes()
   const totalMins = hour * 60 + min
 
   const sat20 = 20 * 60
-  const mon10 = 10 * 60
+  const mon14 = 14 * 60
 
-  if (day === 6 && totalMins >= sat20) return true  // Sat after 20:00
-  if (day === 0) return true                          // All Sunday
-  if (day === 1 && totalMins <= mon10) return true   // Mon before 10:00
-  return false
+  // Standard weekly window: Sat 8PM to Mon 2PM
+  return (day === 6 && totalMins >= sat20) || (day === 0) || (day === 1 && totalMins <= mon14)
 }
 
 const getSurveyWindowMessage = () => {
   const now = new Date()
   const day = now.getDay()
   const hour = now.getHours()
+
   if (day === 6 && hour < 20) {
     const hoursLeft = 20 - hour
     return `Survey opens today at 8:00 PM (in ~${hoursLeft}h)`
   }
-  if (day === 1 && hour >= 10) {
+  if (day === 1 && hour >= 14) {
     return 'Survey window closed. Opens next Saturday at 8:00 PM.'
   }
   if (day >= 2 && day <= 5) {
@@ -817,7 +816,7 @@ function HomePage({ setActiveTab }) {
           fontSize: 13, color: t.successText, fontFamily: "'DM Sans',sans-serif",
           display: 'flex', alignItems: 'center', gap: 8
         }}>
-          ✅ Survey window is open! (Sat 8PM – Mon 10AM)
+          ✅ Survey window is open! (Sat 8PM – Mon 2PM)
         </div>
       )}
 
