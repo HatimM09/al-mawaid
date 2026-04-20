@@ -965,17 +965,18 @@ function SurveyModal({ startDay = 'monday', onClose }) {
   const t = useTheme()
   const menuConfig = useMenuConfig()
   const { user } = useAuth()
+  const [profile, setProfile] = useState(null)
   const [currentDay, setCurrentDay] = useState(startDay)
   const [currentMeal, setCurrentMeal] = useState('lunch')
-  const [responses, setResponses] = useState({})
   const [wantsFood, setWantsFood] = useState(null)
-  const [profile, setProfile] = useState(null)
+  const [responses, setResponses] = useState({})
   const [loading, setLoading] = useState(false)
   const [existingResponse, setExistingResponse] = useState(null)
   const [editBlocked, setEditBlocked] = useState(false)
 
   const currentDayIndex = DAYS.indexOf(currentDay)
-  const menu = menuConfig[currentDay]
+  const menu = menuConfig[currentDay] || { lunch: [], dinner: [] }
+  const dishes = currentMeal === 'lunch' ? menu.lunch : menu.dinner
 
   useEffect(() => {
     supabase.from('user_stats').select('thali_number, name').eq('user_id', user.id).single()
@@ -996,12 +997,12 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         const prefix = `${currentDay}_${currentMeal}`
         const status = data[`${prefix}_status`]
         setWantsFood(status === 'Yes' ? true : status === 'No' ? false : null)
-        
+
         const newResponses = {}
         for (let i = 1; i <= 5; i++) {
           const val = data[`${prefix}_dish_${i}`]
           if (val) {
-            const dishName = dishes[i-1]
+            const dishName = dishes[i - 1]
             if (dishName) {
               const mappedVal = (val === 'Yes' || val === 'No') ? val.toLowerCase() : parseInt(val)
               newResponses[dishName] = mappedVal
@@ -1015,8 +1016,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
       } else {
         setWantsFood(null); setResponses({}); setEditBlocked(false)
       }
-    } catch { 
-      setWantsFood(null); setResponses({}); setEditBlocked(false) 
+    } catch {
+      setWantsFood(null); setResponses({}); setEditBlocked(false)
     }
   }
 
@@ -1062,9 +1063,9 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         const { error: flatError } = await supabase
           .from('survey_submissions_flat')
           .upsert([flatData], { onConflict: 'user_id' })
-        
+
         if (flatError) throw flatError
-        
+
         // Increment user total surveys only if this is a new entry for this meal
         if (isNewMeal) await supabase.rpc('increment_user_surveys', { p_user_id: user.id })
 
@@ -1716,7 +1717,7 @@ function MySurveysPage({ onBack }) {
                   const val = data[`${day}_${meal}_dish_${i}`]
                   if (val) {
                     const dishes = meal === 'lunch' ? menuConfig[day].lunch : menuConfig[day].dinner
-                    const dishName = dishes[i-1]
+                    const dishName = dishes[i - 1]
                     if (dishName) dishResponses[dishName] = val
                   }
                 }
@@ -2911,7 +2912,7 @@ function SurveyReportPage() {
       const text = evt.target.result
       const lines = text.split('\n').map(l => l.split(','))
       if (lines.length < 2) return
-      
+
       const headers = lines[0]
       const importedData = lines.slice(1).filter(l => l.length > 1).map((line, idx) => {
         const obj = { id: `imported-${idx}` }
@@ -2924,7 +2925,7 @@ function SurveyReportPage() {
             .replace('_d3', '_dish_3')
             .replace('_d4', '_dish_4')
             .replace('_d5', '_dish_5')
-          
+
           if (key === 'Thali') obj.thali_no = line[i]
           else if (key === 'Email') obj.email = line[i]
           else obj[key] = line[i]
@@ -2958,9 +2959,9 @@ function SurveyReportPage() {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ position: 'relative' }}>
-              <input 
-                type="text" 
-                placeholder="Search Thali or Email..." 
+              <input
+                type="text"
+                placeholder="Search Thali or Email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{
@@ -2973,10 +2974,10 @@ function SurveyReportPage() {
             </div>
             <input type="file" ref={fileImporterRef} accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
             <button onClick={() => fileImporterRef.current?.click()} style={{ background: t.card, border: `1px solid ${t.border}`, color: t.text, padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-               <Upload size={14} /> Import CSV
+              <Upload size={14} /> Import CSV
             </button>
             <button onClick={exportToCSV} style={{ background: t.accentGrad, border: 'none', color: '#fff', padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-               <FileText size={14} /> Export CSV
+              <FileText size={14} /> Export CSV
             </button>
             <button onClick={() => { setLoading(true); loadData(); }} style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, color: t.accent, padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
           </div>
@@ -3008,7 +3009,7 @@ function SurveyReportPage() {
             })}
           </div>
         </div>
-        
+
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ borderCollapse: 'collapse', width: 'max-content', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
             <thead>
@@ -3047,7 +3048,7 @@ function SurveyReportPage() {
             </thead>
             <tbody>
               {filteredData.map((row, idx) => (
-                <tr key={row.id || idx} style={{ 
+                <tr key={row.id || idx} style={{
                   borderBottom: `1px solid ${t.border}`,
                   background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
                 }}>
@@ -3059,7 +3060,7 @@ function SurveyReportPage() {
                       {['status', 'dish_1', 'dish_2', 'dish_3', 'dish_4', 'dish_5'].map(col => {
                         const val = row[`${day}_lunch_${col}`] || ''
                         return (
-                          <td key={col} style={{ 
+                          <td key={col} style={{
                             padding: '8px 12px', borderRight: `1px solid ${t.border}`, textAlign: 'center',
                             color: val === 'Yes' ? t.successText : val === 'No' ? '#e06070' : t.textBody,
                             background: val.includes('%') && parseInt(val) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
@@ -3072,7 +3073,7 @@ function SurveyReportPage() {
                       {['status', 'dish_1', 'dish_2', 'dish_3', 'dish_4', 'dish_5'].map(col => {
                         const val = row[`${day}_dinner_${col}`] || ''
                         return (
-                          <td key={col} style={{ 
+                          <td key={col} style={{
                             padding: '8px 12px', borderRight: `1px solid ${t.border}`, textAlign: 'center',
                             color: val === 'Yes' ? t.successText : val === 'No' ? '#e06070' : t.textBody,
                             background: val.includes('%') && parseInt(val) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
@@ -3089,7 +3090,7 @@ function SurveyReportPage() {
           </table>
         </div>
       </Card>
-      
+
       <div style={{ marginTop: 24, fontSize: 11, color: t.textSub, textAlign: 'center', opacity: 0.6 }}>
         <p>Tip: Scroll horizontally to view all days. Data updates instantly when students submit surveys.</p>
         <p>You can also export this data to CSV or import an existing CSV to visualize it here.</p>
@@ -3230,9 +3231,9 @@ export default function App() {
             {/* Pages */}
             {activeTab === 'home' && <HomePage setActiveTab={setActiveTab} />}
             {activeTab === 'feedback' && <FeedbackPage />}
-            { activeTab === 'post' && <PostPage /> }
-            { activeTab === 'report' && <SurveyReportPage /> }
-            { activeTab === 'profile' && <ProfilePage theme={theme} setTheme={handleSetTheme} /> }
+            {activeTab === 'post' && <PostPage />}
+            {activeTab === 'report' && <SurveyReportPage />}
+            {activeTab === 'profile' && <ProfilePage theme={theme} setTheme={handleSetTheme} />}
 
             {/* Bottom Nav */}
             <nav style={{
