@@ -287,6 +287,9 @@ const Card = ({ children, active, style: extraStyle = {} }) => {
       background: active ? t.cardActive : t.card,
       border: `1px solid ${active ? t.borderActive : t.border}`,
       boxShadow: active ? `0 6px 24px ${t.accentBg}` : '0 2px 8px rgba(0,0,0,0.08)',
+      ...extraStyle
+    }}>
+      {children}
     </div>
   )
 }
@@ -583,98 +586,53 @@ function HomePage({ setActiveTab }) {
     finally { setFeedbackLoading(false) }
   }
 
-      });
-
-      if (!res.ok) {
-        let errText = await res.text();
-        throw new Error(`Edge Function error (${res.status}): ${errText}`);
-      }
-
-      const data = await res.json();
-      if (data?.error) throw new Error(data.error);
-
-      let cfInstance;
-      if (window.Cashfree) {
-        cfInstance = window.Cashfree({ mode: 'production' });
-      } else {
-        await new Promise((resolve) => {
-          const script = document.createElement('script');
-          script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
-          script.onload = resolve;
-          document.body.appendChild(script);
-        });
-        cfInstance = window.Cashfree({ mode: 'production' });
-      }
-
-      cfInstance.checkout({
-        paymentSessionId: data.payment_session_id,
-        redirectTarget: "_modal",
-      }).then((result) => {
-        if (result.error) {
-          setPaymentError(result.error.message || 'Payment failed or cancelled.');
-          setPaymentLoading(false);
-        } else if (result.paymentDetails) {
-          const methodString = result.paymentDetails?.paymentMessage || "Online UPI/Card Payment";
-          setPaymentReceipt({
-            orderId: data.order_id,
-            amount: '1.00',
-            date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString(),
-            paymentMethod: methodString
-          });
-          setPaymentLoading(false);
-          supabase.from('payments').insert([{
-            user_id: user?.id,
-            order_id: data.order_id,
-            amount: '1.00',
-            method: methodString,
-            status: 'success'
-          }]).then(() => console.log('Payment securely saved to Supabase!'));
-        } else {
-          setPaymentLoading(false);
-        }
-      });
-    } catch (err) {
-      setPaymentError(err.message || 'Failed to initialize payment');
-      setPaymentLoading(false);
-    }
-  }
-
   return (
-    <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: 800, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-
-      {/* ── Profile strip ── */}
-      <Card active style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 16 }}>
-        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54} />
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif", lineHeight: 1.2 }}>
-            {profileData.name || 'Welcome 👋'}
+    <main style={{ padding: '16px 16px 96px', maxWidth: 600, margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ marginBottom: 25, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 }}>
+            Salaam, {profile?.name?.split(' ')[0] || 'Member'}
           </div>
-          <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>{user.email}</div>
-          {profileData.thali_number && (
-            <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>
-              Thali <strong style={{ color: t.accent }}>#{profileData.thali_number}</strong>
-            </div>
-          )}
+          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: t.text, fontFamily: "'Playfair Display',serif" }}>Welcome Home</h2>
         </div>
-      </Card>
+        <div style={{ width: 44, height: 44, borderRadius: 14, background: t.accentGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 20px rgba(196,156,90,0.2)' }}>
+          <User size={20} />
+        </div>
+      </div>
 
-      {/* Unified Feedback Section */}
+      {/* Survey Notice Card */}
+      {surveyOpen && (
+        <Card active onClick={() => setActiveTab('menu')} style={{ marginBottom: 25, padding: 18, cursor: 'pointer', border: `1.5px solid ${t.accentActive}` }}>
+           <div style={{ display: 'flex', gap: 14 }}>
+             <div style={{ width: 42, height: 42, borderRadius: 12, background: t.accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.accent }}>
+                <ClipboardList size={22} />
+             </div>
+             <div style={{ flex: 1 }}>
+               <div style={{ fontSize: 16, fontWeight: 800, color: t.accent, marginBottom: 2 }}>Monthly Survey is Open</div>
+               <div style={{ fontSize: 12, color: t.textSub, opacity: 0.8 }}>Confirm your attendance from 28th to 2nd.</div>
+             </div>
+             <ChevronRight size={18} color={t.accent} style={{ alignSelf: 'center' }} />
+           </div>
+        </Card>
+      )}
+
+      {/* Unified Feedback Card */}
       <div style={{ marginBottom: 25 }}>
         <SectionLabel>Today's Meal Feedback</SectionLabel>
         <Card style={{ padding: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            {/* Meal Ratings */}
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 15, flexWrap: 'wrap' }}>
               {['lunch', 'dinner'].map(meal => (
                 <div key={meal} style={{ flex: 1, minWidth: 140 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, marginBottom: 8, textTransform: 'capitalize' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, marginBottom: 8 }}>
                     {meal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     {[1, 2, 3, 4, 5].map(star => (
                       <button key={star} onClick={() => setFeedback(prev => ({ ...prev, [meal]: star }))}
                         style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
-                        <Star size={20} fill={feedback[meal] >= star ? t.accent : 'none'} color={feedback[meal] >= star ? t.accent : t.textSub} />
+                        <Star size={22} fill={feedback[meal] >= star ? t.accent : 'none'} color={feedback[meal] >= star ? t.accent : t.textSub} />
                       </button>
                     ))}
                   </div>
@@ -682,11 +640,9 @@ function HomePage({ setActiveTab }) {
               ))}
             </div>
 
-            {/* Single Comment Box */}
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1, color: t.textSub, marginBottom: 8, opacity: 0.6 }}>Your Comments</div>
               <textarea
-                placeholder="Share your thoughts on today's meals..."
+                placeholder="Any comments for today's meals?"
                 value={feedback.comment}
                 onChange={(e) => setFeedback(prev => ({ ...prev, comment: e.target.value }))}
                 style={{
@@ -698,50 +654,20 @@ function HomePage({ setActiveTab }) {
 
             <button onClick={handleFeedbackSubmit} disabled={feedbackLoading}
               style={{
-                width: '100%', padding: 14, borderRadius: 12, border: 'none', background: t.accentGrad,
-                color: '#fff', fontSize: 14, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 16px rgba(196,156,90,0.15)'
+                width: '100%', padding: 16, borderRadius: 14, border: 'none', background: t.accentGrad,
+                color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(196,156,90,0.2)'
               }}>
-              {feedbackLoading ? 'Sending...' : feedbackSubmitted ? '✅ Feedback Submitted!' : 'Submit Daily Ratings'}
+              {feedbackLoading ? 'Submitting...' : feedbackSubmitted ? '✅ Feedback Sent!' : 'Submit Ratings'}
             </button>
           </div>
         </Card>
       </div>
 
-      {/* ── Stats ── */}
-      {!statsLoading && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 18 }}>
-          <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: t.accent, lineHeight: 1, fontFamily: "'Playfair Display',serif" }}>
-              {surveyedDaysCount}<span style={{ fontSize: 13, fontWeight: 500, color: t.textSub }}>/6</span>
-            </div>
-            <div style={{ fontSize: 11, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.04em' }}>Survey Days</div>
-          </Card>
-          <Card style={{ textAlign: 'center', padding: '14px 12px' }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#e06070', lineHeight: 1, fontFamily: "'Playfair Display',serif" }}>
-              {feedbackDaysCount}<span style={{ fontSize: 13, fontWeight: 500, color: t.textSub }}>/6</span>
-            </div>
-            <div style={{ fontSize: 11, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.04em' }}>Feedback Days</div>
-          </Card>
-        </div>
-      )}
-
-                      {dishes.map(d => (
-                        <li key={d} style={{ fontSize: 14, color: t.textBody, fontFamily: "'DM Sans',sans-serif" }}>{d}</li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )
-      })}
-
-      {showSurvey && (
-        <SurveyModal
-          startDay={surveyStartDay}
-          onClose={() => { setShowSurvey(false); loadData() }} />
-      )}
+      {/* Features Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <FeatureCard title="Support" sub="Help & Queries" Icon={Mail} color="#6366f1" onClick={() => setActiveTab('post')} />
+        <FeatureCard title="Weekly Menu" sub="Full Schedule" Icon={ClipboardList} color="#f59e0b" onClick={() => setActiveTab('menu')} />
+      </div>
     </main>
   )
 }
