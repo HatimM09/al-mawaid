@@ -327,11 +327,11 @@ function LoginPage({ t }) {
     }}>
       {/* ── Uploaded Image Background ── */}
       <div style={{
-        position: 'absolute', inset: -40, 
-        backgroundImage: "url('/bg.jpg')", 
-        backgroundPosition: 'center', 
+        position: 'absolute', inset: -40,
+        backgroundImage: "url('/bg.jpg')",
+        backgroundPosition: 'center',
         backgroundSize: 'cover',
-        filter: 'blur(16px) brightness(1.05) saturate(1.2)', 
+        filter: 'blur(16px) brightness(1.05) saturate(1.2)',
         zIndex: 0,
         transform: 'translateZ(0)'
       }} />
@@ -343,11 +343,11 @@ function LoginPage({ t }) {
 
       <div style={{
         position: 'relative', zIndex: 1, width: '100%', maxWidth: 400,
-        background: 'rgba(255, 255, 255, 0.2)', 
-        backdropFilter: 'blur(24px) saturate(160%)', 
+        background: 'rgba(255, 255, 255, 0.2)',
+        backdropFilter: 'blur(24px) saturate(160%)',
         WebkitBackdropFilter: 'blur(24px) saturate(160%)',
         borderRadius: 32,
-        padding: '40px 32px', 
+        padding: '40px 32px',
         borderTop: '1px solid rgba(255, 255, 255, 0.7)',
         borderLeft: '1px solid rgba(255, 255, 255, 0.5)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
@@ -402,8 +402,8 @@ function LoginPage({ t }) {
             }}>EMAIL</label>
             <div style={{ position: 'relative' }}>
               <Mail size={16} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#A8713D' }} />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required 
-                style={{ ...inp, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.6)', color: '#4A3B2C', fontSize: 16, paddingLeft: 46 }} 
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+                style={{ ...inp, background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.6)', color: '#4A3B2C', fontSize: 16, paddingLeft: 46 }}
                 placeholder="your@email.com" />
             </div>
           </div>
@@ -431,7 +431,7 @@ function LoginPage({ t }) {
           <button type="submit" disabled={loading}
             style={{
               width: '100%', padding: '16px', borderRadius: 16, border: 'none',
-              background: loading ? 'rgba(255,255,255,0.5)' : 'linear-gradient(135deg, #C18544, #8D5B2D)', 
+              background: loading ? 'rgba(255,255,255,0.5)' : 'linear-gradient(135deg, #C18544, #8D5B2D)',
               color: loading ? '#8A725D' : '#fff', fontSize: 16, fontWeight: 800,
               cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1,
               boxShadow: loading ? 'none' : `0 8px 24px rgba(141,91,45,0.35)`, transition: 'all 0.25s', marginTop: 8,
@@ -475,9 +475,9 @@ function HomePage({ setActiveTab }) {
   const loadData = async () => {
     try {
       const { data } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
-      if (data) setProfileData({ 
-        name: data.name || '', 
-        thali_number: data.thali_number || '', 
+      if (data) setProfileData({
+        name: data.name || '',
+        thali_number: data.thali_number || '',
         avatar_url: data.avatar_url || '',
         phone: data.phone || data.mobile_number || data.contact || ''
       })
@@ -514,7 +514,7 @@ function HomePage({ setActiveTab }) {
         // Otherwise, it started last month on the 28th.
         return new Date(y, d >= 28 ? m : m - 1, 28).toISOString();
       };
-      
+
       const { data } = await supabase.from('payments')
         .select('*')
         .eq('user_id', user.id)
@@ -551,7 +551,7 @@ function HomePage({ setActiveTab }) {
     try {
       // 1. Create order via direct Fetch to Edge Function
       const orderId = 'ORDER_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-      
+
       const payload = {
         amount: fixedPaymentAmount,
         order_id: orderId,
@@ -606,7 +606,7 @@ function HomePage({ setActiveTab }) {
         } else if (result.paymentDetails) {
           // Auto Success Receipt!
           const methodString = result.paymentDetails?.paymentMessage || "Online UPI/Card Payment";
-          
+
           setPaymentReceipt({
             orderId: data.order_id,
             amount: fixedPaymentAmount,
@@ -699,19 +699,19 @@ function HomePage({ setActiveTab }) {
                   </button>
                 ) : (
                   <div style={{
-                      minWidth: 190,
-                      padding: '13px 18px',
-                      border: `1px solid ${t.border}`,
-                      borderRadius: 14,
-                      background: t.card,
-                      color: t.accent,
-                      fontSize: 14,
-                      fontWeight: 700,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      fontFamily: "'DM Sans',sans-serif"
+                    minWidth: 190,
+                    padding: '13px 18px',
+                    border: `1px solid ${t.border}`,
+                    borderRadius: 14,
+                    background: t.card,
+                    color: t.accent,
+                    fontSize: 14,
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    fontFamily: "'DM Sans',sans-serif"
                   }}>
                     Processing...
                   </div>
@@ -722,9 +722,9 @@ function HomePage({ setActiveTab }) {
           </Card>
         ) : (
           <Card style={{ marginBottom: 18, padding: '20px', textAlign: 'center' }}>
-             <Wallet size={32} color={t.textSub} style={{ opacity: 0.5, marginBottom: 12 }} />
-             <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>Payment Window Closed</div>
-             <div style={{ fontSize: 13, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>The payment window opens on the 28th of every month.</div>
+            <Wallet size={32} color={t.textSub} style={{ opacity: 0.5, marginBottom: 12 }} />
+            <div style={{ fontSize: 16, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif" }}>Payment Window Closed</div>
+            <div style={{ fontSize: 13, color: t.textSub, marginTop: 4, fontFamily: "'DM Sans',sans-serif" }}>The payment window opens on the 28th of every month.</div>
           </Card>
 
         )
@@ -2749,6 +2749,140 @@ function ResetPasswordPage({ onBack = null }) {
   )
 }
 
+// ══════════════════════════════════════════════════════════════
+// SURVEY REPORT PAGE
+// ══════════════════════════════════════════════════════════════
+function SurveyReportPage() {
+  const t = useTheme()
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    fetch('/Survey data insert_rows (1).csv')
+      .then(res => res.text())
+      .then(text => {
+        const lines = text.split('\n').filter(l => l.trim() !== '')
+        if (lines.length === 0) return
+        
+        const rows = lines.map(line => {
+          // Simple CSV parser handling quotes
+          const result = []
+          let start = 0
+          let inQuotes = false
+          for (let i = 0; i < line.length; i++) {
+            if (line[i] === '"') inQuotes = !inQuotes
+            else if (line[i] === ',' && !inQuotes) {
+              result.push(line.substring(start, i).replace(/^"|"$/g, ''))
+              start = i + 1
+            }
+          }
+          result.push(line.substring(start).replace(/^"|"$/g, ''))
+          return result
+        })
+        setData(rows)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError('Failed to load survey data')
+        setLoading(false)
+      })
+  }, [])
+
+  if (loading) return <Spinner />
+  if (error) return <ErrorBanner msg={error} />
+  if (data.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: t.textSub }}>No data available</div>
+
+  const headers = data[0]
+  const rows = data.slice(1)
+
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+  return (
+    <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
+      <Card style={{ padding: 0, overflow: 'hidden', border: `1px solid ${t.border}` }}>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, background: t.cardActive }}>
+          <SectionLabel>Survey Responses</SectionLabel>
+          <div style={{ fontSize: 13, color: t.textSub, opacity: 0.8 }}>Showing all student survey responses from CSV</div>
+        </div>
+        
+        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+          <table style={{ borderCollapse: 'collapse', width: 'max-content', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
+            <thead>
+              {/* Row 1: Main Headers */}
+              <tr style={{ background: t.cardActive, borderBottom: `1px solid ${t.border}` }}>
+                <th rowSpan={3} style={{ padding: '12px 16px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'left', position: 'sticky', left: 0, zIndex: 10, background: t.cardActive }}>Thali</th>
+                <th rowSpan={3} style={{ padding: '12px 16px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'left', position: 'sticky', left: 80, zIndex: 10, background: t.cardActive }}>Email</th>
+                {days.map(day => (
+                  <th key={day} colSpan={12} style={{ padding: '8px 12px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'center', borderBottom: `1px solid ${t.border}` }}>
+                    {day}
+                  </th>
+                ))}
+              </tr>
+              {/* Row 2: Lunch/Dinner */}
+              <tr style={{ background: 'rgba(255,255,255,0.02)', borderBottom: `1px solid ${t.border}` }}>
+                {days.map(day => (
+                  <React.Fragment key={day}>
+                    <th colSpan={6} style={{ padding: '6px 12px', borderRight: `1px solid ${t.border}`, color: t.text, textAlign: 'center', background: 'rgba(196,156,90,0.05)' }}>Lunch</th>
+                    <th colSpan={6} style={{ padding: '6px 12px', borderRight: `1px solid ${t.border}`, color: t.text, textAlign: 'center' }}>Dinner</th>
+                  </React.Fragment>
+                ))}
+              </tr>
+              {/* Row 3: Dish columns */}
+              <tr style={{ background: 'rgba(255,255,255,0.01)', borderBottom: `2px solid ${t.border}` }}>
+                {days.map(day => (
+                  <React.Fragment key={day}>
+                    {/* Lunch sub-headers */}
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>Res</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D1</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D2</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D3</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D4</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D5</th>
+                    {/* Dinner sub-headers */}
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>Res</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D1</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D2</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D3</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D4</th>
+                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D5</th>
+                  </React.Fragment>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, idx) => (
+                <tr key={idx} style={{ 
+                  borderBottom: `1px solid ${t.border}`,
+                  background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
+                }}>
+                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.text, fontWeight: 700, position: 'sticky', left: 0, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row[0]}</td>
+                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.textSub, fontSize: 11, position: 'sticky', left: 80, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row[1]}</td>
+                  {row.slice(2).map((cell, cIdx) => (
+                    <td key={cIdx} style={{ 
+                      padding: '8px 12px', 
+                      borderRight: `1px solid ${t.border}`,
+                      color: cell === 'Yes' ? t.successText : cell === 'No' ? '#e06070' : t.textBody,
+                      textAlign: 'center',
+                      background: cell.includes('%') && parseInt(cell) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
+                    }}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      
+      <div style={{ marginTop: 24, fontSize: 11, color: t.textSub, textAlign: 'center', opacity: 0.6 }}>
+        <p>Tip: Scroll horizontally to view all days. Sticky columns help track Thali and Email.</p>
+      </div>
+    </main>
+  )
+}
+
 // ROOT APP
 // ══════════════════════════════════════════════════════════════
 export default function App() {
@@ -2767,7 +2901,7 @@ export default function App() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session))
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_evt, session) => setSession(session))
-    
+
     // Fetch dynamic menu
     supabase.from('weekly_menu').select('*').order('sort_order').then(({ data, error }) => {
       if (error) {
@@ -2793,10 +2927,11 @@ export default function App() {
     { id: 'home', label: 'Home', Icon: Home },
     { id: 'feedback', label: 'Feedback', Icon: Star },
     { id: 'post', label: 'Requests', Icon: FileText },
+    { id: 'report', label: 'Report', Icon: ClipboardList },
     { id: 'profile', label: 'Profile', Icon: User },
   ]
 
-  const tabLabels = { home: 'AL-MAWAID', feedback: 'FEEDBACK', post: 'REQUESTS', profile: 'PROFILE' }
+  const tabLabels = { home: 'AL-MAWAID', feedback: 'FEEDBACK', post: 'REQUESTS', report: 'SURVEY REPORT', profile: 'PROFILE' }
 
   if (session === undefined) {
     return (
@@ -2824,110 +2959,111 @@ export default function App() {
             display: 'flex', flexDirection: 'column'
           }}>
 
-          {/* Header */}
-          <header style={{
-            position: 'relative', overflow: 'hidden',
-            background: t.bgGrad, padding: '14px 18px 0', flexShrink: 0
-          }}>
-            <GeoBg t={t} />
-            <div style={{
-              position: 'relative', zIndex: 1,
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8
+            {/* Header */}
+            <header style={{
+              position: 'relative', overflow: 'hidden',
+              background: t.bgGrad, padding: '14px 18px 0', flexShrink: 0
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <img src="/al-mawaid.png" alt=""
-                  style={{
-                    width: 24, height: 24, objectFit: 'contain',
-                    filter: 'drop-shadow(0 2px 6px rgba(196,156,90,0.5))'
-                  }} />
-                <span style={{
-                  fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
-                  color: t.textSub, opacity: 0.55, fontWeight: 700, fontFamily: "'DM Sans',sans-serif"
-                }}>
-                  Al-Mawaid
+              <GeoBg t={t} />
+              <div style={{
+                position: 'relative', zIndex: 1,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <img src="/al-mawaid.png" alt=""
+                    style={{
+                      width: 24, height: 24, objectFit: 'contain',
+                      filter: 'drop-shadow(0 2px 6px rgba(196,156,90,0.5))'
+                    }} />
+                  <span style={{
+                    fontSize: 9, letterSpacing: '0.24em', textTransform: 'uppercase',
+                    color: t.textSub, opacity: 0.55, fontWeight: 700, fontFamily: "'DM Sans',sans-serif"
+                  }}>
+                    Al-Mawaid
+                  </span>
+                </div>
+                <span style={{ fontSize: 11, color: t.textSub, opacity: 0.4, fontFamily: "'DM Sans',sans-serif" }}>
+                  {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                 </span>
               </div>
-              <span style={{ fontSize: 11, color: t.textSub, opacity: 0.4, fontFamily: "'DM Sans',sans-serif" }}>
-                {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-              </span>
-            </div>
 
-            {activeTab === 'home' && (
-              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 2 }}>
-                <p style={{ fontFamily: "'Noto Nastaliq Urdu','Amiri',serif", fontSize: 16, color: t.accent, margin: 0, lineHeight: 1.8 }}>
-                  بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
-                </p>
+              {activeTab === 'home' && (
+                <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 2 }}>
+                  <p style={{ fontFamily: "'Noto Nastaliq Urdu','Amiri',serif", fontSize: 16, color: t.accent, margin: 0, lineHeight: 1.8 }}>
+                    بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
+                  </p>
+                </div>
+              )}
+
+              <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 6 }}>
+                <h1 style={{
+                  margin: 0, fontSize: activeTab === 'home' ? 28 : 20,
+                  fontWeight: 700, letterSpacing: '0.06em', lineHeight: 1.1, color: t.accent,
+                  fontFamily: "'Playfair Display',serif"
+                }}>
+                  {tabLabels[activeTab]}
+                </h1>
               </div>
-            )}
 
-            <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 6 }}>
-              <h1 style={{
-                margin: 0, fontSize: activeTab === 'home' ? 28 : 20,
-                fontWeight: 700, letterSpacing: '0.06em', lineHeight: 1.1, color: t.accent,
-                fontFamily: "'Playfair Display',serif"
-              }}>
-                {tabLabels[activeTab]}
-              </h1>
-            </div>
+              <svg style={{ display: 'block', position: 'relative', zIndex: 1 }}
+                width="100%" viewBox="0 0 1440 28" preserveAspectRatio="none">
+                <path d="M0,10 C200,28 400,0 600,14 C800,28 1000,4 1200,18 C1320,26 1400,10 1440,14 L1440,28 L0,28 Z"
+                  fill={t.headerWave} opacity="0.9" />
+              </svg>
+            </header>
 
-            <svg style={{ display: 'block', position: 'relative', zIndex: 1 }}
-              width="100%" viewBox="0 0 1440 28" preserveAspectRatio="none">
-              <path d="M0,10 C200,28 400,0 600,14 C800,28 1000,4 1200,18 C1320,26 1400,10 1440,14 L1440,28 L0,28 Z"
-                fill={t.headerWave} opacity="0.9" />
-            </svg>
-          </header>
+            {/* Pages */}
+            {activeTab === 'home' && <HomePage setActiveTab={setActiveTab} />}
+            {activeTab === 'feedback' && <FeedbackPage />}
+            { activeTab === 'post' && <PostPage /> }
+            { activeTab === 'report' && <SurveyReportPage /> }
+            { activeTab === 'profile' && <ProfilePage theme={theme} setTheme={handleSetTheme} /> }
 
-          {/* Pages */}
-          {activeTab === 'home' && <HomePage setActiveTab={setActiveTab} />}
-          {activeTab === 'feedback' && <FeedbackPage />}
-          {activeTab === 'post' && <PostPage />}
-          {activeTab === 'profile' && <ProfilePage theme={theme} setTheme={handleSetTheme} />}
-
-          {/* Bottom Nav */}
-          <nav style={{
-            position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
-            display: 'flex', justifyContent: 'space-around', alignItems: 'center',
-            padding: '8px 4px 18px', background: t.navBg,
-            borderTop: `1px solid ${t.navBorder}`,
-            boxShadow: `0 -8px 30px rgba(0,0,0,0.20)`
-          }}>
-            {tabs.map(({ id, label, Icon }) => {
-              const active = activeTab === id
-              return (
-                <button key={id} onClick={() => setActiveTab(id)}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
-                    padding: '2px 14px', position: 'relative', WebkitTapHighlightColor: 'transparent'
-                  }}>
-                  {active && (
+            {/* Bottom Nav */}
+            <nav style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 30,
+              display: 'flex', justifyContent: 'space-around', alignItems: 'center',
+              padding: '8px 4px 18px', background: t.navBg,
+              borderTop: `1px solid ${t.navBorder}`,
+              boxShadow: `0 -8px 30px rgba(0,0,0,0.20)`
+            }}>
+              {tabs.map(({ id, label, Icon }) => {
+                const active = activeTab === id
+                return (
+                  <button key={id} onClick={() => setActiveTab(id)}
+                    style={{
+                      background: 'none', border: 'none', cursor: 'pointer',
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+                      padding: '2px 14px', position: 'relative', WebkitTapHighlightColor: 'transparent'
+                    }}>
+                    {active && (
+                      <div style={{
+                        position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
+                        width: 28, height: 2.5, borderRadius: 6, background: t.accent
+                      }} />
+                    )}
                     <div style={{
-                      position: 'absolute', top: -8, left: '50%', transform: 'translateX(-50%)',
-                      width: 28, height: 2.5, borderRadius: 6, background: t.accent
-                    }} />
-                  )}
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%', transition: 'all 0.25s',
-                    background: active ? t.accentBg : 'transparent',
-                    border: active ? `1px solid ${t.accentBorder}` : '1px solid transparent',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    <Icon size={16} color={active ? t.accent : t.textSub}
-                      strokeWidth={active ? 2.2 : 1.5} style={{ opacity: active ? 1 : 0.5 }} />
-                  </div>
-                  <span style={{
-                    fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
-                    color: active ? t.accent : t.textSub, opacity: active ? 1 : 0.45,
-                    fontFamily: "'DM Sans',sans-serif"
-                  }}>
-                    {label}
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
+                      width: 36, height: 36, borderRadius: '50%', transition: 'all 0.25s',
+                      background: active ? t.accentBg : 'transparent',
+                      border: active ? `1px solid ${t.accentBorder}` : '1px solid transparent',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <Icon size={16} color={active ? t.accent : t.textSub}
+                        strokeWidth={active ? 2.2 : 1.5} style={{ opacity: active ? 1 : 0.5 }} />
+                    </div>
+                    <span style={{
+                      fontSize: 8, fontWeight: 700, letterSpacing: '0.06em',
+                      color: active ? t.accent : t.textSub, opacity: active ? 1 : 0.45,
+                      fontFamily: "'DM Sans',sans-serif"
+                    }}>
+                      {label}
+                    </span>
+                  </button>
+                )
+              })}
+            </nav>
 
-          <style>{`
+            <style>{`
             @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;600;700;800&family=Amiri:wght@400;700&display=swap');
             @keyframes spin { to { transform: rotate(360deg); } }
             .spin { animation: spin 0.8s linear infinite; }
@@ -2937,8 +3073,8 @@ export default function App() {
             input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
             textarea::placeholder, input::placeholder { opacity: 0.45; }
           `}</style>
-        </div>
-      </AuthCtx.Provider>
+          </div>
+        </AuthCtx.Provider>
       </MenuCtx.Provider>
     </ThemeCtx.Provider>
   )
