@@ -278,7 +278,7 @@ const SectionLabel = ({ children }) => {
   )
 }
 
-/* ─── Card ───────────────────────────────────────────────────── */
+/* ─── Card (v4.2 - Fixed) ────────────────────────────────── */
 const Card = ({ children, active, style: extraStyle = {} }) => {
   const t = useTheme()
   return (
