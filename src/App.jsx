@@ -985,45 +985,53 @@ function SurveyModal({ startDay = 'monday', onClose }) {
   useEffect(() => { loadExisting() }, [currentDay, currentMeal])
 
   const loadExisting = async () => {
-    setEditBlocked(false)
     try {
-      const { data } = await supabase.from('survey_responses').select('*')
-        .eq('user_id', user.id).eq('day', currentDay).eq('meal', currentMeal)
-        .order('created_at', { ascending: false }).limit(1).single()
+      const { data } = await supabase
+        .from('survey_submissions_flat')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle()
+
       if (data) {
-        setExistingResponse(data)
-        setWantsFood(data.wants_food)
-        setResponses(data.dish_responses || {})
-        if ((data.edit_count || 0) >= 1) setEditBlocked(true)
-      } else { setExistingResponse(null); setWantsFood(null); setResponses({}); setEditBlocked(false) }
-    } catch { setExistingResponse(null); setWantsFood(null); setResponses({}); setEditBlocked(false) }
+        const prefix = `${currentDay}_${currentMeal}`
+        const status = data[`${prefix}_status`]
+        setWantsFood(status === 'Yes' ? true : status === 'No' ? false : null)
+        
+        const newResponses = {}
+        for (let i = 1; i <= 5; i++) {
+          const val = data[`${prefix}_dish_${i}`]
+          if (val) {
+            const dishName = dishes[i-1]
+            if (dishName) {
+              const mappedVal = (val === 'Yes' || val === 'No') ? val.toLowerCase() : parseInt(val)
+              newResponses[dishName] = mappedVal
+            }
+          }
+        }
+        setResponses(newResponses)
+        // Edit restriction logic can be added here if needed, 
+        // but for now we allow editing within the window since it's a flat table.
+        setEditBlocked(false)
+      } else {
+        setWantsFood(null); setResponses({}); setEditBlocked(false)
+      }
+    } catch { 
+      setWantsFood(null); setResponses({}); setEditBlocked(false) 
+    }
   }
 
-  const goToDay = (day) => { setCurrentDay(day); setCurrentMeal('lunch'); setWantsFood(null); setResponses({}) }
-
-  const dishes = currentMeal === 'lunch' ? menu.lunch : menu.dinner
+  const goToDay = (day) => { setCurrentDay(day); setCurrentMeal('lunch'); setWantsFood(null); setResponses({}); }
 
   const handleNext = async () => {
-    if (wantsFood !== null && !(existingResponse && (existingResponse.edit_count || 0) >= 1)) {
+    if (wantsFood !== null) {
       setLoading(true)
       try {
-        const { error } = await supabase.from('survey_responses').upsert([{
-          user_id: user.id, day: currentDay, meal: currentMeal, wants_food: wantsFood,
-          dish_responses: wantsFood ? responses : {},
-          edit_count: existingResponse ? (existingResponse.edit_count || 0) + 1 : 0
-        }], { onConflict: 'user_id,day,meal' })
-        if (error) throw error
-
-        // ─── Update Flat Table (Merging with existing data) ───
-        const { data: existingFlat, error: fetchError } = await supabase
+        // ─── Update Flat Table (Main collection) ───
+        const { data: existingFlat } = await supabase
           .from('survey_submissions_flat')
           .select('*')
           .eq('user_id', user.id)
           .maybeSingle()
-
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          console.error('Error fetching flat data:', fetchError)
-        }
 
         const flatData = {
           ...(existingFlat || {}),
@@ -1032,13 +1040,14 @@ function SurveyModal({ startDay = 'monday', onClose }) {
           email: user.email,
         }
         const prefix = `${currentDay}_${currentMeal}`
+        const isNewMeal = !flatData[`${prefix}_status`]
         flatData[`${prefix}_status`] = wantsFood ? 'Yes' : 'No'
 
         if (wantsFood) {
           dishes.forEach((d, idx) => {
             const val = responses[d]
             if (val !== undefined) {
-              flatData[`${prefix}_dish_${idx + 1}`] = val === 'yes' ? 'Yes' : val === 'no' ? 'No' : `${val}%`
+              flatData[`${prefix}_dish_${idx + 1}`] = (val === 'yes' || val === 'no') ? (val === 'yes' ? 'Yes' : 'No') : `${val}%`
             } else {
               flatData[`${prefix}_dish_${idx + 1}`] = ''
             }
@@ -1054,9 +1063,11 @@ function SurveyModal({ startDay = 'monday', onClose }) {
           .from('survey_submissions_flat')
           .upsert([flatData], { onConflict: 'user_id' })
         
-        if (flatError) console.error('Error updating flat table:', flatError)
+        if (flatError) throw flatError
         
-        if (!existingResponse) await supabase.rpc('increment_user_surveys', { p_user_id: user.id })
+        // Increment user total surveys only if this is a new entry for this meal
+        if (isNewMeal) await supabase.rpc('increment_user_surveys', { p_user_id: user.id })
+
       } catch (err) { alert('Error saving: ' + err.message) }
       finally { setLoading(false) }
     }
@@ -1690,17 +1701,37 @@ function MySurveysPage({ onBack }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('survey_responses').select('*').eq('user_id', user.id)
-      .order('created_at', { ascending: false })
+    supabase.from('survey_submissions_flat').select('*').eq('user_id', user.id)
+      .maybeSingle()
       .then(({ data }) => {
-        const grouped = {}
-          ; (data || []).forEach(r => {
-            if (!grouped[r.day]) grouped[r.day] = {}
-            grouped[r.day][r.meal] = r
+        if (data) {
+          const grouped = {}
+          DAYS.forEach(day => {
+            ['lunch', 'dinner'].forEach(meal => {
+              const status = data[`${day}_${meal}_status`]
+              if (status) {
+                if (!grouped[day]) grouped[day] = {}
+                const dishResponses = {}
+                for (let i = 1; i <= 5; i++) {
+                  const val = data[`${day}_${meal}_dish_${i}`]
+                  if (val) {
+                    const dishes = meal === 'lunch' ? menuConfig[day].lunch : menuConfig[day].dinner
+                    const dishName = dishes[i-1]
+                    if (dishName) dishResponses[dishName] = val
+                  }
+                }
+                grouped[day][meal] = {
+                  wants_food: status === 'Yes',
+                  dish_responses: dishResponses,
+                  edit_count: 1 // Since we allow one edit in flat table logic generally or can be removed
+                }
+              }
+            })
           })
-        setSurveys(grouped)
+          setSurveys(grouped)
+        }
       }).finally(() => setLoading(false))
-  }, [])
+  }, [user, menuConfig])
 
   return (
     <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: 600, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
@@ -1737,10 +1768,10 @@ function MySurveysPage({ onBack }) {
                       {meal === 'lunch' ? '☀️ Lunch' : '🌙 Dinner'}
                     </span>
                     <span style={{
-                      fontSize: 10, color: (r.edit_count || 0) < 1 ? t.accent : '#e05555',
+                      fontSize: 10, color: t.accent,
                       fontFamily: "'DM Sans',sans-serif", fontWeight: 600
                     }}>
-                      {(r.edit_count || 0) < 1 ? '1 edit left' : 'no edits left'}
+                      Cycle active
                     </span>
                   </div>
                   <div style={{
