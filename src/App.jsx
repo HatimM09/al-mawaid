@@ -458,7 +458,7 @@ function LoginPage({ t }) {
             letterSpacing: '0.06em', fontFamily: "'Playfair Display',serif"
           }}>Al-Mawaid</h1>
           <p style={{
-            margin: 0, fontSize: 16, color: '#765C48', fontFamily: "'Noto Nastaliq Urdu','Amiri',serif",
+            margin: 0, fontSize: 16, color: '#765C48', fontFamily: "'Amiri', serif",
             letterSpacing: '0.1em', lineHeight: 1.8
           }}>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
         </div>
@@ -603,19 +603,18 @@ function HomePage({ setActiveTab }) {
   return (
     <main style={{ padding: '16px 16px 96px', maxWidth: 600, margin: '0 auto' }}>
       {/* ── Profile strip (Normal Display) ── */}
-      <Card active style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54} />
+      <Card active style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: '22px 20px' }}>
+        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={64} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif", lineHeight: 1.2 }}>
-            {profileData.name || 'Welcome 👋'}
+          <div style={{ fontSize: 22, fontWeight: 800, color: t.accent, fontFamily: "'Playfair Display',serif", lineHeight: 1.1, marginBottom: 4 }}>
+            Thali #{profileData.thali_number || '---'}
           </div>
-          <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>{user.email}</div>
-          <div style={{ fontSize: 10, color: t.textSub, opacity: 0.6, marginTop: 2, fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.05em' }}>ID: {user.id.slice(0, 8).toUpperCase()}</div>
-          {profileData.thali_number && (
-            <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>
-              Thali <strong style={{ color: t.accent }}>#{profileData.thali_number}</strong>
-            </div>
-          )}
+          <div style={{ fontSize: 15, fontWeight: 600, color: t.text, fontFamily: "'DM Sans',sans-serif" }}>
+            {profileData.name || 'Member'}
+          </div>
+          <div style={{ fontSize: 12, color: t.textSub, opacity: 0.8, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>
+            {user.email}
+          </div>
         </div>
       </Card>
 
@@ -2701,7 +2700,7 @@ export default function App() {
 
               {activeTab === 'home' && (
                 <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', marginBottom: 2 }}>
-                  <p style={{ fontFamily: "'Noto Nastaliq Urdu','Amiri',serif", fontSize: 16, color: t.accent, margin: 0, lineHeight: 1.8 }}>
+                  <p style={{ fontFamily: "'Amiri', serif", fontSize: 16, color: t.accent, margin: 0, lineHeight: 1.8 }}>
                     بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ
                   </p>
                 </div>
