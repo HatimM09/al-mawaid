@@ -618,6 +618,24 @@ function HomePage({ setActiveTab }) {
         </div>
       </Card>
 
+      {/* Survey Button Section (Restored Position & Style) */}
+      <div style={{ marginBottom: 25 }}>
+        <SectionLabel>Weekly Feedback & Survey</SectionLabel>
+        <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
+          style={{
+            width: '100%', padding: 18, borderRadius: 16, border: 'none',
+            background: surveyOpen ? t.accentGrad : t.border,
+            color: '#fff', fontSize: 15, fontWeight: 800, cursor: surveyOpen ? 'pointer' : 'not-allowed',
+            boxShadow: surveyOpen ? `0 8px 24px ${t.accentBg}` : 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            opacity: surveyOpen ? 1 : 0.6,
+            fontFamily: "'DM Sans',sans-serif"
+          }}>
+          <ClipboardList size={20} />
+          {surveyOpen ? 'Start Weekly Survey' : 'Survey Closed Currently'}
+        </button>
+      </div>
+
       {/* Daily Meal Experience (Merged Menu & Ratings) */}
       <div style={{ marginBottom: 25 }}>
         <SectionLabel>Daily Meal Experience</SectionLabel>
@@ -702,38 +720,6 @@ function HomePage({ setActiveTab }) {
             </button>
           </div>
         </Card>
-      </div>
-
-      {/* Weekly Survey Entry */}
-      <div style={{ marginBottom: 25 }}>
-        <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
-          style={{
-            width: '100%', padding: '18px 20px', borderRadius: 20, border: 'none',
-            background: surveyOpen ? t.card : t.border,
-            color: surveyOpen ? t.accent : t.textSub, 
-            fontSize: 15, fontWeight: 800, cursor: surveyOpen ? 'pointer' : 'not-allowed',
-            boxShadow: `0 10px 30px rgba(0,0,0,0.1)`,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            opacity: surveyOpen ? 1 : 0.6,
-            border: `1px solid ${surveyOpen ? t.accentBorder : t.border}`,
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-          }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ 
-              width: 40, height: 40, borderRadius: 12, background: t.accentBg,
-              display: 'flex', alignItems: 'center', justifyContent: 'center'
-            }}>
-              <ClipboardList size={22} color={t.accent} />
-            </div>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontSize: 15, color: t.text }}>Weekly Food Survey</div>
-              <div style={{ fontSize: 11, color: t.textSub, fontWeight: 500, opacity: 0.7 }}>
-                {surveyOpen ? 'Open for submissions' : 'Currently closed'}
-              </div>
-            </div>
-          </div>
-          <ChevronRight size={20} opacity={0.5} />
-        </button>
       </div>
 
       {showSurvey && (
