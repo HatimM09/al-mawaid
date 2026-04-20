@@ -281,17 +281,15 @@ const SectionLabel = ({ children }) => {
 /* ─── Card (v4.2 - Fixed) ────────────────────────────────── */
 const Card = ({ children, active, style: extraStyle = {} }) => {
   const t = useTheme()
-  return (
-    <div style={{
-      padding: '18px 18px', borderRadius: 16,
-      background: active ? t.cardActive : t.card,
-      border: `1px solid ${active ? t.borderActive : t.border}`,
-      boxShadow: active ? `0 6px 24px ${t.accentBg}` : '0 2px 8px rgba(0,0,0,0.08)',
-      ...extraStyle
-    }}>
-      {children}
-    </div>
-  )
+  const baseStyle = {
+    padding: '18px 18px',
+    borderRadius: 16,
+    background: active ? t.cardActive : t.card,
+    border: `1px solid ${active ? t.borderActive : t.border}`,
+    boxShadow: active ? `0 6px 24px ${t.accentBg}` : '0 2px 8px rgba(0,0,0,0.08)',
+    ...extraStyle
+  }
+  return <div style={baseStyle}>{children}</div>
 }
 
 /* ─── Feature Card ───────────────────────────────────────────── */
