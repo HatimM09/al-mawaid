@@ -126,7 +126,10 @@ const DEFAULT_WEEKLY_MENU = {
 }
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 const ROTI_ITEMS = ['roti', 'chapati', 'naan', 'paratha']
-const isRotiItem = (dish) => ROTI_ITEMS.some(r => dish.toLowerCase().includes(r))
+const isRotiItem = (dish) => {
+  if (!dish) return false
+  return ROTI_ITEMS.some(r => dish.toLowerCase().includes(r))
+}
 
 const getTodayKey = () => {
   const d = new Date().getDay()
@@ -998,6 +1001,8 @@ function SurveyModal({ startDay = 'monday', onClose }) {
 
   const goToDay = (day) => { setCurrentDay(day); setCurrentMeal('lunch'); setWantsFood(null); setResponses({}) }
 
+  const dishes = currentMeal === 'lunch' ? menu.lunch : menu.dinner
+
   const handleNext = async () => {
     if (wantsFood !== null && !(existingResponse && (existingResponse.edit_count || 0) >= 1)) {
       setLoading(true)
@@ -1010,11 +1015,15 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         if (error) throw error
 
         // ─── Update Flat Table (Merging with existing data) ───
-        const { data: existingFlat } = await supabase
+        const { data: existingFlat, error: fetchError } = await supabase
           .from('survey_submissions_flat')
           .select('*')
           .eq('user_id', user.id)
-          .single()
+          .maybeSingle()
+
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error fetching flat data:', fetchError)
+        }
 
         const flatData = {
           ...(existingFlat || {}),
@@ -1031,16 +1040,13 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             if (val !== undefined) {
               flatData[`${prefix}_dish_${idx + 1}`] = val === 'yes' ? 'Yes' : val === 'no' ? 'No' : `${val}%`
             } else {
-              // Ensure we don't leave old data if dish count changed or skipped
               flatData[`${prefix}_dish_${idx + 1}`] = ''
             }
           })
-          // Clear any remaining dish slots if the menu is shorter than 5
           for (let i = dishes.length + 1; i <= 5; i++) {
             flatData[`${prefix}_dish_${i}`] = ''
           }
         } else {
-          // Clear dish values if user said 'No'
           [1, 2, 3, 4, 5].forEach(i => flatData[`${prefix}_dish_${i}`] = '')
         }
 
@@ -1069,7 +1075,6 @@ function SurveyModal({ startDay = 'monday', onClose }) {
     else if (currentDayIndex > 0) { setCurrentDay(DAYS[currentDayIndex - 1]); setCurrentMeal('dinner'); setWantsFood(null); setResponses({}) }
   }
 
-  const dishes = currentMeal === 'lunch' ? menu.lunch : menu.dinner
   const isFirst = currentDayIndex === 0 && currentMeal === 'lunch'
   const isLast = currentDayIndex === DAYS.length - 1 && currentMeal === 'dinner'
   const totalSteps = DAYS.length * 2
@@ -2807,6 +2812,7 @@ function ResetPasswordPage({ onBack = null }) {
 function SurveyReportPage() {
   const t = useTheme()
   const [data, setData] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const fileImporterRef = React.useRef(null)
@@ -2906,6 +2912,11 @@ function SurveyReportPage() {
 
   const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
+  const filteredData = data.filter(row => {
+    const s = searchTerm.toLowerCase()
+    return (row.thali_no?.toString().toLowerCase().includes(s)) || (row.email?.toLowerCase().includes(s))
+  })
+
   return (
     <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <Card style={{ padding: 0, overflow: 'hidden', border: `1px solid ${t.border}` }}>
@@ -2915,6 +2926,20 @@ function SurveyReportPage() {
             <div style={{ fontSize: 13, color: t.textSub, opacity: 0.8 }}>Real-time student responses from database</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ position: 'relative' }}>
+              <input 
+                type="text" 
+                placeholder="Search Thali or Email..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  padding: '7px 12px 7px 32px', borderRadius: 8, border: `1px solid ${t.border}`,
+                  background: t.card, color: t.text, fontSize: 11, outline: 'none', width: 180,
+                  fontFamily: "'DM Sans', sans-serif"
+                }}
+              />
+              <Star size={12} color={t.textSub} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }} />
+            </div>
             <input type="file" ref={fileImporterRef} accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
             <button onClick={() => fileImporterRef.current?.click()} style={{ background: t.card, border: `1px solid ${t.border}`, color: t.text, padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
                <Upload size={14} /> Import CSV
@@ -2990,7 +3015,7 @@ function SurveyReportPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((row, idx) => (
+              {filteredData.map((row, idx) => (
                 <tr key={row.id || idx} style={{ 
                   borderBottom: `1px solid ${t.border}`,
                   background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
