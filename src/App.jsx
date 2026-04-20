@@ -620,7 +620,7 @@ function HomePage({ setActiveTab }) {
 
       {/* Survey Button Section (Restored Position & Style) */}
       <div style={{ marginBottom: 25 }}>
-        <SectionLabel>Weekly Feedback & Survey</SectionLabel>
+        <SectionLabel>Weekly Survey</SectionLabel>
         <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
           style={{
             width: '100%', padding: 18, borderRadius: 16, border: 'none',
@@ -642,7 +642,7 @@ function HomePage({ setActiveTab }) {
         <Card style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '20px 20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: t.accent, textTransform: 'capitalize', fontFamily: "'Playfair Display',serif" }}>{todayKey}'s Selection</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: t.accent, textTransform: 'capitalize', fontFamily: "'Playfair Display',serif" }}>{todayKey}'s Menu</div>
               <div style={{ fontSize: 12, color: t.textSub, opacity: 0.7 }}>Experience your daily meals</div>
             </div>
             <div style={{ fontSize: 16, color: t.accent, fontFamily: "'Amiri',serif", opacity: 0.8 }}>{todayMenu?.ar}</div>
