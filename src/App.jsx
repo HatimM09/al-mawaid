@@ -154,7 +154,9 @@ const isSurveyOpen = () => {
   if (date >= 28 || date <= 2) return true
 
   // 2. Standard weekly window: Sat 8PM to Mon 2PM
-  return (day === 6 && totalMins >= sat20) || (day === 0) || (day === 1 && totalMins <= mon14)
+  // return (day === 6 && totalMins >= sat20) || (day === 0) || (day === 1 && totalMins <= mon14)
+  
+  return true // TEMPORARY BYPASS FOR TESTING
 }
 
 const getSurveyWindowMessage = () => {
