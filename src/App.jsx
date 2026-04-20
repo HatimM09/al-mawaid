@@ -549,7 +549,10 @@ function HomePage({ setActiveTab }) {
   const t = useTheme()
   const menuConfig = useMenuConfig()
   const { user } = useAuth()
-  const [profile, setProfile] = useState(null)
+  const [showSurvey, setShowSurvey] = useState(false)
+  const [surveyStartDay, setSurveyStartDay] = useState('monday')
+  // Integrated Profile State
+  const [profileData, setProfileData] = useState({ name: '', thali_number: '', avatar_url: '' })
   
   // Unified Feedback States
   const [feedback, setFeedback] = useState({ lunch: 0, dinner: 0, comment: '' })
@@ -561,10 +564,25 @@ function HomePage({ setActiveTab }) {
 
   useEffect(() => {
     if (user) {
-      supabase.from('user_stats').select('thali_number, name').eq('user_id', user.id).single()
-        .then(({ data }) => setProfile(data))
+      supabase.from('user_stats').select('*').eq('user_id', user.id).single()
+        .then(({ data }) => {
+          if (data) {
+             setProfile(data)
+             setProfileData({
+               name: data.name || '',
+               thali_number: data.thali_number || '',
+               avatar_url: data.avatar_url || ''
+             })
+          }
+        })
     }
   }, [user])
+
+  const openSurveyFromDay = (day) => {
+    if (!surveyOpen) return
+    setSurveyStartDay(day)
+    setShowSurvey(true)
+  }
 
   const handleFeedbackSubmit = async () => {
     if (feedback.lunch === 0 && feedback.dinner === 0) {
@@ -586,40 +604,68 @@ function HomePage({ setActiveTab }) {
     finally { setFeedbackLoading(false) }
   }
 
+  const todayKey = getTodayKey()
+  const todayMenu = menuConfig[todayKey]
+
   return (
     <main style={{ padding: '16px 16px 96px', maxWidth: 600, margin: '0 auto' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 25, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, letterSpacing: 1.5, textTransform: 'uppercase', marginBottom: 4 }}>
-            Salaam, {profile?.name?.split(' ')[0] || 'Member'}
+      {/* ── Profile strip (Normal Display) ── */}
+      <Card active style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <Avatar avatarUrl={profileData.avatar_url} name={profileData.name} email={user.email} size={54} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: t.accent, fontFamily: "'Playfair Display',serif", lineHeight: 1.2 }}>
+            {profileData.name || 'Welcome 👋'}
           </div>
-          <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: t.text, fontFamily: "'Playfair Display',serif" }}>Welcome Home</h2>
+          <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>{user.email}</div>
+          {profileData.thali_number && (
+            <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>
+              Thali <strong style={{ color: t.accent }}>#{profileData.thali_number}</strong>
+            </div>
+          )}
         </div>
-        <div style={{ width: 44, height: 44, borderRadius: 14, background: t.accentGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 20px rgba(196,156,90,0.2)' }}>
-          <User size={20} />
-        </div>
+      </Card>
+
+      {/* Today's Menu Section */}
+      <div style={{ marginBottom: 25 }}>
+        <SectionLabel>Today's Special Menu</SectionLabel>
+        <Card style={{ padding: 18, background: t.accentBg, border: `1.5px solid ${t.accentBorder}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+             <div style={{ fontSize: 18, fontWeight: 800, color: t.accent, textTransform: 'capitalize' }}>{todayKey}</div>
+             <div style={{ fontSize: 14, color: t.textSub, fontFamily: "'Amiri',serif" }}>{todayMenu?.ar}</div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
+             <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>☀️ Lunch</div>
+                <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.lunch?.join(', ')}</div>
+             </div>
+             <div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>🌙 Dinner</div>
+                <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.dinner?.join(', ')}</div>
+             </div>
+          </div>
+        </Card>
       </div>
 
-      {/* Survey Notice Card */}
-      {surveyOpen && (
-        <Card active onClick={() => setActiveTab('menu')} style={{ marginBottom: 25, padding: 18, cursor: 'pointer', border: `1.5px solid ${t.accentActive}` }}>
-           <div style={{ display: 'flex', gap: 14 }}>
-             <div style={{ width: 42, height: 42, borderRadius: 12, background: t.accentBg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.accent }}>
-                <ClipboardList size={22} />
-             </div>
-             <div style={{ flex: 1 }}>
-               <div style={{ fontSize: 16, fontWeight: 800, color: t.accent, marginBottom: 2 }}>Monthly Survey is Open</div>
-               <div style={{ fontSize: 12, color: t.textSub, opacity: 0.8 }}>Confirm your attendance from 28th to 2nd.</div>
-             </div>
-             <ChevronRight size={18} color={t.accent} style={{ alignSelf: 'center' }} />
-           </div>
-        </Card>
-      )}
+      {/* Survey Button Section */}
+      <div style={{ marginBottom: 25 }}>
+        <SectionLabel>Weekly Feedback & Survey</SectionLabel>
+        <button onClick={() => openSurveyFromDay(todayKey)} disabled={!surveyOpen}
+          style={{
+            width: '100%', padding: 18, borderRadius: 16, border: 'none',
+            background: surveyOpen ? t.accentGrad : t.border,
+            color: '#fff', fontSize: 15, fontWeight: 800, cursor: surveyOpen ? 'pointer' : 'not-allowed',
+            boxShadow: surveyOpen ? '0 8px 24px rgba(196,156,90,0.25)' : 'none',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+            opacity: surveyOpen ? 1 : 0.6
+          }}>
+          <ClipboardList size={20} />
+          {surveyOpen ? 'Start Weekly Survey' : 'Survey Closed Currently'}
+        </button>
+      </div>
 
       {/* Unified Feedback Card */}
       <div style={{ marginBottom: 25 }}>
-        <SectionLabel>Today's Meal Feedback</SectionLabel>
+        <SectionLabel>Daily Meal Feedback</SectionLabel>
         <Card style={{ padding: 20 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 15, flexWrap: 'wrap' }}>
@@ -657,17 +703,17 @@ function HomePage({ setActiveTab }) {
                 width: '100%', padding: 16, borderRadius: 14, border: 'none', background: t.accentGrad,
                 color: '#fff', fontSize: 15, fontWeight: 800, cursor: 'pointer', boxShadow: '0 8px 20px rgba(196,156,90,0.2)'
               }}>
-              {feedbackLoading ? 'Submitting...' : feedbackSubmitted ? '✅ Feedback Sent!' : 'Submit Ratings'}
+              {feedbackLoading ? 'Submitting...' : feedbackSubmitted ? '✅ Feedback Sent!' : 'Submit Daily Ratings'}
             </button>
           </div>
         </Card>
       </div>
 
-      {/* Features Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <FeatureCard title="Support" sub="Help & Queries" Icon={Mail} color="#6366f1" onClick={() => setActiveTab('post')} />
-        <FeatureCard title="Weekly Menu" sub="Full Schedule" Icon={ClipboardList} color="#f59e0b" onClick={() => setActiveTab('menu')} />
-      </div>
+      {showSurvey && (
+        <SurveyModal
+          startDay={surveyStartDay}
+          onClose={() => { setShowSurvey(false) }} />
+      )}
     </main>
   )
 }
