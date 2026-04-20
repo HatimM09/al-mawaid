@@ -560,7 +560,6 @@ function HomePage({ setActiveTab }) {
       supabase.from('user_stats').select('*').eq('user_id', user.id).single()
         .then(({ data }) => {
           if (data) {
-             setProfile(data)
              setProfileData({
                name: data.name || '',
                thali_number: data.thali_number || '',
@@ -568,6 +567,7 @@ function HomePage({ setActiveTab }) {
              })
           }
         })
+        .catch(err => console.error('Error fetching profile:', err))
     }
   }, [user])
 
