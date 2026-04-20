@@ -1,4 +1,4 @@
-// src/App.jsx — Al-Mawaid Food Survey System v4
+// src/App.jsx — Al-Mawaid Food Survey System v4.1
 import React, { useState, useEffect, useRef, createContext, useContext, useCallback } from 'react'
 import {
   Home, FileText, User, X,
@@ -335,12 +335,6 @@ function MenuPage() {
                   alignItems: 'center', cursor: 'pointer', background: isToday ? 'rgba(196,156,90,0.08)' : 'transparent'
                 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 38, height: 38, borderRadius: 12, background: isToday ? t.accentGrad : t.cardActive,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', color: isToday ? '#fff' : t.accent
-                  }}>
-                    <ClipboardList size={18} />
-                  </div>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 800, color: t.text, textTransform: 'capitalize', fontFamily: "'DM Sans',sans-serif" }}>
                       {menu.en} {isToday && <span style={{ fontSize: 10, color: t.accent, marginLeft: 4 }}>(Today)</span>}
@@ -348,7 +342,6 @@ function MenuPage() {
                     <div style={{ fontSize: 12, color: t.textSub, opacity: 0.7 }}>{menu.ar}</div>
                   </div>
                 </div>
-                {isExpanded ? <ChevronUp size={18} color={t.textSub} /> : <ChevronDown size={18} color={t.textSub} />}
               </div>
 
               {isExpanded && (
@@ -367,7 +360,7 @@ function MenuPage() {
                             padding: '8px 14px', borderRadius: 10, background: t.cardActive,
                             border: `1px solid ${t.border}`, fontSize: 13, color: t.textBody, display: 'flex', alignItems: 'center', gap: 6
                           }}>
-                            {isRotiItem(d) ? '🍞' : '🍽️'} {d}
+                            {d}
                           </div>
                         ))}
                       </div>
@@ -617,6 +610,7 @@ function HomePage({ setActiveTab }) {
             {profileData.name || 'Welcome 👋'}
           </div>
           <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>{user.email}</div>
+          <div style={{ fontSize: 10, color: t.textSub, opacity: 0.6, marginTop: 2, fontFamily: "'DM Sans',sans-serif", letterSpacing: '0.05em' }}>ID: {user.id.slice(0, 8).toUpperCase()}</div>
           {profileData.thali_number && (
             <div style={{ fontSize: 12, color: t.textSub, marginTop: 2, fontFamily: "'DM Sans',sans-serif" }}>
               Thali <strong style={{ color: t.accent }}>#{profileData.thali_number}</strong>
@@ -635,11 +629,11 @@ function HomePage({ setActiveTab }) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 15 }}>
              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>☀️ Lunch</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>Lunch</div>
                 <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.lunch?.join(', ')}</div>
              </div>
              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>🌙 Dinner</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: t.accent, marginBottom: 6 }}>Dinner</div>
                 <div style={{ fontSize: 13, color: t.text, lineHeight: 1.6 }}>{todayMenu?.dinner?.join(', ')}</div>
              </div>
           </div>
