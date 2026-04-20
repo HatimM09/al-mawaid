@@ -138,6 +138,7 @@ const getTodayKey = () => {
 // Open: Saturday 20:00 → Monday 14:00 (2:00 PM)
 const isSurveyOpen = () => {
   const now = new Date()
+  const date = now.getDate()
   const day = now.getDay()
   const hour = now.getHours()
   const min = now.getMinutes()
@@ -146,24 +147,28 @@ const isSurveyOpen = () => {
   const sat20 = 20 * 60
   const mon14 = 14 * 60
 
-  // Standard weekly window: Sat 8PM to Mon 2PM
+  // 1. Monthly window: Open from 28th to 2nd
+  if (date >= 28 || date <= 2) return true
+
+  // 2. Standard weekly window: Sat 8PM to Mon 2PM
   return (day === 6 && totalMins >= sat20) || (day === 0) || (day === 1 && totalMins <= mon14)
 }
 
 const getSurveyWindowMessage = () => {
   const now = new Date()
+  const date = now.getDate()
   const day = now.getDay()
   const hour = now.getHours()
 
+  if (date >= 28 || date <= 2) {
+    return `Monthly Survey Window is OPEN (until the 2nd).`
+  }
   if (day === 6 && hour < 20) {
     const hoursLeft = 20 - hour
     return `Survey opens today at 8:00 PM (in ~${hoursLeft}h)`
   }
   if (day === 1 && hour >= 14) {
-    return 'Survey window closed. Opens next Saturday at 8:00 PM.'
-  }
-  if (day >= 2 && day <= 5) {
-    return 'Survey opens Saturday at 8:00 PM.'
+    return 'Weekly window closed. Opens next Saturday at 8:00 PM.'
   }
   return 'Survey opens Saturday at 8:00 PM.'
 }
@@ -816,7 +821,7 @@ function HomePage({ setActiveTab }) {
           fontSize: 13, color: t.successText, fontFamily: "'DM Sans',sans-serif",
           display: 'flex', alignItems: 'center', gap: 8
         }}>
-          ✅ Survey window is open! (Sat 8PM – Mon 2PM)
+          ✅ {new Date().getDate() <= 2 || new Date().getDate() >= 28 ? 'Monthly Survey Open (28th–2nd)' : 'Weekly Survey Window Open'}
         </div>
       )}
 
@@ -1004,8 +1009,15 @@ function SurveyModal({ startDay = 'monday', onClose }) {
         }], { onConflict: 'user_id,day,meal' })
         if (error) throw error
 
-        // ─── Update Flat Table ───
+        // ─── Update Flat Table (Merging with existing data) ───
+        const { data: existingFlat } = await supabase
+          .from('survey_submissions_flat')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+
         const flatData = {
+          ...(existingFlat || {}),
           user_id: user.id,
           thali_no: profile?.thali_number || '',
           email: user.email,
@@ -1018,8 +1030,18 @@ function SurveyModal({ startDay = 'monday', onClose }) {
             const val = responses[d]
             if (val !== undefined) {
               flatData[`${prefix}_dish_${idx + 1}`] = val === 'yes' ? 'Yes' : val === 'no' ? 'No' : `${val}%`
+            } else {
+              // Ensure we don't leave old data if dish count changed or skipped
+              flatData[`${prefix}_dish_${idx + 1}`] = ''
             }
           })
+          // Clear any remaining dish slots if the menu is shorter than 5
+          for (let i = dishes.length + 1; i <= 5; i++) {
+            flatData[`${prefix}_dish_${i}`] = ''
+          }
+        } else {
+          // Clear dish values if user said 'No'
+          [1, 2, 3, 4, 5].forEach(i => flatData[`${prefix}_dish_${i}`] = '')
         }
 
         const { error: flatError } = await supabase
@@ -2787,6 +2809,7 @@ function SurveyReportPage() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const fileImporterRef = React.useRef(null)
 
   useEffect(() => {
     loadData()
@@ -2808,6 +2831,75 @@ function SurveyReportPage() {
     }
   }
 
+  const exportToCSV = () => {
+    if (!data.length) return
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+    const headers = ['Thali', 'Email']
+    days.forEach(d => {
+      ['lunch', 'dinner'].forEach(m => {
+        headers.push(`${d}_${m}_status`, `${d}_${m}_d1`, `${d}_${m}_d2`, `${d}_${m}_d3`, `${d}_${m}_d4`, `${d}_${m}_d5`)
+      })
+    })
+
+    const rows = data.map(row => {
+      const line = [row.thali_no || '', row.email || '']
+      days.forEach(day => {
+        ['lunch', 'dinner'].forEach(meal => {
+          line.push(row[`${day}_${meal}_status`] || '')
+          for (let i = 1; i <= 5; i++) {
+            line.push(row[`${day}_${meal}_dish_${i}`] || '')
+          }
+        })
+      })
+      return line.join(',')
+    })
+
+    const csvContent = [headers.join(','), ...rows].join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.setAttribute('href', url)
+    link.setAttribute('download', `AlMawaid_Survey_Report_${new Date().toISOString().split('T')[0]}.csv`)
+    link.style.visibility = 'hidden'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (evt) => {
+      const text = evt.target.result
+      const lines = text.split('\n').map(l => l.split(','))
+      if (lines.length < 2) return
+      
+      const headers = lines[0]
+      const importedData = lines.slice(1).filter(l => l.length > 1).map((line, idx) => {
+        const obj = { id: `imported-${idx}` }
+        headers.forEach((h, i) => {
+          // Map CSV headers back to our keys
+          const key = h.trim()
+            .replace('_status', '_status')
+            .replace('_d1', '_dish_1')
+            .replace('_d2', '_dish_2')
+            .replace('_d3', '_dish_3')
+            .replace('_d4', '_dish_4')
+            .replace('_d5', '_dish_5')
+          
+          if (key === 'Thali') obj.thali_no = line[i]
+          else if (key === 'Email') obj.email = line[i]
+          else obj[key] = line[i]
+        })
+        return obj
+      })
+      setData(importedData)
+      alert('CSV Data Visualized! (Note: This is temporary, not saved to database)')
+    }
+    reader.readAsText(file)
+  }
+
   if (loading) return <Spinner />
   if (error) return <ErrorBanner msg={error} />
   if (data.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: t.textSub }}>No submissions found yet.</div>
@@ -2817,12 +2909,48 @@ function SurveyReportPage() {
   return (
     <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <Card style={{ padding: 0, overflow: 'hidden', border: `1px solid ${t.border}` }}>
-        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, background: t.cardActive, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, background: t.cardActive, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
           <div>
             <SectionLabel>Live Survey Report</SectionLabel>
             <div style={{ fontSize: 13, color: t.textSub, opacity: 0.8 }}>Real-time student responses from database</div>
           </div>
-          <button onClick={() => { setLoading(true); loadData(); }} style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, color: t.accent, padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input type="file" ref={fileImporterRef} accept=".csv" onChange={handleFileUpload} style={{ display: 'none' }} />
+            <button onClick={() => fileImporterRef.current?.click()} style={{ background: t.card, border: `1px solid ${t.border}`, color: t.text, padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+               <Upload size={14} /> Import CSV
+            </button>
+            <button onClick={exportToCSV} style={{ background: t.accentGrad, border: 'none', color: '#fff', padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+               <FileText size={14} /> Export CSV
+            </button>
+            <button onClick={() => { setLoading(true); loadData(); }} style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, color: t.accent, padding: '7px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
+          </div>
+        </div>
+
+        {/* Summary Stats Selection */}
+        <div style={{ padding: '20px', background: 'rgba(255,255,255,0.01)', borderBottom: `1px solid ${t.border}` }}>
+          <SectionLabel>Weekly Summary (Total "Yes")</SectionLabel>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
+            {days.map(day => {
+              const lunchYes = data.filter(r => r[`${day}_lunch_status`] === 'Yes').length
+              const dinnerYes = data.filter(r => r[`${day}_dinner_status`] === 'Yes').length
+              return (
+                <div key={day} style={{ padding: 12, borderRadius: 12, background: t.card, border: `1px solid ${t.border}`, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: t.accent, textTransform: 'capitalize', marginBottom: 6 }}>{day}</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: t.textSub, marginBottom: 2 }}>Lunch</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: t.successText }}>{lunchYes}</div>
+                    </div>
+                    <div style={{ width: 1, background: t.border }}></div>
+                    <div>
+                      <div style={{ fontSize: 10, color: t.textSub, marginBottom: 2 }}>Dinner</div>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: t.successText }}>{dinnerYes}</div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
         
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -2908,6 +3036,7 @@ function SurveyReportPage() {
       
       <div style={{ marginTop: 24, fontSize: 11, color: t.textSub, textAlign: 'center', opacity: 0.6 }}>
         <p>Tip: Scroll horizontally to view all days. Data updates instantly when students submit surveys.</p>
+        <p>You can also export this data to CSV or import an existing CSV to visualize it here.</p>
       </div>
     </main>
   )
