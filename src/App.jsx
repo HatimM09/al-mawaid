@@ -961,12 +961,18 @@ function SurveyModal({ startDay = 'monday', onClose }) {
   const [currentMeal, setCurrentMeal] = useState('lunch')
   const [responses, setResponses] = useState({})
   const [wantsFood, setWantsFood] = useState(null)
+  const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(false)
   const [existingResponse, setExistingResponse] = useState(null)
   const [editBlocked, setEditBlocked] = useState(false)
 
   const currentDayIndex = DAYS.indexOf(currentDay)
   const menu = menuConfig[currentDay]
+
+  useEffect(() => {
+    supabase.from('user_stats').select('thali_number, name').eq('user_id', user.id).single()
+      .then(({ data }) => setProfile(data))
+  }, [user])
 
   useEffect(() => { loadExisting() }, [currentDay, currentMeal])
 
@@ -997,6 +1003,31 @@ function SurveyModal({ startDay = 'monday', onClose }) {
           edit_count: existingResponse ? (existingResponse.edit_count || 0) + 1 : 0
         }], { onConflict: 'user_id,day,meal' })
         if (error) throw error
+
+        // ─── Update Flat Table ───
+        const flatData = {
+          user_id: user.id,
+          thali_no: profile?.thali_number || '',
+          email: user.email,
+        }
+        const prefix = `${currentDay}_${currentMeal}`
+        flatData[`${prefix}_status`] = wantsFood ? 'Yes' : 'No'
+
+        if (wantsFood) {
+          dishes.forEach((d, idx) => {
+            const val = responses[d]
+            if (val !== undefined) {
+              flatData[`${prefix}_dish_${idx + 1}`] = val === 'yes' ? 'Yes' : val === 'no' ? 'No' : `${val}%`
+            }
+          })
+        }
+
+        const { error: flatError } = await supabase
+          .from('survey_submissions_flat')
+          .upsert([flatData], { onConflict: 'user_id' })
+        
+        if (flatError) console.error('Error updating flat table:', flatError)
+        
         if (!existingResponse) await supabase.rpc('increment_user_surveys', { p_user_id: user.id })
       } catch (err) { alert('Error saving: ' + err.message) }
       finally { setLoading(false) }
@@ -2758,51 +2789,40 @@ function SurveyReportPage() {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    fetch('/Survey data insert_rows (1).csv')
-      .then(res => res.text())
-      .then(text => {
-        const lines = text.split('\n').filter(l => l.trim() !== '')
-        if (lines.length === 0) return
-        
-        const rows = lines.map(line => {
-          // Simple CSV parser handling quotes
-          const result = []
-          let start = 0
-          let inQuotes = false
-          for (let i = 0; i < line.length; i++) {
-            if (line[i] === '"') inQuotes = !inQuotes
-            else if (line[i] === ',' && !inQuotes) {
-              result.push(line.substring(start, i).replace(/^"|"$/g, ''))
-              start = i + 1
-            }
-          }
-          result.push(line.substring(start).replace(/^"|"$/g, ''))
-          return result
-        })
-        setData(rows)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError('Failed to load survey data')
-        setLoading(false)
-      })
+    loadData()
   }, [])
+
+  const loadData = async () => {
+    try {
+      const { data: dbData, error: dbError } = await supabase
+        .from('survey_submissions_flat')
+        .select('*')
+        .order('thali_no', { ascending: true })
+
+      if (dbError) throw dbError
+      setData(dbData || [])
+    } catch (err) {
+      setError('Failed to load survey data: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   if (loading) return <Spinner />
   if (error) return <ErrorBanner msg={error} />
-  if (data.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: t.textSub }}>No data available</div>
+  if (data.length === 0) return <div style={{ textAlign: 'center', padding: 40, color: t.textSub }}>No submissions found yet.</div>
 
-  const headers = data[0]
-  const rows = data.slice(1)
-
-  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
 
   return (
     <main style={{ flex: 1, padding: '16px 16px 96px', maxWidth: '100vw', boxSizing: 'border-box', overflowX: 'hidden' }}>
       <Card style={{ padding: 0, overflow: 'hidden', border: `1px solid ${t.border}` }}>
-        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, background: t.cardActive }}>
-          <SectionLabel>Survey Responses</SectionLabel>
-          <div style={{ fontSize: 13, color: t.textSub, opacity: 0.8 }}>Showing all student survey responses from CSV</div>
+        <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.border}`, background: t.cardActive, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <SectionLabel>Live Survey Report</SectionLabel>
+            <div style={{ fontSize: 13, color: t.textSub, opacity: 0.8 }}>Real-time student responses from database</div>
+          </div>
+          <button onClick={() => { setLoading(true); loadData(); }} style={{ background: t.accentBg, border: `1px solid ${t.accentBorder}`, color: t.accent, padding: '6px 12px', borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Refresh</button>
         </div>
         
         <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -2813,7 +2833,7 @@ function SurveyReportPage() {
                 <th rowSpan={3} style={{ padding: '12px 16px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'left', position: 'sticky', left: 0, zIndex: 10, background: t.cardActive }}>Thali</th>
                 <th rowSpan={3} style={{ padding: '12px 16px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'left', position: 'sticky', left: 80, zIndex: 10, background: t.cardActive }}>Email</th>
                 {days.map(day => (
-                  <th key={day} colSpan={12} style={{ padding: '8px 12px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'center', borderBottom: `1px solid ${t.border}` }}>
+                  <th key={day} colSpan={12} style={{ padding: '8px 12px', borderRight: `1px solid ${t.border}`, color: t.accent, textAlign: 'center', borderBottom: `1px solid ${t.border}`, textTransform: 'capitalize' }}>
                     {day}
                   </th>
                 ))}
@@ -2833,40 +2853,51 @@ function SurveyReportPage() {
                   <React.Fragment key={day}>
                     {/* Lunch sub-headers */}
                     <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>Res</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D1</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D2</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D3</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D4</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D5</th>
+                    {[1, 2, 3, 4, 5].map(i => <th key={i} style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D{i}</th>)}
                     {/* Dinner sub-headers */}
                     <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>Res</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D1</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D2</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D3</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D4</th>
-                    <th style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D5</th>
+                    {[1, 2, 3, 4, 5].map(i => <th key={i} style={{ padding: '4px 8px', borderRight: `1px solid ${t.border}`, fontSize: 10, color: t.textSub }}>D{i}</th>)}
                   </React.Fragment>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, idx) => (
-                <tr key={idx} style={{ 
+              {data.map((row, idx) => (
+                <tr key={row.id || idx} style={{ 
                   borderBottom: `1px solid ${t.border}`,
                   background: idx % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)'
                 }}>
-                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.text, fontWeight: 700, position: 'sticky', left: 0, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row[0]}</td>
-                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.textSub, fontSize: 11, position: 'sticky', left: 80, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row[1]}</td>
-                  {row.slice(2).map((cell, cIdx) => (
-                    <td key={cIdx} style={{ 
-                      padding: '8px 12px', 
-                      borderRight: `1px solid ${t.border}`,
-                      color: cell === 'Yes' ? t.successText : cell === 'No' ? '#e06070' : t.textBody,
-                      textAlign: 'center',
-                      background: cell.includes('%') && parseInt(cell) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
-                    }}>
-                      {cell}
-                    </td>
+                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.text, fontWeight: 700, position: 'sticky', left: 0, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row.thali_no || 'N/A'}</td>
+                  <td style={{ padding: '10px 16px', borderRight: `1px solid ${t.border}`, color: t.textSub, fontSize: 11, position: 'sticky', left: 80, zIndex: 5, background: idx % 2 === 0 ? t.card : '#1a2436' }}>{row.email || 'N/A'}</td>
+                  {days.map(day => (
+                    <React.Fragment key={day}>
+                      {/* Lunch Cells */}
+                      {['status', 'dish_1', 'dish_2', 'dish_3', 'dish_4', 'dish_5'].map(col => {
+                        const val = row[`${day}_lunch_${col}`] || ''
+                        return (
+                          <td key={col} style={{ 
+                            padding: '8px 12px', borderRight: `1px solid ${t.border}`, textAlign: 'center',
+                            color: val === 'Yes' ? t.successText : val === 'No' ? '#e06070' : t.textBody,
+                            background: val.includes('%') && parseInt(val) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
+                          }}>
+                            {val}
+                          </td>
+                        )
+                      })}
+                      {/* Dinner Cells */}
+                      {['status', 'dish_1', 'dish_2', 'dish_3', 'dish_4', 'dish_5'].map(col => {
+                        const val = row[`${day}_dinner_${col}`] || ''
+                        return (
+                          <td key={col} style={{ 
+                            padding: '8px 12px', borderRight: `1px solid ${t.border}`, textAlign: 'center',
+                            color: val === 'Yes' ? t.successText : val === 'No' ? '#e06070' : t.textBody,
+                            background: val.includes('%') && parseInt(val) > 50 ? 'rgba(94,186,130,0.05)' : 'transparent'
+                          }}>
+                            {val}
+                          </td>
+                        )
+                      })}
+                    </React.Fragment>
                   ))}
                 </tr>
               ))}
@@ -2876,7 +2907,7 @@ function SurveyReportPage() {
       </Card>
       
       <div style={{ marginTop: 24, fontSize: 11, color: t.textSub, textAlign: 'center', opacity: 0.6 }}>
-        <p>Tip: Scroll horizontally to view all days. Sticky columns help track Thali and Email.</p>
+        <p>Tip: Scroll horizontally to view all days. Data updates instantly when students submit surveys.</p>
       </div>
     </main>
   )
